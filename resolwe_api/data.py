@@ -4,12 +4,12 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from .utils import iterate_schema
 
 
-class GenData(object):
+class Data(object):
 
-    """Genesis data object annotation."""
+    """Resolwe data object annotation."""
 
-    def __init__(self, data, gencloud):
-        self.gencloud = gencloud
+    def __init__(self, data, resolwe):
+        self.resolwe = resolwe
         self.update(data)
 
     def update(self, data):
@@ -87,10 +87,10 @@ class GenData(object):
         if ann['type'] != 'basic:file:':
             raise ValueError("Only basic:file: field can be downloaded")
 
-        return next(self.gencloud.download([self.id], field))
+        return next(self.resolwe.download([self.id], field))
 
     def __str__(self):
         return self.name
 
     def __repr__(self):
-        return u"GenObject: {} - {}".format(self.id, self.name)
+        return u"Data: {} - {}".format(self.id, self.name)

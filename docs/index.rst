@@ -1,39 +1,22 @@
 
-Genesis PyAPI Documentation
-===========================
+.. _index:
 
+=================================
+Resolwe Bioinformatics Python API
+=================================
 
-Install
--------
+Python API for `Resolwe Bioinformatics`_---Bioinformatics pipelines for the
+Resolwe_ dataflow package for `Django framework`_.
 
-To install, run::
+.. _Resolwe Bioinformatics: https://github.com/genialis/resolwe-bio
+.. _Resolwe: https://github.com/genialis/resolwe
+.. _Django framework: https://www.djangoproject.com/
 
-  python setup.py install
+Contents
+========
 
-To install for development, run::
+.. toctree::
+   :maxdepth: 2
 
-  python setup.py develop
-
-
-
-Reference
----------
-
-.. autoclass:: genesis.Genesis
-   :members:
-
-.. autoclass:: genesis.GenProject
-   :members:
-
-.. autoclass:: genesis.GenData
-   :members:
-
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
+   ref
+   contributing

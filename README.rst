@@ -1,11 +1,22 @@
-=============
-Genesis PyAPI
-=============
+=================================
+Resolwe Bioinformatics Python API
+=================================
 
-Python API for the Genesis platform.
+Python API for `Resolwe Bioinformatics`_—Bioinformatics pipelines for the
+Resolwe_ dataflow package for `Django framework`_.
+
+.. _Resolwe Bioinformatics: https://github.com/genialis/resolwe-bio
+.. _Resolwe: https://github.com/genialis/resolwe
+.. _Django framework: https://www.djangoproject.com/
+
+Docs & Help
+===========
+
+Read detailed description in the documentation_.
+
+.. _documentation: http://resolwe-bio-py.readthedocs.org/
 
 
-=======
 Install
 =======
 
@@ -18,7 +29,6 @@ To install for development, run::
   python setup.py develop
 
 
-=====
 Usage
 =====
 
