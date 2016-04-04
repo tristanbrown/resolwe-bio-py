@@ -301,7 +301,7 @@ class Resolwe(object):
                     Exception("File {} not found".format(field_val))
 
         inputs = {}
-        
+
         for field_name, field_val in fields.items():
             if find_field(p['input_schema'], field_name)['type'].startswith('basic:file:'):
 
@@ -317,7 +317,7 @@ class Resolwe(object):
                 }
             else:
                 inputs[field_name] = field_val
-        
+
         d = {
             'status': 'uploading',  # should it be uploaded?
             'process': proc_name_to_id[process_name],
@@ -325,10 +325,10 @@ class Resolwe(object):
             'slug': str(uuid.uuid4()),
             'name': name,
         }
-        
+
         if len(collections) > 0:
             d['collections'] = collections
-            
+
         return self.create(d)
 
     def _upload_file(self, fn):
@@ -345,6 +345,7 @@ class Resolwe(object):
         base_name = os.path.basename(fn)
         session_id = str(uuid.uuid4())
 
+        response = None
         with open(fn, 'rb') as f:
             while True:
                 chunk = f.read(CHUNK_SIZE)
