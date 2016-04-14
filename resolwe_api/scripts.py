@@ -143,7 +143,7 @@ def sequp():
 
     # Find new reads
     all_new_read_files = []
-    read_file_extensions = ['*.fastq', '*.fq']
+    read_file_extensions = ['*.fastq', '*.fastq.gz', '*.fq', '*.fq.gz']
 
     for root, _, filenames in os.walk(genialis_seq_dir):
         for extension in read_file_extensions:
@@ -176,7 +176,7 @@ def sequp():
         # We use 'rU' mode to be able to read also files with '\r' chars
         with open(annotation_file, 'rU') as f:
             try:
-                reader = csv.DictReader(f, delimiter=str('\t'))
+                reader = csv.DictReader(filter(lambda row: row[0]!='#', f), delimiter=str('\t'))
 
                 # One line is one annotation (one reads file)
                 for row in reader:
@@ -244,7 +244,6 @@ def sequp():
             # XXX: Filter collections by sample descriptor schema
             # sample_schemas = resolwe.api.descriptorschema.get(slug='sample')
             # sample_schemas = sample_schemas[0] if len(sample_schemas) > 0 else None
-
             data_id = response.json()['id']
             sample = resolwe.api.collection.get(data=data_id, )[0]
 

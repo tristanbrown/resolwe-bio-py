@@ -1,5 +1,5 @@
 """Resolwe"""
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import absolute_import, division, print_function
 
 import json
 import os
@@ -21,7 +21,7 @@ from .collection import Collection
 from .utils import find_field, iterate_schema
 
 
-CHUNK_SIZE = 10000
+CHUNK_SIZE = 90000000
 DEFAULT_EMAIL = 'anonymous@genialis.com'
 DEFAULT_PASSWD = 'anonymous'
 DEFAULT_URL = 'https://dictyexpress.research.bcm.edu'
@@ -346,12 +346,12 @@ class Resolwe(object):
         :type fn: string
 
         """
-        file_size = os.path.getsize(fn)
-        chunk_number = 0
-        base_name = os.path.basename(fn)
-        session_id = str(uuid.uuid4())
-
         response = None
+        chunk_number = 0
+        session_id = str(uuid.uuid4())
+        file_size = os.path.getsize(fn)
+        base_name = os.path.basename(fn)
+
         with open(fn, 'rb') as f:
             while True:
                 chunk = f.read(CHUNK_SIZE)
@@ -366,20 +366,20 @@ class Resolwe(object):
                     response = requests.post(urlparse.urljoin(self.url, 'upload/'),
                                              auth=self.auth,
 
-                                            # request are smart and make
-                                            #  'CONTENT_TYPE': 'multipart/form-data;''
-                                             files={'file':(base_name, chunk)},
+                                             # request are smart and make
+                                             # 'CONTENT_TYPE': 'multipart/form-data;''
+                                             files={'file': (base_name, chunk)},
 
                                              # stuff in data will be present in response.POST on server
                                              data={
-                                                '_chunkSize': CHUNK_SIZE,
-                                                '_totalSize': file_size,
-                                                '_chunkNumber': chunk_number,
-                                                '_currentChunkSize': len(chunk),
-                                            },
+                                                 '_chunkSize': CHUNK_SIZE,
+                                                 '_totalSize': file_size,
+                                                 '_chunkNumber': chunk_number,
+                                                 '_currentChunkSize': len(chunk),
+                                             },
                                              headers={
-                                                 'Session-Id': session_id}
-                                            )
+                                                 'Session-Id': session_id
+                                             })
                     if response.status_code in [200, 201]:
                         break
                 else:
