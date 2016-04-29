@@ -36,22 +36,21 @@ Create an API instance:
 
 .. code-block:: python
 
-   from genesis import Genesis
-   gen = Genesis()
+   from resolwe_api import Resolwe
+   re = Resolwe('me@mail.com', 'my_password', 'www.resolwe.com')
 
-
-Get all project and select the first one:
+Get all collections and select the first one:
 
 .. code-block:: python
 
-   projects = gen.projects()
-   project = list(projects.values())[0]
+   collections = re.collections()
+   collection = list(collections.values())[0]
 
 Get expression objects and select the first one:
 
 .. code-block:: python
 
-   expressions = project.data(type__startswith='data:expression:')
+   expressions = collection.data(type__startswith='data:expression:')
    expression = expressions[0]
 
 Print annotation:
@@ -71,6 +70,7 @@ Download file:
 .. code-block:: python
 
    filename = expression.annotation['output.exp']['value']['file']
-   resp = expression.download('output.exp')
-   with open(filename, 'w') as fd:
-       fd.write(resp.content)
+   file_stream = expression.download('output.exp')
+   with open(filename, 'w') as f:
+       for part in file_stream:
+           f.write(part)

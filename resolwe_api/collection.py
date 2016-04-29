@@ -31,7 +31,7 @@ class Collection(object):
 
         :rtype: List
         """
-        data = self.resolwe.project_data(self.id)
+        data = self.resolwe.collection_data(self.id)
         return sorted(set(d.type for d in data))
 
     # TODO
