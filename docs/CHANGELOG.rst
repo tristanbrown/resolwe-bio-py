@@ -14,6 +14,7 @@ Changed
 
 Fixed
 -----
+* Sequp for paired-end data
 
 Added
 -----

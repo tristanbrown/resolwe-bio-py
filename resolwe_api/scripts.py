@@ -203,9 +203,6 @@ def sequp():
     # Connect to Resolwe server
     resolwe = Resolwe(genialis_email, genialis_pass, genialis_url)
 
-    # process_name = 'import:upload:reads-fastq'
-    process_name = 'Upload NGS reads'
-
     read_schemas = resolwe.api.descriptorschema.get(slug='reads')
     read_schema = read_schemas[0] if len(read_schemas) > 0 else None
 
@@ -213,9 +210,7 @@ def sequp():
     uploaded_files = []
     for fn in set(set(annotations.keys()) & set(all_new_read_files_uploaded)):
         kwargs = {
-            'process_name': process_name,
-            'name': annotations[fn]['SAMPLE_NAME'],
-            'src': fn,
+            'name': annotations[fn]['SAMPLE_NAME']
         }
 
         if read_schema:
@@ -229,11 +224,13 @@ def sequp():
 
         # Paired-end reads
         if annotations[fn]['PAIRED_END'] == 'Y' and annotations[fn]['FASTQ_PATH_PAIR']:
+            kwargs['process_name'] = 'Upload paired-end NGS reads'
             kwargs['src1'] = fn
-            kwargs['src2'] = annotations[fn]['FASTQ_PATH_PAIR']
+            kwargs['src2'] = os.path.join(genialis_seq_dir, annotations[fn]['FASTQ_PATH_PAIR'])
 
         # Single-end reads
         else:
+            kwargs['process_name'] = 'Upload NGS reads'
             kwargs['src'] = fn
 
         response = resolwe.upload(**kwargs)
