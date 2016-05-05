@@ -4,6 +4,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 class Collection(object):
 
+    endpoint = 'collection'
+
     """Resolwe collection annotation."""
 
     def __init__(self, ann_data, resolwe):

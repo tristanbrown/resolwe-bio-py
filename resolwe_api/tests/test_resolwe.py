@@ -10,98 +10,6 @@ from resolwe_api import Data, Collection
 from DATA import COLLECTIONS_SAMPLE, COLLECTIONS_SAMPLE_2, PROCESS_SAMPLE, DATA_SAMPLE
 
 
-class TestResolweCollections(unittest.TestCase):
-
-    @patch('resolwe_api.resolwe.Resolwe', spec=True)
-    def test_collections_if_cache_not_empty(self, resolwe_mock):
-
-        # Add 'cache' attribute to mock object and set its value:
-        resolwe_mock.configure_mock(cache={'collections': {'id1': 'some collection object'}})
-        # resolwe_mock does not have api attribute by default -> create it:
-        resolwe_mock.api = MagicMock()
-        self.assertEqual(Resolwe.collections(resolwe_mock), {'id1': 'some collection object'})
-        # Ensure that output was not generated from calling api.collections.get():
-        self.assertEqual(len(resolwe_mock.api.mock_calls), 0)
-        collection_mock = MagicMock('resolwe_api.resolwe.Collection')
-        self.assertEqual(len(collection_mock.mock_calls), 0)
-
-    @patch('resolwe_api.resolwe.Resolwe', spec=True)
-    def test_collections_if_cache_empty(self, resolwe_mock):
-
-        # This is the default cache when Resolwe __init__ is executed.
-        resolwe_mock.cache = {
-                                'data': {},
-                                'collections': None,
-                                'collections_data': {}
-                            }
-        # Specify what should be returned when api.collection.get() is called.
-        resolwe_mock.api = MagicMock(**{'collection.get.return_value': COLLECTIONS_SAMPLE})
-        collection_mock = MagicMock('resolwe_api.resolwe.Collection')
-
-        r = Resolwe.collections(resolwe_mock)
-        self.assertIsInstance(list(r.values())[0], Collection)
-        self.assertEqual(str(r), '{21: Collection: 21 - TestCollection}')
-        self.assertEqual(len(resolwe_mock.api.mock_calls), 1)
-        self.assertEqual(len(collection_mock.mock_calls), 0)
-
-
-class TestResolweCollectionData(unittest.TestCase):
-
-    @patch('resolwe_api.resolwe.Resolwe', spec=True)
-    def test_collection_data(self, resolwe_mock):
-
-        # Case#1: cache has data for desired collection; collection is valid id number:
-        resolwe_mock.cache = {'data': {}, 'collections': None, 'collections_data': {42: 'bla'}}
-        r = Resolwe.collection_data(resolwe_mock, 42)
-        self.assertEqual(r, 'bla')
-
-        # Case#2: cache has data for desired collection; collection is valid slug:
-        resolwe_mock.cache = {'data': {}, 'collections': None, 'collections_data': {42: 'bla'}}
-        resolwe_mock.api = MagicMock()
-        resolwe_mock.api.collection.get = MagicMock(return_value=[{'slug': 'valid_slug', 'id': 42}])
-        r = Resolwe.collection_data(resolwe_mock, 'valid_slug')
-        self.assertEqual(r, 'bla')
-
-        # Case#3: cache has data for desired collection; collection is NOT a valid slug:
-        resolwe_mock.cache = {'data': {}, 'collections': None, 'collections_data': {42: 'bla'}}
-        resolwe_mock.api = MagicMock()
-        resolwe_mock.api.collection.get = MagicMock(return_value=[])
-        with self.assertRaises(ValueError) as exc:
-            Resolwe.collection_data(resolwe_mock, 'invalid_slug')
-        m = r"Parameter .* is not a valid collection slug"
-        self.assertRegexpMatches(exc.exception.args[0], m)
-
-        # Case#4: non-existent collection ID:
-        resolwe_mock.cache = {'data': {}, 'collections': None, 'collections_data': {42: 'bla'}}
-        m1 = MagicMock(**{'get.side_effect': [HttpNotFoundError()]})
-        resolwe_mock.api = MagicMock(**{'collection.return_value': m1})
-        with self.assertRaises(ValueError) as exc:
-            Resolwe.collection_data(resolwe_mock, 43)
-        self.assertRegexpMatches(exc.exception.args[0], r"Collections id .* does not exist")
-
-        # Case#5: cache is empty; collection is a valid id number:
-        resolwe_mock.cache = {'data': {}, 'collections': None, 'collections_data': {}}
-        m1 = MagicMock(**{'get.return_value': COLLECTIONS_SAMPLE_2})
-        m2 = MagicMock(**{'get.side_effect': [DATA_SAMPLE[0], DATA_SAMPLE[1]]})
-        resolwe_mock.api = MagicMock(**{'collection.return_value': m1, 'data.return_value': m2})
-        r = Resolwe.collection_data(resolwe_mock, 1)
-        self.assertEqual(str(r), '[Data: 13 - Name1, Data: 14 - Name2]')
-
-
-class TestResolweData(unittest.TestCase):
-
-    @patch('resolwe_api.resolwe.Resolwe', spec=True)
-    def test_data(self, resolwe_mock):
-
-        resolwe_mock.cache = {'data': {}}
-        resolwe_mock.api = MagicMock()
-        resolwe_mock.api.data.get = MagicMock(return_value=DATA_SAMPLE[1:2])
-
-        r = Resolwe.data(resolwe_mock, status='ER')
-
-        self.assertEqual(len(r), 1)
-
-
 class TestResolweProcesses(unittest.TestCase):
 
     @patch('resolwe_api.resolwe.Resolwe', spec=True)
@@ -160,7 +68,7 @@ class TestResolwePrintProcessInputs(unittest.TestCase):
         resolwe_mock.processes.return_value = PROCESS_SAMPLE
         sys_mock.stdout.write = MagicMock()
         Resolwe.print_process_inputs(resolwe_mock, 'Upload NGS reads')
-        sys_mock.stdout.write.assert_called_with('src -> basic:file:')
+        sys_mock.stdout.write.assert_called_with('src -> basic:file:\n')
 
 
 class TestResolweCreate(unittest.TestCase):

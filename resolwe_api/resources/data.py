@@ -6,15 +6,10 @@ from .utils import iterate_schema
 
 class Data(object):
 
-    """Resolwe data object annotation.
+    endpoint = 'data'
 
-    So, what is Resolwe data object exactly.
-
-    It is best if we explain what it does. when creating dataSo can be considered as a copy of all anntations from specific data object.
-    What is data object? At least link to somewhere where this is explained!
-
-
-    Nujno moram vedeti bolj kako izgleda data objekt na nai platformi. V vsej splosnosti. Vedeti moram kaj so fieldi, kaj so vse te sheme...
+    """
+    Resolwe data object annotation.
     """
 
     def __init__(self, data, resolwe):
@@ -27,6 +22,7 @@ class Data(object):
 
         :param data: Annotation data for data object
         :type collection: dictionary
+
         :rtype: None
 
         """
@@ -63,11 +59,16 @@ class Data(object):
         for f in fields:
             setattr(self, f, data[f])
 
-         # Annotation itam are flattened -this means that the deep structure is all brought to one mian level.
-         # Kaj smo prej s tem hoteli naredit?
-        self.annotation.update(self._flatten_field(data['input'], data['process_input_schema'], 'input'))
-        self.annotation.update(self._flatten_field(data['output'], data['process_output_schema'], 'output'))
-        # any more updates?
+        self.annotation.update(self._flatten_field(data['input'],
+                                                   data['process_input_schema'],
+                                                   'input'
+                                                   )
+                               )
+        self.annotation.update(self._flatten_field(data['output'],
+                                                   data['process_output_schema'],
+                                                   'output'
+                                                   )
+                               )
 
     def _flatten_field(self, field, schema, path):
         """
@@ -96,6 +97,30 @@ class Data(object):
         """Print "key: value" pairs to standard output."""
         for path, ann in self.annotation.items():
             print("{}: {}".format(path, ann['value']))
+
+    def _get_download_list(self, verbose=False):
+        """
+        Get list of all downloadable fields
+
+        :param verbose: Verbose output.
+        :type verbose: boolean
+
+        If verbose = False, return list of strings (file names)
+        If verbose = True, return list of tuples. Each tuple contains:
+        (data_id, file_name, field_name, process_type)
+        """
+        dlist = []
+        for path, ann in self.annotation.items():
+            if path.startswith('output') and ann['type'] == 'basic:file:':
+                if verbose:
+                    dlist.append((self.id,
+                                 ann['value']['file'],
+                                 path,
+                                 self.process_type)
+                                 )
+                else:
+                    dlist.append(ann['value']['file'])
+        return dlist
 
     def print_downloads(self):
         """Print fields that can be downloaded to standard output."""

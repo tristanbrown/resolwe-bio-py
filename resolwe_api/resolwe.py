@@ -11,9 +11,10 @@ import ntpath
 import requests
 import slumber
 
-from .data import Data
-from .collection import Collection
-from .utils import find_field, iterate_schema
+from .resources.data import Data
+from .resources.collection import Collection
+from .resources.sample import Sample
+from .resources.utils import find_field, iterate_schema
 
 from requests.exceptions import ConnectionError
 
@@ -29,7 +30,6 @@ DEFAULT_URL = 'https://dictyexpress.research.bcm.edu'
 
 
 class Resolwe(object):
-
     """Python API for Resolwe Bioinformatics."""
 
     def __init__(self, email=DEFAULT_EMAIL, password=DEFAULT_PASSWD, url=DEFAULT_URL):
@@ -40,171 +40,15 @@ class Resolwe(object):
         self.auth = ResAuth(email, password, url)
         self.api = slumber.API(urlparse.urljoin(url, '/api/'), self.auth, append_slash=False)
 
+        self.data = ResolweQuerry(self, Data)
+        self.collection = ResolweQuerry(self, Collection)
+        self.sample = ResolweQuerry(self, Sample)
+
         # data = dict of (data_id - Data object) pairs
         # collections = dict of (collection_id - Collection object) pairs
         # collections_data - dict of (collection_id - Data objects list) pairs,
         self.cache = {'data': {}, 'collections': None, 'collections_data': {}}
         # TODO: what if there are updates on server? How to know when to update cache?
-
-    def collections(self):
-        """Return a list :obj:`Collection` collections.
-
-        :rtype: list of :obj:`Collection` collections
-
-        """
-        if not ('collections' in self.cache and self.cache['collections']):
-            self.cache['collections'] = {c['id']: Collection(c, self) for c in
-                                         self.api.collection.get()}
-        return self.cache['collections']
-
-        # TODO what if person does not have access to some data objects?
-        # Should output be somehow different?
-
-    def collection_data(self, collection):
-        """Return a list of Data objects for a given collection.
-
-        :param collection: ObjectId or slug of a collection
-        :type collection: string
-        :rtype: list of Data objects
-
-        """
-        #
-        cache_collections_data = self.cache['collections_data']
-        cache_data = self.cache['data']
-
-        # Ensure that collection is not a slug, but ID number.
-        if not re.match('^[0-9]+$', str(collection)):
-            collections = self.api.collection.get(**{'slug': str(collection)})
-            if len(collections) != 1:
-                raise ValueError('Parameter {} is not a valid collection slug.'.format(collection))
-
-            collection = collections[0]['id']
-
-        if collection not in cache_collections_data:
-            try:
-                data_id_list = self.api.collection(collection).get()['data']
-            except slumber.exceptions.HttpNotFoundError:
-                raise ValueError("Collections id {} does not exist.".format(collection))
-            if len(data_id_list) == 0:
-                return []
-
-            cache_collections_data[collection] = []
-
-            data = [self.api.data(id_).get() for id_ in data_id_list]
-            for d in data:
-                # First update all retrieved data in cache_data
-                data_id = d['id']
-                if data_id in cache_data:
-                    cache_data[data_id].update(d)
-                else:
-                    cache_data[data_id] = Data(d, self)
-
-                cache_collections_data[collection].append(cache_data[data_id])
-
-            # Hydrate reference fields
-            # TODO: This is inconsistent - we only do it for data objects in cache.
-            for d in cache_collections_data[collection]:
-                while True:
-                    ref_annotation = {}
-                    remove_annotation = []
-                    for path, ann in d.annotation.items():
-                        if ann['type'].startswith('data:'):
-                            # Referenced data object found
-                            # Copy annotation
-                            if ann['value'] in self.cache['objects']:
-                                annotation = self.cache['objects'][ann['value']].annotation
-                                ref_annotation.update({path + '.' + k: v for k, v in
-                                                      annotation.items()})
-
-                            remove_annotation.append(path)
-                    if ref_annotation:
-                        d.annotation.update(ref_annotation)
-                        for path in remove_annotation:
-                            del d.annotation[path]
-                    else:
-                        break
-
-        return cache_collections_data[collection]
-
-    def data(self, **query):
-        """
-        Query for Data object annotation.
-
-        Querries can be made with the following keywords (and operators)
-
-            * Fields (and possible operators):
-                * slug (=)
-                    * Example: resolwe.data(slug="some_slug")
-                * contributor (=)
-                    * Example: resolwe.data(contributor="some_slug")
-                * status (=)
-                    * Example: resolwe.data(contributor="1", status="ER")
-                * name (=)
-                * created (=)
-                * modified (=)
-                * input (=)
-                * descriptor (=)
-                * started (=)
-                * finished (=)
-                * output (=)
-                * process (=)
-                * type (=)
-                * collection (=)
-
-        Examples:
-
-        * resolwe.data(slug="some_slug")
-        * resolwe.data(contributor="1", status="ER")
-
-        Note: filtering will probably change/upgrade, it is defined in: resolwe/flow/filters.py
-        """
-        objects = self.cache['data']
-        data = self.api.data.get(**query)
-        data_objects = []
-
-        for d in data:
-            _id = d['id']
-            if _id in objects:
-                objects[_id].update(d)
-            else:
-                objects[_id] = Data(d, self)
-
-            data_objects.append(objects[_id])
-
-        # Hydrate reference fields
-        count = 0
-        for d in data_objects:
-            count += 1
-            while True:
-                ref_annotation = {}
-                remove_annotation = []
-                for path, ann in d.annotation.items():
-                    if ann['type'].startswith('data:'):
-                        # Referenced data object found
-                        # Copy annotation
-                        _id = ann['value']
-                        if _id not in objects:
-                            try:
-                                d_tmp = self.api.data(_id).get()
-                            except slumber.exceptions.HttpClientError as ex:
-                                if ex.response.status_code == 404:
-                                    continue
-                                else:
-                                    raise ex
-
-                            objects[_id] = Data(d_tmp, self)
-
-                        annotation = objects[_id].annotation
-                        ref_annotation.update({path + '.' + k: v for k, v in annotation.items()})
-                        remove_annotation.append(path)
-                if ref_annotation:
-                    d.annotation.update(ref_annotation)
-                    for path in remove_annotation:
-                        del d.annotation[path]
-                else:
-                    break
-
-        return data_objects
 
     def processes(self, process_name=None):
         """Return a list of Processor objects.
@@ -250,7 +94,7 @@ class Resolwe(object):
         for field_schema, _, _ in iterate_schema({}, p['input_schema'], 'input'):
             name = field_schema['name']
             typ = field_schema['type']
-            sys.stdout.write("{} -> {}".format(name, typ))
+            sys.stdout.write("{} -> {}\n".format(name, typ))
 
     def create(self, data, resource='data'):
         """Create an object of resource:
@@ -493,3 +337,95 @@ class ResAuth(requests.auth.AuthBase):
         # if r.path_url != '/upload/':
         #     r.headers['X-SubscribeID'] = self.subscribe_id
         return request
+
+
+class ResolweQuerry(object):
+    """
+    Enable querries on data, collection and sample endpoints in Resolwe.
+
+    Each Resolwe instance (for example "re") has threee "endpoints": re.data,
+    re.collections and re.sample. Each such andpooint is an instance of
+    ResolweQuerry class. ResolweQuerry enables querries on
+    corresponding objects, for example:
+
+    re.data.get(42) # return Data object with ID 42.
+    re.sample.filter(contributor=1) # return all samples made by contributor 1
+
+    Detailed description of methods can be found in method docstrings.
+    """
+
+    def __init__(self, resolwe, Resource):
+        self.resolwe = resolwe
+        self.resource = Resource
+        self.endpoint = Resource.endpoint
+        self.api = getattr(resolwe.api, Resource.endpoint)
+
+    def get(self, uid):
+        """
+        Get object with provided ID or slug.
+
+        :param uid: unique identifier - ID or slug
+        :type uid: int(ID) or string(slug)
+
+        :rtype: object of type self.resource
+        """
+        try:
+            if re.match('^[0-9]+$', str(uid)):  # iud is ID number:
+                return self.resource(self.api(str(uid)).get(), self.resolwe)
+            else:  # uid is slug
+                return self.resource(self.api.get(slug=uid)[0], self.resolwe)
+        except slumber.exceptions.HttpNotFoundError:
+            raise ValueError('Id: "{}" does not exist or you dont have access '
+                             'permission.'.format(str(uid)))
+        except IndexError:
+            raise ValueError('Slug: "{}" does not exist or you dont have '
+                             'access permission.'.format(uid))
+
+    def filter(self, **kwargs):
+        """
+        Return a list of Data objects that match kwargs.
+
+        Querries can be made with the following keywords (and operators)
+            * Fields (and operators) for **data** endpoint:
+                * slug (=)
+                * contributor (=)
+                * status (=)
+                * name (=)
+                * created (=)
+                * modified (=)
+                * input (=)
+                * descriptor (=)
+                * started (=)
+                * finished (=)
+                * output (=)
+                * process (=)
+                * type (=)
+                * collection (=)
+            * Fields (and operators) for **collecction** and **sample** endpoint:
+                * contributor (=)
+                * name (=)
+                * description (=)
+                * created (=)
+                * modified (=)
+                * slug (=)
+                * descriptor (=)
+                * data (=)
+                * descriptor_schema (=)
+                * id (=)
+
+        Example usage:
+        # Get a list of data objects with status set to OK.
+        re.data.filter(status='OK')
+        # Get a liust of sample objects that contain data object 42 and
+        # were contributed by contibutor with ID 1
+        re.collection.filter(data=42, contributor=1)
+
+        Note: The filtering options might change (improve) with time.
+        """
+        return [self.resource(x, self.resolwe) for x in self.api.get(**kwargs)]
+
+    def search(self):
+        """
+        Full text search.
+        """
+        raise NotImplementedError()
