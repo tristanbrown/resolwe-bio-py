@@ -40,9 +40,11 @@ setup(
     license=about['__license__'],
 
     packages=find_packages(),
-    include_package_data=True,
+    package_data={
+        'resolwe_api': ['tests/files/*'],
+    },
+
     zip_safe=False,
-    package_data={},
     install_requires=(
         "requests>=2.6.0",
         "slumber>=0.7.1",
@@ -60,6 +62,7 @@ setup(
         'test': [
             'check-manifest',
             'coverage>=3.7.1',
+            'mock==1.3.0',
             'pep8>=1.6.2',
             'pylint>=1.4.3',
             'readme_renderer',
