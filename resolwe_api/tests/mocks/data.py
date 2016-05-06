@@ -1,56 +1,37 @@
-# When we make a smart search aka
-# .../api/collection?slug=TestCollection
-# we get al list of dictionaries, even if there is just one result:
-COLLECTIONS_SAMPLE = [{u'contributor': 1,
-      u'created': u'2016-04-07T08:03:38.314293Z',
-      u'data': [13, 14],
-      u'description': u'Test colllection',
-      u'descriptor': {},
-      u'descriptor_schema': None,
-      u'id': 21,
-      u'modified': u'2016-04-07T08:03:38.314330Z',
-      u'name': u'TestCollection',
-      u'permissions': {
-            u'group': [],
-            u'public': [],
-            u'user': [u'add', u'download', u'edit', u'share', u'view']},
-      u'settings': {},
-      u'slug': u'TestCollection'}]
+# pylint: skip-file
+COLLECTIONS_SAMPLE = [
+    {u'contributor': 1,
+     u'created': u'2016-04-07T08:03:38.314293Z',
+     u'data': [13, 14],
+     u'description': u'Test colllection',
+     u'descriptor': {},
+     u'descriptor_schema': None,
+     u'id': 21,
+     u'modified': u'2016-04-07T08:03:38.314330Z',
+     u'name': u'TestCollection',
+     u'permissions': {
+        u'group': [],
+        u'public': [],
+        u'user': [u'add', u'download', u'edit', u'share', u'view']},
+     u'settings': {},
+     u'slug': u'TestCollection'}]
 
-
-# When we search with pk (which is id in our case?):
-# .../api/collection/1
-# we get juts a collection = dictionary
-COLLECTIONS_SAMPLE_2 = {u'contributor': 1,
-      u'created': u'2016-04-07T08:03:38.314293Z',
-      u'data': [13, 14],
-      u'description': u'Test colllection',
-      u'descriptor': {},
-      u'descriptor_schema': None,
-      u'id': 21,
-      u'modified': u'2016-04-07T08:03:38.314330Z',
-      u'name': u'TestCollection',
-      u'permissions': {
-            u'group': [],
-            u'public': [],
-            u'user': [u'add', u'download', u'edit', u'share', u'view']},
-      u'settings': {},
-      u'slug': u'TestCollection'}
-
-PROCESS_SAMPLE = [{u'category': u'upload:',
- u'contributor': 1,
- u'created': u'2016-04-20T10:37:15.058595Z',
- u'description': u'Upload NGS reads in FASTQ format.\n',
- u'id': 99,
- u'input_schema': [{u'description': u'NGS reads in FASTQ format. Supported extensions: .fastq.gz (preferred), .fq.* or .fastq.*\n',
-   u'label': u'NGS reads (FASTQ)',
-   u'name': u'src',
-   u'required': True,
-   u'type': u'basic:file:',
-   u'validate_regex': u'(\\.(fastq|fq)(|\\.gz|\\.bz2|\\.tgz|\\.tar\\.gz|\\.tar\\.bz2|\\.zip|\\.rar|\\.7z))|(\\.bz2)$'}],
- u'modified': u'2016-04-20T10:37:15.058616Z',
- u'name': u'Upload NGS reads',
- u'output_schema': [{u'label': u'Reads file',
+PROCESS_SAMPLE = [
+    {u'category': u'upload:',
+     u'contributor': 1,
+     u'created': u'2016-04-20T10:37:15.058595Z',
+     u'description': u'Upload NGS reads in FASTQ format.\n',
+     u'id': 99,
+     u'input_schema': [
+        {u'description': u'NGS reads in FASTQ format. Supported extensions: .fastq.gz (preferred), .fq.* or .fastq.*\n',
+         u'label': u'NGS reads (FASTQ)',
+         u'name': u'src',
+         u'required': True,
+         u'type': u'basic:file:',
+         u'validate_regex': u'(\\.(fastq|fq)(|\\.gz|\\.bz2|\\.tgz|\\.tar\\.gz|\\.tar\\.bz2|\\.zip|\\.rar|\\.7z))|(\\.bz2)$'}],
+         u'modified': u'2016-04-20T10:37:15.058616Z',
+         u'name': u'Upload NGS reads',
+         u'output_schema': [{u'label': u'Reads file',
    u'name': u'fastq',
    u'type': u'basic:file:'},
   {u'label': u'Number of reads',

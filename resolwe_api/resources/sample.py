@@ -6,6 +6,7 @@ import six
 
 from .base import DOWNLOAD_TYPES
 
+
 class Sample(object):
     """
     Resolwe sample annotation.
@@ -29,22 +30,20 @@ class Sample(object):
             setattr(self, field, ann_data[field])
 
         self.resolwe = resolwe
-        self.id = getattr(self, 'id', None)
-        self.name = getattr(self, 'name', None)
 
     def __str__(self):
-        return self.name or 'n/a'
+        return self.name or 'n/a'  # pylint: disable=no-member
 
     def __repr__(self):
-        return "{}: {} - {}".format(endpoint.capitalize(), self.id, self.name)
+        return "Sample: {} - {}".format(self.id, self.name)  # pylint: disable=no-member
 
     def files(self, verbose=False):
         """
         Get a list of all files contained in sample.
         """
         file_list = []
-        for data_id in self.data:
-            file_list += self.resolwe.data.get(data_id)._get_download_list(verbose=verbose)
+        for id_ in self.data:  # pylint: disable=no-member
+            file_list += self.resolwe.data.get(id_).get_download_list(verbose=verbose)  # pylint: disable=no-member
         return file_list
 
     def download(self, name=None, typ=None, download_dir=None, force=False):
@@ -114,20 +113,20 @@ class Sample(object):
                 data_type, output_field = typ
             else:
                 raise ValueError('Invalid argument typ.')
-            dfiles = [d for d in dfiles if (data_type in d[3] and output_field == d[2])]
+            dfiles = [d for d in dfiles if data_type in d[3] and output_field == d[2]]
 
         print("Following files will be downloaded to direcotry {}:".format(download_dir))
-        for f in dfiles:
-            print("* {}".format(f[1]))
+        for dfile in dfiles:
+            print("* {}".format(dfile[1]))
             # TODO: add file size in print!
 
         for data_id, filename, field, _ in dfiles:
-            with open(os.path.join(download_dir, filename), 'wb') as f:
+            with open(os.path.join(download_dir, filename), 'wb') as file_:
                 handle = self.resolwe.download([data_id], field)
                 for chunk in handle:
-                    f.write(chunk)
+                    file_.write(chunk)
 
-    def get_dowoad_handle():
+    def get_dowoad_handle(self):
         """
         Do not start download, just return handle.
         """

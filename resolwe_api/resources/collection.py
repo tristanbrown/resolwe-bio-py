@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 
 class Collection(object):
+    """Resolwe collection annotation."""
 
     endpoint = 'collection'
 
@@ -24,7 +25,7 @@ class Collection(object):
             setattr(self, field, ann_data[field])
 
         self.resolwe = resolwe
-        self.id = getattr(self, 'id', None)
+        self.id_ = getattr(self, 'id', None)
         self.name = getattr(self, 'name', None)
 
     def data_types(self):
@@ -33,14 +34,14 @@ class Collection(object):
 
         :rtype: List
         """
-        data = self.resolwe.collection_data(self.id)
+        data = self.resolwe.collection_data(self.id_)
         return sorted(set(d.type for d in data))
 
     # TODO
     def data(self, **query):
         """Query for Data object annotation."""
-        data = self.resolwe.project_data(self.id)
-        query['case_ids__contains'] = self.id
+        data = self.resolwe.project_data(self.id_)
+        query['case_ids__contains'] = self.id_
         ids = set(d['id'] for d in self.resolwe.api.dataid.get(**query)['objects'])
         return [d for d in data if d.id in ids]
 
@@ -53,4 +54,4 @@ class Collection(object):
         return self.name or 'n/a'
 
     def __repr__(self):
-        return u"Collection: {} - {}".format(self.id, self.name)
+        return u"Collection: {} - {}".format(self.id_, self.name)

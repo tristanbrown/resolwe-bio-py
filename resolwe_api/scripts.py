@@ -72,7 +72,8 @@ def sequp():
     # XXX: Increase to 1h
     change_time_window = 5
 
-    parser = argparse.ArgumentParser(description='Auto-upload NGS reads from directory to the Resolwe server.')
+    parser = argparse.ArgumentParser(description='Auto-upload NGS reads from '
+                                     'directory to the Resolwe server.')
 
     parser.add_argument('-a', '--address', help='Resolwe server address')
     parser.add_argument('-e', '--email', help='User e-mail')
@@ -100,8 +101,8 @@ def sequp():
         data = {}
         # If file present
         if os.path.isfile(config_file):
-            with open(config_file, 'r') as f:
-                for line in f:
+            with open(config_file, 'r') as file_:
+                for line in file_:
                     parts = line.strip().split('\t')
                     data[parts[0]] = float(parts[1])
             if genialis_seq_dir in data:
@@ -119,9 +120,9 @@ def sequp():
 
         def write_timestamp(pairs):
             """Write the timestamp into appropriate file"""
-            with open(config_file, 'w') as f:
+            with open(config_file, 'w') as file_:
                 for first, second in pairs.items():
-                    f.write(str(first) + '\t' + str(second) + '\n')
+                    file_.write(str(first) + '\t' + str(second) + '\n')
 
         # If file exists, rewrite
         if os.path.isfile(config_file):
@@ -148,9 +149,9 @@ def sequp():
     for root, _, filenames in os.walk(genialis_seq_dir):
         for extension in read_file_extensions:
             for filename in fnmatch.filter(filenames, extension):
-                f = os.path.join(root, filename)
-                if os.path.getmtime(f) > timestamp:
-                    all_new_read_files.append(f)
+                path = os.path.join(root, filename)
+                if os.path.getmtime(path) > timestamp:
+                    all_new_read_files.append(path)
 
     # Determnine if the candidate files are fully uploaded by the
     # sequencer. The idea is that the file size does not change in a
@@ -174,9 +175,10 @@ def sequp():
 
         anns = {}
         # We use 'rU' mode to be able to read also files with '\r' chars
-        with open(annotation_file, 'rU') as f:
+        with open(annotation_file, 'rU') as file_:
             try:
-                reader = csv.DictReader(filter(lambda row: row[0]!='#', f), delimiter=str('\t'))
+                reader = csv.DictReader([row for row in file_ if row[0] != '#'],
+                                        delimiter=str('\t'))
 
                 # One line is one annotation (one reads file)
                 for row in reader:
@@ -184,7 +186,8 @@ def sequp():
                     row.update({k.upper(): v for k, v in row.items()})
 
                     if 'FASTQ_PATH' in row:
-                        seqfile = os.path.normpath(os.path.join(genialis_seq_dir, row['FASTQ_PATH']))
+                        seqfile = os.path.normpath(os.path.join(genialis_seq_dir,
+                                                                row['FASTQ_PATH']))
 
                         if os.path.isfile(seqfile):
                             row['FASTQ_PATH'] = seqfile
@@ -281,8 +284,7 @@ def readsup():
 
     args = parser.parse_args()
 
-    if not (args.r or (args.r1 and args.r2)) or \
-        (args.r and (args.r1 or args.r2)):
+    if not (args.r or (args.r1 and args.r2)) or (args.r and (args.r1 or args.r2)):
         parser.print_help()
         print("\nERROR: define either -r or -r1 and -r2.\n")
         exit(1)
@@ -310,8 +312,7 @@ def readsup_batch():
 
     args = parser.parse_args()
 
-    if not (args.r or (args.r1 and args.r2)) or \
-        (args.r and (args.r1 or args.r2)):
+    if not (args.r or (args.r1 and args.r2)) or (args.r and (args.r1 or args.r2)):
         parser.print_help()
         print("\nERROR: define either -r or -r1 and -r2\n")
         exit(1)

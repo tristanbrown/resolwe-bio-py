@@ -5,6 +5,9 @@ from .utils import iterate_schema
 
 
 class Data(object):
+    """
+    Resolwe data object annotation.
+    """
 
     endpoint = 'data'
 
@@ -56,19 +59,15 @@ class Data(object):
         ]
 
         self.annotation = {}
-        for f in fields:
-            setattr(self, f, data[f])
+        for field in fields:
+            setattr(self, field, data[field])
 
         self.annotation.update(self._flatten_field(data['input'],
                                                    data['process_input_schema'],
-                                                   'input'
-                                                   )
-                               )
+                                                   'input'))
         self.annotation.update(self._flatten_field(data['output'],
                                                    data['process_output_schema'],
-                                                   'output'
-                                                   )
-                               )
+                                                   'output'))
 
     def _flatten_field(self, field, schema, path):
         """
@@ -98,7 +97,7 @@ class Data(object):
         for path, ann in self.annotation.items():
             print("{}: {}".format(path, ann['value']))
 
-    def _get_download_list(self, verbose=False):
+    def get_download_list(self, verbose=False):
         """
         Get list of all downloadable fields
 
@@ -114,10 +113,8 @@ class Data(object):
             if path.startswith('output') and ann['type'] == 'basic:file:':
                 if verbose:
                     dlist.append((self.id,
-                                 ann['value']['file'],
-                                 path,
-                                 self.process_type)
-                                 )
+                                  ann['value']['file'],
+                                  path, self.process_type))  # pylint: disable=no-member
                 else:
                     dlist.append(ann['value']['file'])
         return dlist
@@ -149,7 +146,7 @@ class Data(object):
         return next(self.resolwe.download([self.id], field))
 
     def __str__(self):
-        return self.name
+        return self.name  # pylint: disable=no-member
 
     def __repr__(self):
-        return u"Data: {} - {}".format(self.id, self.name)
+        return u"Data: {} - {}".format(self.id, self.name)  # pylint: disable=no-member

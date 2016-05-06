@@ -1,28 +1,37 @@
+"""
+Unit tests for resolwe_api/resolwe.py file.
+"""
+# pylint: disable=missing-docstring, protected-access
+
 import os
 import unittest
+import six
 
 from mock import patch, MagicMock
 import requests
 from slumber.exceptions import HttpNotFoundError
 
 from resolwe_api.resolwe import Resolwe, ResAuth
-from resolwe_api import Data, Collection
-from DATA import COLLECTIONS_SAMPLE, COLLECTIONS_SAMPLE_2, PROCESS_SAMPLE, DATA_SAMPLE
+from resolwe_api.tests.mocks.data import PROCESS_SAMPLE, DATA_SAMPLE
+
+if six.PY2:
+    # pylint: disable=deprecated-method
+    unittest.TestCase.assertRegex = unittest.TestCase.assertRegexpMatches
 
 
 class TestResolweProcesses(unittest.TestCase):
 
     @patch('resolwe_api.resolwe.Resolwe', spec=True)
-    def test_process_without_process_name(self, resolwe_mock):
+    def test_process_without_name(self, resolwe_mock):
         resolwe_mock.api = MagicMock()
         resolwe_mock.api.process.get = MagicMock(return_value=PROCESS_SAMPLE)
 
-        r = Resolwe.processes(resolwe_mock)
+        resolwe = Resolwe.processes(resolwe_mock)
 
-        self.assertIsInstance(r, list)
-        self.assertEqual(len(r), 4)
-        self.assertIsInstance(r[0], dict)
-        self.assertEqual(r[0]['name'], 'Upload NGS reads')
+        self.assertIsInstance(resolwe, list)
+        self.assertEqual(len(resolwe), 4)
+        self.assertIsInstance(resolwe[0], dict)
+        self.assertEqual(resolwe[0]['name'], 'Upload NGS reads')
         self.assertEqual(len(resolwe_mock.api.mock_calls), 1)
 
     @patch('resolwe_api.resolwe.Resolwe', spec=True)
@@ -30,12 +39,12 @@ class TestResolweProcesses(unittest.TestCase):
         resolwe_mock.api = MagicMock()
         resolwe_mock.api.process.get = MagicMock(return_value=PROCESS_SAMPLE)
 
-        r = Resolwe.processes(resolwe_mock, 'Variant filtering (Chemical Mutagenesis)')
+        resolwe = Resolwe.processes(resolwe_mock, 'Variant filtering (Chemical Mutagenesis)')
 
-        self.assertIsInstance(r, list)
-        self.assertEqual(len(r), 1)
-        self.assertIsInstance(r[0], dict)
-        self.assertEqual(r[0]['name'], 'Variant filtering (Chemical Mutagenesis)')
+        self.assertIsInstance(resolwe, list)
+        self.assertEqual(len(resolwe), 1)
+        self.assertIsInstance(resolwe[0], dict)
+        self.assertEqual(resolwe[0]['name'], 'Variant filtering (Chemical Mutagenesis)')
         self.assertEqual(len(resolwe_mock.api.mock_calls), 1)
 
 
@@ -62,7 +71,7 @@ class TestResolwePrintProcessInputs(unittest.TestCase):
         resolwe_mock.processes.return_value = []
         with self.assertRaises(Exception) as exc:
             Resolwe.print_process_inputs(resolwe_mock, 'Bad processor name')
-        self.assertRegexpMatches(exc.exception.args[0], r"Invalid process name: .*.")
+        self.assertRegex(exc.exception.args[0], r"Invalid process name: .*.")  # pylint: disable=deprecated-method
 
         # Check output is correct
         resolwe_mock.processes.return_value = PROCESS_SAMPLE
@@ -74,17 +83,17 @@ class TestResolwePrintProcessInputs(unittest.TestCase):
 class TestResolweCreate(unittest.TestCase):
 
     @patch('resolwe_api.resolwe.requests')
-    @patch('resolwe_api.resolwe.urlparse')
+    @patch('resolwe_api.resolwe.urljoin')
     @patch('resolwe_api.resolwe.json')
     @patch('resolwe_api.resolwe.Resolwe', spec=True)
-    def test_create(self, resolwe_mock, json_mock, urlparse_mock, requests_mock):
+    def test_create(self, resolwe_mock, json_mock, urljoin_mock, requests_mock):
         resolwe_mock.url = 'http://some/url'
         resolwe_mock.auth = MagicMock()
         json_mock.dumps = MagicMock(return_value="whatever")
-        urlparse_mock.urljoin = MagicMock()
+        urljoin_mock = MagicMock()
         requests_mock.post = MagicMock(return_value="Something!")
 
-        r = Resolwe.create(resolwe_mock, {"a": "b"})
+        resolwe = Resolwe.create(resolwe_mock, {"a": "b"})
         self.assertEqual(json_mock.dumps.call_count, 1)
         json_mock.dumps.assert_called_with({"a": "b"})
 
@@ -92,9 +101,9 @@ class TestResolweCreate(unittest.TestCase):
         self.assertRaises(ValueError, Resolwe.create, *(resolwe_mock, 666))
 
         json_mock.dumps.reset_mock()
-        r = Resolwe.create(resolwe_mock, "some input")
+        resolwe = Resolwe.create(resolwe_mock, "some input")
         self.assertEqual(json_mock.dumps.call_count, 0)
-        self.assertEqual(r, "Something!")
+        self.assertEqual(resolwe, "Something!")
 
         # Raise error on bad name for resource
         self.assertRaises(ValueError, Resolwe.create,
@@ -113,20 +122,21 @@ class TestResolweUpload(unittest.TestCase):
         resolwe_mock.processes.return_value = []
         with self.assertRaises(Exception) as exc:
             Resolwe.upload(resolwe_mock, 'Bad processor name')
-        self.assertRegexpMatches(exc.exception.args[0], r"Invalid process name: .*.")
+        self.assertRegex(exc.exception.args[0], r"Invalid process name: .*.")  # pylint: disable=deprecated-method
 
         # Bad processor inputs - bad keyword name
         resolwe_mock.processes.side_effect = [PROCESS_SAMPLE, PROCESS_SAMPLE[:1]]
         with self.assertRaises(Exception) as exc:
             Resolwe.upload(resolwe_mock, 'Upload NGS reads', bad_key="Blah.")
-        self.assertRegexpMatches(exc.exception.args[0], r"Field .* not in process .* inputs.")
+        self.assertRegex(  # pylint: disable=deprecated-method
+            exc.exception.args[0], r"Field .* not in process .* inputs.")
 
         # Bad processor inputs - bad keyword value:
         resolwe_mock.processes.side_effect = [PROCESS_SAMPLE, PROCESS_SAMPLE[:1]]
         os_mock.path.isfile.return_value = False
         with self.assertRaises(Exception) as exc:
             Resolwe.upload(resolwe_mock, 'Upload NGS reads', src="/bad/file/name")
-        self.assertRegexpMatches(exc.exception.args[0], r"File .* not found")
+        self.assertRegex(exc.exception.args[0], r"File .* not found")  # pylint: disable=deprecated-method
 
         # Function _upload_file returns None (upload failed):
         resolwe_mock.processes.side_effect = [PROCESS_SAMPLE, PROCESS_SAMPLE[:1]]
@@ -134,24 +144,24 @@ class TestResolweUpload(unittest.TestCase):
         resolwe_mock._upload_file.return_value = None
         with self.assertRaises(Exception) as exc:
             Resolwe.upload(resolwe_mock, 'Upload NGS reads', src="/file/path")
-        self.assertRegexpMatches(exc.exception.args[0], r"Upload failed for .*.")
+        self.assertRegex(exc.exception.args[0], r"Upload failed for .*.")  # pylint: disable=deprecated-method
 
         # All good:
         resolwe_mock.processes.side_effect = [PROCESS_SAMPLE, PROCESS_SAMPLE[:1]]
         os_mock.path.isfile.return_value = True  # pretend it is a valid file name
-        UUID = '0'*10
-        resolwe_mock._upload_file.return_value = UUID
-        uuid_mock.uuid4.return_value = UUID
+        uid = '0'*10
+        resolwe_mock._upload_file.return_value = uid
+        uuid_mock.uuid4.return_value = uid
 
-        r = Resolwe.upload(resolwe_mock, 'Upload NGS reads', src="/a/b/c/test.txt")
+        Resolwe.upload(resolwe_mock, 'Upload NGS reads', src="/a/b/c/test.txt")
 
         resolwe_mock._upload_file.assert_called_with("/a/b/c/test.txt")
-        d = {u'status': u'uploading',
-             u'process': u'import-upload-reads-fastq',
-             u'slug': '0000000000',
-             u'name': '',
-             u'input': {'src': {u'file_temp': '0000000000', u'file': 'test.txt'}}}
-        resolwe_mock.create.assert_called_with(d)
+        data = {u'status': u'uploading',
+                u'process': u'import-upload-reads-fastq',
+                u'slug': '0000000000',
+                u'name': '',
+                u'input': {'src': {u'file_temp': '0000000000', u'file': 'test.txt'}}}
+        resolwe_mock.create.assert_called_with(data)
 
 
 class TestResolweUploadFile(unittest.TestCase):
@@ -171,58 +181,58 @@ class TestResolweUploadFile(unittest.TestCase):
         sys_mock.sys.stdout.flush = MagicMock()
 
         # Immitate response form server - always status 200
-        m1 = {'files': [{'temp': 'fake_name'}]}
-        requests_mock.post.return_value = MagicMock(status_code=200, **{'json.return_value': m1})
-        r = Resolwe._upload_file(resolwe_mock, fn)
-        self.assertEqual(r, 'fake_name')
+        requests_response = {'files': [{'temp': 'fake_name'}]}
+        requests_mock.post.return_value = MagicMock(status_code=200, **{'json.return_value': requests_response})
+        resolwe = Resolwe._upload_file(resolwe_mock, fn)
+        self.assertEqual(resolwe, 'fake_name')
 
         # Immitate response form server - always status 400
         requests_mock.post.return_value = MagicMock(status_code=400)
-        r = Resolwe._upload_file(resolwe_mock, fn)
-        self.assertIsNone(r)
+        resolwe = Resolwe._upload_file(resolwe_mock, fn)
+        self.assertIsNone(resolwe)
 
         # Immitate response form server - one status 400, but other 200
-        m0 = {'files': [{'temp': 'fake_name'}]}
-        m1 = MagicMock(status_code=200, **{'json.return_value': m0})
-        m2 = MagicMock(status_code=400)
-        requests_mock.post.side_effect = [m1, m2, m1, m1]
-        r = Resolwe._upload_file(resolwe_mock, fn)
-        self.assertEqual(r, 'fake_name')
+        requests_response = {'files': [{'temp': 'fake_name'}]}
+        response_ok = MagicMock(status_code=200, **{'json.return_value': requests_response})
+        response_fails = MagicMock(status_code=400)
+        requests_mock.post.side_effect = [response_ok, response_fails, response_ok, response_ok]
+        resolwe = Resolwe._upload_file(resolwe_mock, fn)
+        self.assertEqual(resolwe, 'fake_name')
 
 
 class TestResolweDownload(unittest.TestCase):
 
-    @patch('resolwe_api.resolwe.urlparse', spec=True)
+    @patch('resolwe_api.resolwe.urljoin', spec=True)
     @patch('resolwe_api.resolwe.requests', spec=True)
     @patch('resolwe_api.resolwe.Resolwe', spec=True)
-    def test_download(self, resolwe_mock, requests_mock, url_mock):
+    def test_download(self, resolwe_mock, requests_mock, urljoin_mock):
 
         # Case#1: Field != "output.*"
         with self.assertRaises(ValueError) as exc:
             Resolwe.download(resolwe_mock, [1], 'somthing.wierd')
-        m = "Only process results (output.* fields) can be downloaded."
-        self.assertEqual(exc.exception.args[0], m)
+        msg = "Only process results (output.* fields) can be downloaded."
+        self.assertEqual(exc.exception.args[0], msg)
 
         # Case#2: Invalid object ID:
         with self.assertRaises(ValueError) as exc:
             Resolwe.download(resolwe_mock, ['not_a_number'], 'output.abc')
-        self.assertRegexpMatches(exc.exception.args[0], "Invalid object id .*")
+        self.assertRegex(exc.exception.args[0], "Invalid object id .*")  # pylint: disable=deprecated-method
 
         # Case#3: not in cache, bad ID
         resolwe_mock.cache = {'data': {}}
-        m1 = MagicMock(**{'get.side_effect': [HttpNotFoundError()]})
-        resolwe_mock.api = MagicMock(**{'data.return_value': m1})
+        magic_mock1 = MagicMock(**{'get.side_effect': [HttpNotFoundError()]})
+        resolwe_mock.api = MagicMock(**{'data.return_value': magic_mock1})
         with self.assertRaises(ValueError) as exc:
             Resolwe.download(resolwe_mock, [123], 'output.abc')
-        self.assertRegexpMatches(exc.exception.args[0], "Data id .* does not exist.")
+        self.assertRegex(exc.exception.args[0], "Data id .* does not exist.")  # pylint: disable=deprecated-method
 
         # Case#4: data ID not in cache, field not in annotation
-        m1 = MagicMock(**{'get.return_value': DATA_SAMPLE[0]})
-        resolwe_mock.api = MagicMock(**{'data.return_value': m1})
+        magic_mock1 = MagicMock(**{'get.return_value': DATA_SAMPLE[0]})
+        resolwe_mock.api = MagicMock(**{'data.return_value': magic_mock1})
         with self.assertRaises(ValueError) as exc:
             Resolwe.download(resolwe_mock, [13], 'output.abc')
-        m = "Field .* does not exist for data object .*."
-        self.assertRegexpMatches(exc.exception.args[0], m)
+        msg = "Field .* does not exist for data object .*."
+        self.assertRegex(exc.exception.args[0], msg)  # pylint: disable=deprecated-method
 
         # Case#5: filend type not basic:file:
         with self.assertRaises(ValueError) as exc:
@@ -232,10 +242,10 @@ class TestResolweDownload(unittest.TestCase):
         # Case#6: Requests response with status code 404:
         resolwe_mock.url = 'http://some/url'
         resolwe_mock.auth = 'any_object'
-        url_mock.urljoin.return_value = 'http://another/url'
-        m1 = MagicMock(**{'raise_for_status.side_effect': [requests.exceptions.HTTPError()]})
-        m1.configure_mock(ok=False)
-        requests_mock.get.return_value = m1
+        urljoin_mock.return_value = 'http://another/url'
+        magic_mock1 = MagicMock(**{'raise_for_status.side_effect': [requests.exceptions.HTTPError()]})
+        magic_mock1.configure_mock(ok=False)
+        requests_mock.get.return_value = magic_mock1
         with self.assertRaises(requests.exceptions.HTTPError) as exc:
             Resolwe.download(resolwe_mock, [13], 'output.fastq')
 
@@ -253,23 +263,23 @@ class TestResolweResAuth(unittest.TestCase):
         requests_mock.post = MagicMock(side_effect=[requests.exceptions.ConnectionError()])
         with self.assertRaises(Exception) as exc:
             ResAuth.__init__(auth_mock, email='a', password='p', url='www.abc.com')
-        self.assertRegexpMatches(exc.exception.args[0], r"Server not accessible on .*.")
+        self.assertRegex(exc.exception.args[0], r"Server not accessible on .*.")  # pylint: disable=deprecated-method
 
         # Wrong credentials:
-        m1 = MagicMock(status_code=400)
-        requests_mock.post = MagicMock(return_value=m1)
+        magic_mock1 = MagicMock(status_code=400)
+        requests_mock.post = MagicMock(return_value=magic_mock1)
         with self.assertRaises(Exception) as exc:
             ResAuth.__init__(auth_mock, email='a', password='p', url='www.abc.com')
-        m = r'Response HTTP status code .* Invalid credentials?'
-        self.assertRegexpMatches(exc.exception.args[0], m)
+        msg = r'Response HTTP status code .* Invalid credentials?'
+        self.assertRegex(exc.exception.args[0], msg)  # pylint: disable=deprecated-method
 
         # NO CSRF token:
-        m1 = MagicMock(status_code=200, cookies={'sessionid': 42})
-        requests_mock.post = MagicMock(return_value=m1)
+        magic_mock1 = MagicMock(status_code=200, cookies={'sessionid': 42})
+        requests_mock.post = MagicMock(return_value=magic_mock1)
         with self.assertRaises(Exception) as exc:
             ResAuth.__init__(auth_mock, email='a', password='p', url='www.abc.com')
-        m = 'Missing sessionid or csrftoken. Invalid credentials?'
-        self.assertRegexpMatches(exc.exception.args[0], m)
+        msg = 'Missing sessionid or csrftoken. Invalid credentials?'
+        self.assertRegex(exc.exception.args[0], msg)  # pylint: disable=deprecated-method
 
         # "All good" scenario should be tested in end-to-end tests.
 

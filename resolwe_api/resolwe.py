@@ -11,17 +11,14 @@ import ntpath
 import requests
 import slumber
 
+from six.moves.urllib.parse import urljoin  # pylint: disable=import-error
+
+from requests.exceptions import ConnectionError  # pylint: disable=ungrouped-imports, redefined-builtin
+
 from .resources.data import Data
 from .resources.collection import Collection
 from .resources.sample import Sample
-from .resources.utils import find_field, iterate_schema
-
-from requests.exceptions import ConnectionError
-
-if sys.version_info < (3, ):
-    import urlparse
-else:
-    from urllib import parse as urlparse
+from .resources.utils import iterate_schema
 
 CHUNK_SIZE = 90000000
 DEFAULT_EMAIL = 'anonymous@genialis.com'
@@ -38,7 +35,7 @@ class Resolwe(object):
         """
         self.url = url
         self.auth = ResAuth(email, password, url)
-        self.api = slumber.API(urlparse.urljoin(url, '/api/'), self.auth, append_slash=False)
+        self.api = slumber.API(urljoin(url, '/api/'), self.auth, append_slash=False)
 
         self.data = ResolweQuerry(self, Data)
         self.collection = ResolweQuerry(self, Collection)
@@ -67,9 +64,9 @@ class Resolwe(object):
 
     def print_upload_processes(self):
         """Print all upload process names."""
-        for p in self.processes():
-            if 'upload' in p['category']:
-                sys.stdout.write(p['name'] + '\n')
+        for process in self.processes():
+            if 'upload' in process['category']:
+                sys.stdout.write(process['name'] + '\n')
 
     def print_process_inputs(self, process_name):
         """Print process input fields and types.
@@ -78,20 +75,20 @@ class Resolwe(object):
         :type process_name: string
 
         """
-        p = self.processes(process_name=process_name)
+        process = self.processes(process_name=process_name)
 
-        if len(p) == 1:
-            p = p[0]
-        elif len(p) > 1:
+        if len(process) == 1:
+            process = process[0]
+        elif len(process) > 1:
             # Multiple processors with same slug, but different versions:
-            versions = ([int(x['version']) for x in p])
+            versions = ([int(x['version']) for x in process])
             # Get index of the latest processor version:
             top_index = sorted(enumerate(versions), key=lambda x: x[1])[-1][0]
-            p = p[top_index]
+            process = process[top_index]
         else:
             raise ValueError('Invalid process name: {}.'.format(process_name))
 
-        for field_schema, _, _ in iterate_schema({}, p['input_schema'], 'input'):
+        for field_schema, _, _ in iterate_schema({}, process['input_schema'], 'input'):
             name = field_schema['name']
             typ = field_schema['type']
             sys.stdout.write("{} -> {}\n".format(name, typ))
@@ -121,7 +118,7 @@ class Resolwe(object):
         if resource not in ('data', 'collection', 'process', 'trigger', 'template'):
             raise ValueError('Resource must be data, collection, process, trigger or template.')
 
-        url = urlparse.urljoin(self.url, '/api/{}'.format(resource))
+        url = urljoin(self.url, '/api/{}'.format(resource))
         return requests.post(url,
                              data=data,
                              auth=self.auth,
@@ -149,25 +146,26 @@ class Resolwe(object):
         # This is temporary solution: map process name to it's ID:
         proc_name_to_slug = dict([(x['name'], x['slug']) for x in self.processes()])
 
-        p = self.processes(process_name=process_name)
+        process = self.processes(process_name=process_name)
 
-        if len(p) == 1:
-            p = p[0]
-        elif len(p) > 1:
+        if len(process) == 1:
+            process = process[0]
+        elif len(process) > 1:
             # Multiple processors with same slug, but different versions:
-            versions = ([int(x['version']) for x in p])
+            versions = ([int(x['version']) for x in process])
             # Get index of the latest processor version:
             top_index = sorted(enumerate(versions), key=lambda x: x[1])[-1][0]
-            p = p[top_index]
+            process = process[top_index]
         else:
             raise ValueError('Invalid process name: {}.'.format(process_name))
 
         inputs = {}
 
         for field_name, field_val in fields.items():
-            input_fields = dict([(e['name'], e['type']) for e in p['input_schema']])
+            input_fields = dict([(e['name'], e['type']) for e in process['input_schema']])
             if field_name not in input_fields.keys():
-                raise ValueError("Field {} not in process {} inputs.".format(field_name, p['name']))
+                raise ValueError(
+                    "Field {} not in process {} inputs.".format(field_name, process['name']))
 
             if input_fields[field_name].startswith('basic:file:'):
                 if not os.path.isfile(field_val):
@@ -186,7 +184,7 @@ class Resolwe(object):
             else:
                 inputs[field_name] = field_val
 
-        d = {
+        data = {
             'status': 'uploading',
             'process': proc_name_to_slug[process_name],
             'input': inputs,
@@ -195,15 +193,15 @@ class Resolwe(object):
         }
 
         if descriptor:
-            d['descriptor'] = descriptor
+            data['descriptor'] = descriptor
 
         if descriptor_schema:
-            d['descriptor_schema'] = descriptor_schema
+            data['descriptor_schema'] = descriptor_schema
 
         if len(collections) > 0:
-            d['collections'] = collections
+            data['collections'] = collections
 
-        return self.create(d)
+        return self.create(data)
 
     def _upload_file(self, fn):
         """Upload a single file on the platform.
@@ -220,9 +218,9 @@ class Resolwe(object):
         file_size = os.path.getsize(fn)
         base_name = os.path.basename(fn)
 
-        with open(fn, 'rb') as f:
+        with open(fn, 'rb') as file_:
             while True:
-                chunk = f.read(CHUNK_SIZE)
+                chunk = file_.read(CHUNK_SIZE)
                 if not chunk:
                     break
 
@@ -231,7 +229,7 @@ class Resolwe(object):
                         sys.stdout.write("Chunk upload failed (error {}): repeating for chunk \
                                          number {}".format(response.status_code, chunk_number))
 
-                    response = requests.post(urlparse.urljoin(self.url, 'upload/'),
+                    response = requests.post(urljoin(self.url, 'upload/'),
                                              auth=self.auth,
 
                                              # request are smart and make
@@ -275,26 +273,26 @@ class Resolwe(object):
         if not field.startswith('output'):
             raise ValueError("Only process results (output.* fields) can be downloaded.")
 
-        for o in data_objects:
-            if re.match('^\d+$', str(o)) is None:
-                raise ValueError("Invalid object id {}.".format(o))
+        for obj in data_objects:
+            if re.match(r'^\d+$', str(obj)) is None:
+                raise ValueError("Invalid object id {}.".format(obj))
 
-            if o not in self.cache['data']:
+            if obj not in self.cache['data']:
                 try:
-                    self.cache['data'][o] = Data(self.api.data(o).get(), self)
+                    self.cache['data'][obj] = Data(self.api.data(obj).get(), self)
                 except slumber.exceptions.HttpNotFoundError:
-                    raise ValueError("Data id {} does not exist.".format(o))
+                    raise ValueError("Data id {} does not exist.".format(obj))
 
-            if field not in self.cache['data'][o].annotation:
-                raise ValueError("Field {} does not exist for data object {}.".format(field, o))
+            if field not in self.cache['data'][obj].annotation:
+                raise ValueError("Field {} does not exist for data object {}.".format(field, obj))
 
-            ann = self.cache['data'][o].annotation[field]
+            ann = self.cache['data'][obj].annotation[field]
             if ann['type'] != 'basic:file:':
                 raise ValueError("Only basic:file: fields can be downloaded.")
 
-        for o in data_objects:
-            ann = self.cache['data'][o].annotation[field]
-            url = urlparse.urljoin(self.url, 'data/{}/{}'.format(o, ann['value']['file']))
+        for obj in data_objects:
+            ann = self.cache['data'][obj].annotation[field]
+            url = urljoin(self.url, 'data/{}/{}'.format(obj, ann['value']['file']))
             response = requests.get(url, stream=True, auth=self.auth)
             if not response.ok:
                 response.raise_for_status()
@@ -312,13 +310,13 @@ class ResAuth(requests.auth.AuthBase):
         payload = {'username': email, 'password': password}
 
         try:
-            response = requests.post(urlparse.urljoin(url, '/rest-auth/login/'), data=payload)
+            response = requests.post(urljoin(url, '/rest-auth/login/'), data=payload)
         except ConnectionError:
             raise ValueError('Server not accessible on {}. Wrong url?'.format(url))
 
-        sc = response.status_code
-        if sc in [400, 403]:
-            raise ValueError('Response HTTP status code {}. Invalid credentials?'.format(sc))
+        status_code = response.status_code
+        if status_code in [400, 403]:
+            raise ValueError('Response HTTP status code {}. Invalid credentials?'.format(status_code))
 
         if not ('sessionid' in response.cookies and 'csrftoken' in response.cookies):
             raise Exception('Missing sessionid or csrftoken. Invalid credentials?')

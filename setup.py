@@ -49,6 +49,7 @@ setup(
         "requests>=2.6.0",
         "slumber>=0.7.1",
         "appdirs>=1.4.0",
+        "six>=1.10.0",
     ),
     extras_require={
         'docs': [
