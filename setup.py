@@ -48,7 +48,7 @@ setup(
         "slumber>=0.7.1",
         "appdirs>=1.4.0",
     ),
-    extras_require = {
+    extras_require={
         'docs': [
             'sphinx>=1.4.1',
             'sphinx_rtd_theme>=0.1.9',
@@ -58,9 +58,11 @@ setup(
             'wheel',
         ],
         'test': [
+            'check-manifest',
             'coverage>=3.7.1',
             'pep8>=1.6.2',
             'pylint>=1.4.3',
+            'readme_renderer',
         ],
     },
 
