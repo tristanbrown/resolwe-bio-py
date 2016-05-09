@@ -2,6 +2,29 @@
 Resolwe Bioinformatics Python API
 =================================
 
+|build| |docs| |pypi_version| |pypi_pyversions| |pypi_downloads|
+
+.. |build| image:: https://travis-ci.org/genialis/resolwe-bio-py.svg?branch=master
+    :target: https://travis-ci.org/genialis/resolwe-bio-py
+    :alt: Build Status
+
+.. |docs| image:: https://readthedocs.io/projects/resolwe-bio-py/badge/?version=latest
+    :target: http://resolwe-bio-py.readthedocs.io/
+    :alt: Documentation Status
+
+.. |pypi_version| image:: https://img.shields.io/pypi/v/resolwe-bio-py.svg
+    :target: https://pypi.python.org/pypi/resolwe-bio-py
+    :alt: Version on PyPI
+
+.. |pypi_pyversions| image:: https://img.shields.io/pypi/pyversions/resolwe-bio-py.svg
+    :target: https://pypi.python.org/pypi/resolwe-bio-py
+    :alt: Supported Python versions
+
+.. |pypi_downloads| image:: https://img.shields.io/pypi/dm/resolwe-bio-py.svg
+    :target: https://pypi.python.org/pypi/resolwe-bio-py
+    :alt: Number of downloads from PyPI
+
+
 Python API for `Resolwe Bioinformatics`_—Bioinformatics pipelines for the
 Resolwe_ dataflow package for `Django framework`_.
 
@@ -14,7 +37,7 @@ Docs & Help
 
 Read detailed description in the documentation_.
 
-.. _documentation: http://resolwe-bio-py.readthedocs.org/
+.. _documentation: http://resolwe-bio-py.readthedocs.io/
 
 
 Install
