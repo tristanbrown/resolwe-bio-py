@@ -5,21 +5,32 @@ Change Log
 All notable changes to this project are documented in this file.
 
 
-==========
-Unreleased
-==========
+==================
+1.3.0 - 2016-05-10
+==================
 
 Changed
 -------
 * Rename resolwe_api to resdk
+* Add ``data``, ``sample``, ``collections`` to ``Resolwe`` class and create
+  ``ResolweQuerry`` class
+* Move ``data.py``, ``collections.py`` ... to ``resources`` folder
+* Remove ``collection``, ``collection_data`` and ``data`` methods from
+  ``Resolwe`` and from tests.
 
 Fixed
 -----
-* Sequp for paired-end data
+* ``Sequp`` for paired-end data
+* Pylint & PEP8 formatting
+* Packaging - add missing files and packages
 
 Added
 -----
-
+* Endpoints ``data``, ``sample`` and ``collections`` in ``Resolwe`` class
+* ``ResolweQuerry`` class with ``get`` and ``filter`` methods
+* ``Sample`` class with ``files`` and ``download`` methods
+* Tox configuration for running tests
+* Travis configuration for automated testing
 
 ==================
 1.2.0 - 2015-11-17
@@ -27,7 +38,6 @@ Added
 
 Fixed
 -----
-
 * Documentation supports new namespace.
 * Scripts support new namespace.
 
@@ -38,7 +48,6 @@ Fixed
 
 Changed
 -------
-
 * Use urllib.urlparse.
 * Slumber version bump (>=0.7.1).
 
@@ -49,18 +58,15 @@ Changed
 
 Changed
 -------
-
 * Query projects by slug or ID.
 
 Fixed
 -----
-
 * Renamed genapi module in README.
 * Renamed some methods for fetching resources.
 
 Added
 -----
-
 * Query data directly.
 
 
@@ -70,7 +76,6 @@ Added
 
 Changed
 -------
-
 * Renamed genesis-genapi to genesis-pyapi.
 * Renamed genapi to genesis.
 * Refactored API architecture.
@@ -82,7 +87,6 @@ Changed
 
 Fixed
 -----
-
 * Fix not in cache bug at download.
 
 
@@ -92,12 +96,10 @@ Fixed
 
 Changed
 -------
-
 * Docs updated to work for recent changes.
 
 Added
 -----
-
 * Universal flag set in setup.cfg.
 
 
@@ -107,13 +109,11 @@ Added
 
 Fixed
 -----
-
 * URL set to dictyexpress.research.bcm.edu by default.
 * Id and name attribute are set on init.
 
 Added
 -----
-
 * Added label field to annotation.
 
 
@@ -123,10 +123,8 @@ Added
 
 Changed
 -------
-
 * Upload files in chunks of 10MB.
 
 Fixed
 -----
-
 * Create resources fixed for SSL.
