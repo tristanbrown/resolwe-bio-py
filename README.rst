@@ -8,7 +8,7 @@ Resolwe Bioinformatics Python API
     :target: https://travis-ci.org/genialis/resolwe-bio-py
     :alt: Build Status
 
-.. |docs| image:: https://readthedocs.io/projects/resolwe-bio-py/badge/?version=latest
+.. |docs| image:: https://readthedocs.org/projects/resolwe-bio-py/badge/?version=latest
     :target: http://resolwe-bio-py.readthedocs.io/
     :alt: Documentation Status
 
