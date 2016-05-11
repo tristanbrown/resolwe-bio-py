@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 
-"""Python API for Resolwe Bioinformatics.
-See:
-https://github.com/genialis/resolwe-bio-py
+"""Resolwe SDK for Python
+
+See: https://github.com/genialis/resolwe-bio-py
 """
 
 from setuptools import setup, find_packages
@@ -21,7 +21,7 @@ with open(path.join(base_dir, 'README.rst'), encoding='utf-8') as f:
 
 # Get package metadata from 'resolwe.__about__.py' file
 about = {}
-with open(path.join(base_dir, 'resolwe_api', '__about__.py'), encoding='utf-8') as f:
+with open(path.join(base_dir, 'resdk', '__about__.py'), encoding='utf-8') as f:
     exec(f.read(), about)
 
 setup(
@@ -41,7 +41,7 @@ setup(
 
     packages=find_packages(),
     package_data={
-        'resolwe_api': ['tests/files/*'],
+        'resdk': ['tests/files/*'],
     },
 
     zip_safe=False,
@@ -99,5 +99,5 @@ setup(
         'Programming Language :: Python :: 3.4',
     ],
 
-    keywords='bioinformatics resolwe bio pipelines dataflow django python api',
+    keywords='bioinformatics resolwe bio pipelines dataflow django python sdk',
 )

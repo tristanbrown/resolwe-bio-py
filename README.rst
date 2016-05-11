@@ -1,6 +1,6 @@
-=================================
-Resolwe Bioinformatics Python API
-=================================
+======================
+Resolwe SDK for Python
+======================
 
 |build| |docs| |pypi_version| |pypi_pyversions| |pypi_downloads|
 
@@ -8,25 +8,26 @@ Resolwe Bioinformatics Python API
     :target: https://travis-ci.org/genialis/resolwe-bio-py
     :alt: Build Status
 
-.. |docs| image:: https://readthedocs.org/projects/resolwe-bio-py/badge/?version=latest
-    :target: http://resolwe-bio-py.readthedocs.io/
+.. |docs| image:: https://readthedocs.org/projects/resdk/badge/?version=latest
+    :target: http://resdk.readthedocs.io/
     :alt: Documentation Status
 
-.. |pypi_version| image:: https://img.shields.io/pypi/v/resolwe-bio-py.svg
-    :target: https://pypi.python.org/pypi/resolwe-bio-py
+.. |pypi_version| image:: https://img.shields.io/pypi/v/resdk.svg
+    :target: https://pypi.python.org/pypi/resdk
     :alt: Version on PyPI
 
-.. |pypi_pyversions| image:: https://img.shields.io/pypi/pyversions/resolwe-bio-py.svg
-    :target: https://pypi.python.org/pypi/resolwe-bio-py
+.. |pypi_pyversions| image:: https://img.shields.io/pypi/pyversions/resdk.svg
+    :target: https://pypi.python.org/pypi/resdk
     :alt: Supported Python versions
 
-.. |pypi_downloads| image:: https://img.shields.io/pypi/dm/resolwe-bio-py.svg
-    :target: https://pypi.python.org/pypi/resolwe-bio-py
+.. |pypi_downloads| image:: https://img.shields.io/pypi/dm/resdk.svg
+    :target: https://pypi.python.org/pypi/resdk
     :alt: Number of downloads from PyPI
 
 
-Python API for `Resolwe Bioinformatics`_—Bioinformatics pipelines for the
-Resolwe_ dataflow package for `Django framework`_.
+The Resolwe SDK for Python supports writing tools for Resolwe_ dataflow
+package for `Django framework`_ and `Resolwe Bioinformatics`_ that
+includes the bioinformatics pipelines.
 
 .. _Resolwe Bioinformatics: https://github.com/genialis/resolwe-bio
 .. _Resolwe: https://github.com/genialis/resolwe
@@ -45,21 +46,21 @@ Install
 
 To install, run::
 
-  python setup.py install
+  pip install resdk
 
 To install for development, run::
 
-  python setup.py develop
+  pip install -e .[docs,package,test]
 
 
 Usage
 =====
 
-Create an API instance:
+Connect to the Resolwe server:
 
 .. code-block:: python
 
-   from resolwe_api import Resolwe
+   from resdk import Resolwe
    re = Resolwe('me@mail.com', 'my_password', 'www.resolwe.com')
 
 Get all collections and select the first one:

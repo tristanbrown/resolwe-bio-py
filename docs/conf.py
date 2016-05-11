@@ -10,9 +10,9 @@ import sphinx_rtd_theme
 
 base_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)), "..")
 
-# Get package metadata from 'resolwe_api/__about__.py' file
+# Get package metadata from 'resdk/__about__.py' file
 about = {}
-with open(os.path.join(base_dir, 'resolwe_api', '__about__.py')) as f:
+with open(os.path.join(base_dir, 'resdk', '__about__.py')) as f:
     exec(f.read(), about)
 
 # -- General configuration ------------------------------------------------
@@ -33,7 +33,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'Resolwe Bioinformatics Python API'
+project = 'Resolwe SDK for Python'
 version = about['__version__']
 release = version
 author = about['__author__']

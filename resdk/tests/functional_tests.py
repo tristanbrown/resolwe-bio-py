@@ -6,7 +6,7 @@ Some simple functional tests.
 import os
 import unittest
 
-import resolwe_api
+import resdk
 
 
 class UserTest(unittest.TestCase):
@@ -17,7 +17,7 @@ class UserTest(unittest.TestCase):
         email = 'admin'
         passw = 'admin'
         url = 'http://127.0.0.1:8000/'
-        resolwe = resolwe_api.Resolwe(email, passw, url)
+        resolwe = resdk.Resolwe(email, passw, url)
 
         # Test_processes:
         processes = resolwe.processes()

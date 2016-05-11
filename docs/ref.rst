@@ -2,11 +2,11 @@
 Reference
 =========
 
-.. autoclass:: resolwe_api.Resolwe
+.. autoclass:: resdk.Resolwe
    :members:
 
-.. autoclass:: resolwe_api.Collection
+.. autoclass:: resdk.Collection
    :members:
 
-.. autoclass:: resolwe_api.Data
+.. autoclass:: resdk.Data
    :members:

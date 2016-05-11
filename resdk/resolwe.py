@@ -26,7 +26,7 @@ DEFAULT_URL = 'https://dictyexpress.research.bcm.edu'
 
 
 class Resolwe(object):
-    """Python API for Resolwe Bioinformatics."""
+    """Resolwe SDK for Python."""
 
     def __init__(self, email=DEFAULT_EMAIL, password=DEFAULT_PASSWD, url=DEFAULT_URL):
         """

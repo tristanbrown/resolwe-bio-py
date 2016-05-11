@@ -2,8 +2,8 @@
 
 # NOTE: We use __title__ instead of simply __name__ since the latter would
 #       interfere with a global variable __name__ denoting object's name.
-__title__ = 'resolwe-bio-py'
-__summary__ = 'Python API for Resolwe Bioinformatics'
+__title__ = 'resdk'
+__summary__ = 'Resolwe SDK for Python'
 __url__ = 'https://github.com/genialis/resolwe-bio-py'
 
 # Semantic versioning is used. For more information see:

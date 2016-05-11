@@ -15,7 +15,7 @@ Preparing environment
 =====================
 
 `Fork <https://help.github.com/articles/fork-a-repo>`__ the main
-`Resolwe Bioinformatics Python API git repository`_.
+`Resolwe SDK for Python git repository`_.
 
 If you don't have Git installed on your system, follow `these
 instructions <http://git-scm.com/book/en/v2/Getting-Started-Installing-Git>`__.
@@ -26,7 +26,7 @@ change directory::
     git clone https://github.com/<username>/resolwe-bio-py.git
     cd resolwe-bio
 
-Prepare Resolwe Bioinformatics Python API for development::
+Prepare Resolwe SDK for Python for development::
 
     pip install -e .[docs,package,test]
 
@@ -36,7 +36,7 @@ Prepare Resolwe Bioinformatics Python API for development::
     Python 2.7) or `pyvenv <http://docs.python.org/3/library/venv.html>`_ (on
     Python 3.4+) to create an isolated Python environment.
 
-.. _Resolwe Bioinformatics Python API git repository: https://github.com/genialis/resolwe-bio-py
+.. _Resolwe SDK for Python git repository: https://github.com/genialis/resolwe-bio-py
 
 Running tests
 =============

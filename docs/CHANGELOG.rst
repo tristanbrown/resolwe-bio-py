@@ -11,6 +11,7 @@ Unreleased
 
 Changed
 -------
+* Rename resolwe_api to resdk
 
 Fixed
 -----

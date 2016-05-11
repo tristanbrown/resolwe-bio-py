@@ -1,5 +1,5 @@
 """
-Unit tests for resolwe_api/resolwe.py file.
+Unit tests for resdk/resolwe.py file.
 """
 # pylint: disable=missing-docstring, protected-access
 
@@ -11,8 +11,8 @@ from mock import patch, MagicMock
 import requests
 from slumber.exceptions import HttpNotFoundError
 
-from resolwe_api.resolwe import Resolwe, ResAuth
-from resolwe_api.tests.mocks.data import PROCESS_SAMPLE, DATA_SAMPLE
+from resdk.resolwe import Resolwe, ResAuth
+from resdk.tests.mocks.data import PROCESS_SAMPLE, DATA_SAMPLE
 
 if six.PY2:
     # pylint: disable=deprecated-method
@@ -21,7 +21,7 @@ if six.PY2:
 
 class TestResolweProcesses(unittest.TestCase):
 
-    @patch('resolwe_api.resolwe.Resolwe', spec=True)
+    @patch('resdk.resolwe.Resolwe', spec=True)
     def test_process_without_name(self, resolwe_mock):
         resolwe_mock.api = MagicMock()
         resolwe_mock.api.process.get = MagicMock(return_value=PROCESS_SAMPLE)
@@ -34,7 +34,7 @@ class TestResolweProcesses(unittest.TestCase):
         self.assertEqual(resolwe[0]['name'], 'Upload NGS reads')
         self.assertEqual(len(resolwe_mock.api.mock_calls), 1)
 
-    @patch('resolwe_api.resolwe.Resolwe', spec=True)
+    @patch('resdk.resolwe.Resolwe', spec=True)
     def test_process_with_process_name(self, resolwe_mock):
         resolwe_mock.api = MagicMock()
         resolwe_mock.api.process.get = MagicMock(return_value=PROCESS_SAMPLE)
@@ -50,8 +50,8 @@ class TestResolweProcesses(unittest.TestCase):
 
 class TestResolwePrintUploadProcesses(unittest.TestCase):
 
-    @patch('resolwe_api.resolwe.sys', spec=True)
-    @patch('resolwe_api.resolwe.Resolwe', spec=True)
+    @patch('resdk.resolwe.sys', spec=True)
+    @patch('resdk.resolwe.Resolwe', spec=True)
     def test_print_upload_processes(self, resolwe_mock, sys_mock):
 
         # Check output is correct
@@ -63,8 +63,8 @@ class TestResolwePrintUploadProcesses(unittest.TestCase):
 
 class TestResolwePrintProcessInputs(unittest.TestCase):
 
-    @patch('resolwe_api.resolwe.sys', spec=True)
-    @patch('resolwe_api.resolwe.Resolwe', spec=True)
+    @patch('resdk.resolwe.sys', spec=True)
+    @patch('resdk.resolwe.Resolwe', spec=True)
     def test_print_process_inpts(self, resolwe_mock, sys_mock):
 
         # Bad processor name:
@@ -82,10 +82,10 @@ class TestResolwePrintProcessInputs(unittest.TestCase):
 
 class TestResolweCreate(unittest.TestCase):
 
-    @patch('resolwe_api.resolwe.requests')
-    @patch('resolwe_api.resolwe.urljoin')
-    @patch('resolwe_api.resolwe.json')
-    @patch('resolwe_api.resolwe.Resolwe', spec=True)
+    @patch('resdk.resolwe.requests')
+    @patch('resdk.resolwe.urljoin')
+    @patch('resdk.resolwe.json')
+    @patch('resdk.resolwe.Resolwe', spec=True)
     def test_create(self, resolwe_mock, json_mock, urljoin_mock, requests_mock):
         resolwe_mock.url = 'http://some/url'
         resolwe_mock.auth = MagicMock()
@@ -113,9 +113,9 @@ class TestResolweCreate(unittest.TestCase):
 
 class TestResolweUpload(unittest.TestCase):
 
-    @patch('resolwe_api.resolwe.os')
-    @patch('resolwe_api.resolwe.uuid')
-    @patch('resolwe_api.resolwe.Resolwe', spec=True)
+    @patch('resdk.resolwe.os')
+    @patch('resdk.resolwe.uuid')
+    @patch('resdk.resolwe.Resolwe', spec=True)
     def test_upload(self, resolwe_mock, uuid_mock, os_mock):
 
         # Bad processor name:
@@ -166,9 +166,9 @@ class TestResolweUpload(unittest.TestCase):
 
 class TestResolweUploadFile(unittest.TestCase):
 
-    @patch('resolwe_api.resolwe.requests')
-    @patch('resolwe_api.resolwe.sys')
-    @patch('resolwe_api.resolwe.Resolwe', spec=True)
+    @patch('resdk.resolwe.requests')
+    @patch('resdk.resolwe.sys')
+    @patch('resdk.resolwe.Resolwe', spec=True)
     def test_upload_file(self, resolwe_mock, sys_mock, requests_mock):
         # Example file:
         fn = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'files', 'example.fastq')
@@ -202,9 +202,9 @@ class TestResolweUploadFile(unittest.TestCase):
 
 class TestResolweDownload(unittest.TestCase):
 
-    @patch('resolwe_api.resolwe.urljoin', spec=True)
-    @patch('resolwe_api.resolwe.requests', spec=True)
-    @patch('resolwe_api.resolwe.Resolwe', spec=True)
+    @patch('resdk.resolwe.urljoin', spec=True)
+    @patch('resdk.resolwe.requests', spec=True)
+    @patch('resdk.resolwe.Resolwe', spec=True)
     def test_download(self, resolwe_mock, requests_mock, urljoin_mock):
 
         # Case#1: Field != "output.*"
@@ -254,9 +254,9 @@ class TestResolweDownload(unittest.TestCase):
 
 class TestResolweResAuth(unittest.TestCase):
 
-    @patch('resolwe_api.resolwe.requests')
-    @patch('resolwe_api.resolwe.ResAuth', spec=True)
-    @patch('resolwe_api.resolwe.Resolwe', spec=True)
+    @patch('resdk.resolwe.requests')
+    @patch('resdk.resolwe.ResAuth', spec=True)
+    @patch('resdk.resolwe.Resolwe', spec=True)
     def test_res_auth(self, resolwe_mock, auth_mock, requests_mock):
 
         # Wrong URL:

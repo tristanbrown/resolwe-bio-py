@@ -1,12 +1,13 @@
 
 .. _index:
 
-=================================
-Resolwe Bioinformatics Python API
-=================================
+======================
+Resolwe SDK for Python
+======================
 
-Python API for `Resolwe Bioinformatics`_---Bioinformatics pipelines for the
-Resolwe_ dataflow package for `Django framework`_.
+The Resolwe SDK for Python supports writing tools for Resolwe_ dataflow
+package for `Django framework`_ and `Resolwe Bioinformatics`_ that
+includes the bioinformatics pipelines.
 
 .. _Resolwe Bioinformatics: https://github.com/genialis/resolwe-bio
 .. _Resolwe: https://github.com/genialis/resolwe
