@@ -72,13 +72,13 @@ setup(
 
     entry_points={
         'console_scripts': [
-            'resolwe-sequp = resolwe_api.scripts:sequp',
-            'resolwe-upload-reads = resolwe_api.scripts:readsup',
-            'resolwe-upload-reads-batch = resolwe_api.scripts:readsup_batch',
+            'resolwe-sequp = resdk.scripts:sequp',
+            'resolwe-upload-reads = resdk.scripts:readsup',
+            'resolwe-upload-reads-batch = resdk.scripts:readsup_batch',
         ],
     },
 
-    test_suite='resolwe_api.tests',
+    test_suite='resdk.tests',
 
     classifiers=[
         'Development Status :: 4 - Beta',
