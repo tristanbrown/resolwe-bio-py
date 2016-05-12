@@ -1,4 +1,4 @@
-# pylint: skip-file
+# pylint: disable=bad-continuation,line-too-long,bad-whitespace,missing-docstring
 COLLECTIONS_SAMPLE = [
     {u'contributor': 1,
      u'created': u'2016-04-07T08:03:38.314293Z',

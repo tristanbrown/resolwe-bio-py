@@ -1,22 +1,20 @@
 """Resolwe"""
 from __future__ import absolute_import, division, print_function
 
-import json
+import ntpath
 import os
 import re
 import sys
 import uuid
-import ntpath
 
 import requests
 import slumber
 
 from six.moves.urllib.parse import urljoin  # pylint: disable=import-error
-
 from requests.exceptions import ConnectionError  # pylint: disable=ungrouped-imports, redefined-builtin
 
 from .resources import Data, Collection, Sample
-from .resources.utils import iterate_schema
+from .resources.utils import iterate_fields, iterate_schema
 
 
 CHUNK_SIZE = 90000000
@@ -39,12 +37,6 @@ class Resolwe(object):
         self.data = ResolweQuerry(self, Data)
         self.collection = ResolweQuerry(self, Collection)
         self.sample = ResolweQuerry(self, Sample)
-
-        # data = dict of (data_id - Data object) pairs
-        # collections = dict of (collection_id - Collection object) pairs
-        # collections_data - dict of (collection_id - Data objects list) pairs,
-        self.cache = {'data': {}, 'collections': None, 'collections_data': {}}
-        # TODO: what if there are updates on server? How to know when to update cache?
 
     def processes(self, process_name=None):
         """Return a list of Processor objects.
@@ -92,115 +84,88 @@ class Resolwe(object):
             typ = field_schema['type']
             sys.stdout.write("{} -> {}\n".format(name, typ))
 
-    def create(self, data, resource='data'):
-        """Create an object of resource:
+    def run(self, slug=None, input={}, descriptor=None,  # pylint: disable=redefined-builtin
+            descriptor_schema=None, collections=[], data_name=''):
+        """Run process and return the corresponding Data object.
 
-        * data
-        * collection
-        * process
-        * trigger
-        * template
+        1. Upload files referenced in inputs
+        2. Create Data object with given inputs
+        3. Command is run to process inputs into outputs
+        4. Return Data object
 
-        :param data: Object values
-        :type data: dict
-        :param resource: Resource name
-        :type resource: string
+        The processing runs asynchronously, so the returned Data object
+        does not have an OK status nor outputs yet.
 
-        """
-        if isinstance(data, dict):
-            data = json.dumps(data)
-
-        if not isinstance(data, str):
-            raise ValueError('Data must be dict, str or unicode.')
-
-        resource = resource.lower()
-        if resource not in ('data', 'collection', 'process', 'trigger', 'template'):
-            raise ValueError('Resource must be data, collection, process, trigger or template.')
-
-        url = urljoin(self.url, '/api/{}'.format(resource))
-        return requests.post(url,
-                             data=data,
-                             auth=self.auth,
-                             headers={
-                                 'cache-control': 'no-cache',
-                                 'content-type': 'application/json',
-                                 'accept': 'application/json, text/plain, */*',
-                                 'referer': self.url,
-                             })
-
-    def upload(self, process_name, name='', descriptor=None, descriptor_schema=None,
-               collections=[], **fields):
-
-        """Upload files and data objects.
-
-        :param collections: Integer id of Resolwe collection
-        :type collections: List of int
-        :param process_name: Processor object name
-        :type process_name: string
-        :param fields: Processor field-value pairs
-        :type fields: args
+        :param slug: Process slug (unique identifier)
+        :type slug: str
+        :param input: Input values
+        :type input: dict
+        :param descriptor: Descriptor values
+        :type descriptor: dict
+        :param descriptor_schema: Descriptor fields
+        :type descriptor_schema: list of dicts
+        :param collections: Default collections of Data object
+        :type collections: list of ints
+        :param data_name: Default name of Data object
+        :type data_name: string
         :rtype: HTTP Response object
 
         """
-        # This is temporary solution: map process name to it's ID:
-        proc_name_to_slug = dict([(x['name'], x['slug']) for x in self.processes()])
+        if ((descriptor and not descriptor_schema) or
+                (not descriptor and descriptor_schema)):
+            raise ValueError("Set both or neither descriptor and descriptor_schema")
 
-        process = self.processes(process_name=process_name)
+        process = self.api.process.get(slug=slug, ordering='-version', limit=1)
 
         if len(process) == 1:
             process = process[0]
-        elif len(process) > 1:
-            # Multiple processors with same slug, but different versions:
-            versions = ([int(x['version']) for x in process])
-            # Get index of the latest processor version:
-            top_index = sorted(enumerate(versions), key=lambda x: x[1])[-1][0]
-            process = process[top_index]
+        elif len(process) == 0:
+            raise ValueError("Could not get process for given slug")
         else:
-            raise ValueError('Invalid process name: {}.'.format(process_name))
+            raise ValueError("Unexpected behaviour trying to get the process for given slug")
 
-        inputs = {}
+        # Upload files in basic:file fields
+        try:
+            for schema, fields in iterate_fields(input, process['input_schema']):
+                field_name = schema['name']
+                field_type = schema['type']
+                field_value = fields[field_name]
 
-        for field_name, field_val in fields.items():
-            input_fields = dict([(e['name'], e['type']) for e in process['input_schema']])
-            if field_name not in input_fields.keys():
-                raise ValueError(
-                    "Field {} not in process {} inputs.".format(field_name, process['name']))
+                if field_type.startswith('basic:file:'):
+                    if not os.path.isfile(field_value):
+                        raise ValueError("File {} not found.".format(field_value))
 
-            if input_fields[field_name].startswith('basic:file:'):
-                if not os.path.isfile(field_val):
-                    raise ValueError("File {} not found.".format(field_val))
+                    file_temp = self._upload_file(field_value)
 
-                file_temp = self._upload_file(field_val)
+                    if not file_temp:
+                        raise Exception("Upload failed for {}.".format(field_value))
 
-                if not file_temp:
-                    raise Exception("Upload failed for {}.".format(field_val))
+                    file_name = ntpath.basename(field_value)
+                    fields[field_name] = {
+                        'file': file_name,
+                        'file_temp': file_temp
+                    }
 
-                file_name = ntpath.basename(field_val)
-                inputs[field_name] = {
-                    'file': file_name,
-                    'file_temp': file_temp
-                }
-            else:
-                inputs[field_name] = field_val
+        except KeyError as key_error:
+            raise KeyError("Field '{}' not in process '{}' input schema".format(key_error.args[0], process['slug']))
 
         data = {
-            'status': 'uploading',
-            'process': proc_name_to_slug[process_name],
-            'input': inputs,
-            'slug': str(uuid.uuid4()),
-            'name': name,
+            'process': process['slug'],
+            'input': input,
         }
 
-        if descriptor:
-            data['descriptor'] = descriptor
+        if data_name:
+            data['name'] = data_name
 
-        if descriptor_schema:
+        if descriptor and descriptor_schema:
+            data['descriptor'] = descriptor
             data['descriptor_schema'] = descriptor_schema
 
         if len(collections) > 0:
             data['collections'] = collections
 
-        return self.create(data)
+        response_fields = self.api.data.post(data)
+        return Data(self.api.data(response_fields['id']), self, response_fields)
 
     def _upload_file(self, fn):
         """Upload a single file on the platform.
@@ -258,45 +223,6 @@ class Resolwe(object):
 
         sys.stdout.write("\n")
         return response.json()['files'][0]['temp']
-
-    def download(self, data_objects, field):
-        """Download files of data objects.
-
-        :param data_objects: Data object ids
-        :type data_objects: list of integers
-        :param field: Download field name
-        :type field: string
-        :rtype: generator of requests.Response objects
-
-        """
-        if not field.startswith('output'):
-            raise ValueError("Only process results (output.* fields) can be downloaded.")
-
-        for obj in data_objects:
-            if re.match(r'^\d+$', str(obj)) is None:
-                raise ValueError("Invalid object id {}.".format(obj))
-
-            if obj not in self.cache['data']:
-                try:
-                    self.cache['data'][obj] = Data(self.api.data(obj).get(), self)
-                except slumber.exceptions.HttpNotFoundError:
-                    raise ValueError("Data id {} does not exist.".format(obj))
-
-            if field not in self.cache['data'][obj].annotation:
-                raise ValueError("Field {} does not exist for data object {}.".format(field, obj))
-
-            ann = self.cache['data'][obj].annotation[field]
-            if ann['type'] != 'basic:file:':
-                raise ValueError("Only basic:file: fields can be downloaded.")
-
-        for obj in data_objects:
-            ann = self.cache['data'][obj].annotation[field]
-            url = urljoin(self.url, 'data/{}/{}'.format(obj, ann['value']['file']))
-            response = requests.get(url, stream=True, auth=self.auth)
-            if not response.ok:
-                response.raise_for_status()
-            else:
-                return response
 
 
 class ResAuth(requests.auth.AuthBase):

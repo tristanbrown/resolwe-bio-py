@@ -5,6 +5,16 @@ Change Log
 All notable changes to this project are documented in this file.
 
 
+==========
+Unreleased
+==========
+
+Changed
+-------
+* Rename ``upload`` method to ``run`` and refactor to run any process
+* Move ``downlad`` method from ``resolwe.py`` to ``resource/base.py``
+
+
 ==================
 1.3.0 - 2016-05-10
 ==================

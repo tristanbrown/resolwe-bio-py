@@ -7,14 +7,22 @@ from .data import Data
 
 class BaseCollection(BaseResource):
     """
-    Abstract class BaseCollection.
+    Abstract collection resource class BaseCollection.
     """
 
-    def __init__(self, collection_data, resolwe):
+    def __init__(self, resource, resolwe, fields=None):
         """
-        Abstract class BaseResource.
+        Abstract collection resource class.
+
+        :param resource: Resource
+        :type resource: slumber.Resource
+        :param resolwe: Resolwe instance
+        :type resolwe: Resolwe object
+        :param fields: Initial field data
+        :type fields: dict
+
         """
-        BaseResource.__init__(self, collection_data, resolwe)
+        BaseResource.__init__(self, resource, resolwe, fields)
 
     def data_types(self):
         """
@@ -31,7 +39,7 @@ class BaseCollection(BaseResource):
         """
         file_list = []
         for id_ in self.data:  # pylint: disable=no-member
-            file_list += Data(self.resolwe.api.data(id_).get(), self.resolwe).get_download_list(verbose=verbose)
+            file_list += Data(self.resolwe.api.data(id_), self.resolwe).get_download_list(verbose=verbose)
         return file_list
 
     def print_annotation(self):
@@ -42,24 +50,25 @@ class BaseCollection(BaseResource):
 
 
 class Collection(BaseCollection):
-    """Resolwe collection annotation."""
+    """
+    Resolwe Collection resource.
+    """
 
     endpoint = 'collection'
 
-    """Resolwe collection annotation."""
-
-    def __init__(self, collection_data, resolwe):
+    def __init__(self, resource, resolwe, fields=None):
         """
-        Resolwe collection annotation.
+        Resolwe Collection resource.
 
-        :param collection_data: Annotation data for Collection
-        :type collection_data: dictionary (JSON from restAPI)
+        :param resource: Collection resource
+        :type resource: slumber.Resource
         :param resolwe: Resolwe instance
         :type resolwe: Resolwe object
-        :rtype: None
+        :param fields: Initial field data
+        :type fields: dict
 
         """
-        BaseCollection.__init__(self, collection_data, resolwe)
+        BaseCollection.__init__(self, resource, resolwe, fields)
 
     def print_annotation(self):
         """

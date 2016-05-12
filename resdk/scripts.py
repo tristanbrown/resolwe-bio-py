@@ -211,14 +211,13 @@ def sequp():
 
     # Upload all files in all_new_read_files_uploaded with annotations
     uploaded_files = []
+    input_ = {}
     for fn in set(set(annotations.keys()) & set(all_new_read_files_uploaded)):
-        kwargs = {
-            'name': annotations[fn]['SAMPLE_NAME']
-        }
+        descriptor, descriptor_schema = None, None
 
         if read_schema:
-            kwargs['descriptor_schema'] = read_schema['slug']
-            kwargs['descriptor'] = {
+            descriptor_schema = read_schema['slug']
+            descriptor = {
                 'barcode': annotations[fn].get('BARCODE', None),
                 'barcode_removed': True if annotations[fn].get('BARCODE_REMOVED', 'N').upper() == 'Y' else False,
                 'instrument_type': annotations[fn].get('INSTRUMENT', None),
@@ -227,25 +226,21 @@ def sequp():
 
         # Paired-end reads
         if annotations[fn]['PAIRED_END'] == 'Y' and annotations[fn]['FASTQ_PATH_PAIR']:
-            kwargs['process_name'] = 'Upload paired-end NGS reads'
-            kwargs['src1'] = fn
-            kwargs['src2'] = os.path.join(genialis_seq_dir, annotations[fn]['FASTQ_PATH_PAIR'])
+            slug = 'import-upload-reads-fastq-paired-end'
+            input_['src1'] = fn
+            input_['src2'] = os.path.join(genialis_seq_dir, annotations[fn]['FASTQ_PATH_PAIR'])
 
         # Single-end reads
         else:
-            kwargs['process_name'] = 'Upload NGS reads'
-            kwargs['src'] = fn
+            slug = 'import-upload-reads-fastq'
+            input_['src'] = fn
 
-        response = resolwe.upload(**kwargs)
+        data = resolwe.run(slug, input_, descriptor, descriptor_schema, data_name=annotations[fn]['SAMPLE_NAME'])
 
-        if response.ok:
+        if data:
             uploaded_files.append(fn)
 
-            # XXX: Filter collections by sample descriptor schema
-            # sample_schemas = resolwe.api.descriptorschema.get(slug='sample')
-            # sample_schemas = sample_schemas[0] if len(sample_schemas) > 0 else None
-            data_id = response.json()['id']
-            sample = resolwe.api.collection.get(data=data_id, )[0]
+            sample = resolwe.api.sample.get(data=data.id)[0]
 
             if 'geo' not in sample['descriptor']:
                 sample['descriptor']['geo'] = {}
@@ -258,11 +253,10 @@ def sequp():
             if experiment_type:
                 sample['descriptor']['geo']['experiment_type'] = experiment_type
 
-            resolwe.api.collection(sample['id']).patch({'descriptor': sample['descriptor']})
+            resolwe.api.sample(sample['id']).patch({'descriptor': sample['descriptor']})
 
         else:
             print("Error uploading {}".format(fn), file=sys.stderr)
-            print(response.text, file=sys.stderr)
 
     # Set the modification timestamp
     modif_times = [os.path.getmtime(f) for f in uploaded_files]
@@ -290,12 +284,12 @@ def readsup():
         exit(1)
 
     resolwe = Resolwe(args.email, args.password, args.address)
+    cols = [args.collection]
 
     if args.r:
-        resolwe.upload(process_name='import:upload:reads-fastq', collections=[args.collection], src=args.r)
+        resolwe.run('import-upload-reads-fastq', {'src': args.r}, collections=cols)
     else:
-        resolwe.upload(process_name='import:upload:reads-fastq-paired-end',
-                       collections=[args.collection], src1=args.r1, src2=args.r2)
+        resolwe.run('import-upload-reads-fastq-paired-end', {'src1': args.r1, 'src2': args.r2}, collections=cols)
 
 
 def readsup_batch():
@@ -326,8 +320,8 @@ def readsup_batch():
 
     if args.r:
         for read_file in args.r:
-            resolwe.upload(process_name='import:upload:reads-fastq', collections=[args.collection], src=read_file)
+            resolwe.run('import-upload-reads-fastq', {'src': read_file}, collections=[args.collection])
     else:
         for read_file1, read_file2 in zip(args.r1, args.r2):
-            resolwe.upload(process_name='import:upload:reads-fastq-paired-end',
-                           collections=[args.collection], src1=read_file1, src2=read_file2)
+            resolwe.run('import-upload-reads-fastq-paired-end', {'src1': read_file1, 'src2': read_file2},
+                        collections=[args.collection])

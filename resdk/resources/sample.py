@@ -6,23 +6,24 @@ from .collection import BaseCollection
 
 class Sample(BaseCollection):
     """
-    Resolwe sample annotation.
+    Resolwe Sample resource.
     """
 
     endpoint = 'sample'
 
-    def __init__(self, sample_data, resolwe):
+    def __init__(self, resource, resolwe, fields=None):
         """
-        Resolwe sample annotation.
+        Resolwe Sample resource.
 
-        :param ann_data: Annotation data for Sample
-        :type ann_data: dictionary (JSON from restAPI)
+        :param response: Sample resource
+        :type response: slumber.Resource
         :param resolwe: Resolwe instance
         :type resolwe: Resolwe
+        :param fields: Initial field data
+        :type fields: dict
 
-        :rtype: None
         """
-        BaseCollection.__init__(self, sample_data, resolwe)
+        BaseCollection.__init__(self, resource, resolwe, fields)
 
     def print_annotation(self):
         """

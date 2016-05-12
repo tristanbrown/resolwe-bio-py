@@ -4,7 +4,10 @@ Constants and abstract classes.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import os
+import requests
 import six
+
+from six.moves.urllib.parse import urljoin  # pylint: disable=import-error
 
 
 DOWNLOAD_TYPES = {
@@ -16,35 +19,42 @@ DOWNLOAD_TYPES = {
 
 class BaseResource(object):
     """
-    Abstract class BaseResource.
+    Abstract resource class BaseResource.
     """
-    endpoint = "BaseResource"
 
-    def __init__(self, resource_data, resolwe):
+    endpoint = None
+
+    def __init__(self, resource, resolwe, fields=None):
         """
-        Abstract class BaseResource.
+        Abstract resource.
 
-        :param resource_data: Annotation data for resource
-        :type resource_data: dictionary (JSON from restAPI)
+        :param resource: Resource
+        :type resource: slumber.Resource
         :param resolwe: Resolwe instance
         :type resolwe: Resolwe object
+        :param fields: Initial field data
+        :type fields: dict
 
-        :rtype: None
         """
         self.resolwe = resolwe
-        self.update(resource_data)
+        self.resource = resource
+        self.api = getattr(resolwe.api, self.endpoint)
 
-    def update(self, resource_data):
+        if fields:
+            self._update_fields(fields)
+        else:
+            self._update_fields(resource.get())
+
+    def _update_fields(self, fields):
         """
-        Update resource annotation.
+        Update resource fields.
 
-        :param resource_data: Annotation data for resource
-        :type resource_data: dict (JSON from server.)
+        :param fields: Resource fields
+        :type fields: dict
 
-        :rtype: None
         """
-        for field in resource_data:
-            setattr(self, field, resource_data[field])
+        for field_name, field_value in fields.items():
+            setattr(self, field_name, field_value)
 
     def print_annotation(self):
         """
@@ -57,6 +67,12 @@ class BaseResource(object):
         Return list of files in resource.
         """
         pass
+
+    def update(self):
+        """
+        Update resource fields from the server.
+        """
+        self._update_fields(self.resource.get())
 
     def download(self, name=None, typ=None, download_dir=None, force=False):
         """
@@ -136,11 +152,16 @@ class BaseResource(object):
                 print("* {}".format(dfile[1]))
                 # TODO: add file size in print!
 
-            for data_id, filename, field, _ in dfiles:
+            for data_id, filename, _, _ in dfiles:
                 with open(os.path.join(download_dir, filename), 'wb') as file_:
-                    handle = self.resolwe.download([data_id], field)
-                    for chunk in handle:
-                        file_.write(chunk)
+                    url = urljoin(self.resolwe.url, 'data/{}/{}'.format(data_id, filename))
+                    response = requests.get(url, stream=True, auth=self.resolwe.auth)
+
+                    if not response.ok:
+                        response.raise_for_status()
+                    else:
+                        for chunk in response:
+                            file_.write(chunk)
 
     def __repr__(self):
-        return u"{}: {} - {}".format(self.endpoint.capitalize(), self.id, self.name)  # pylint: disable=no-member
+        return u"{} <id: {}, slug: '{}', name: '{}'>".format(self.__class__.__name__, self.id, self.slug, self.name)  # pylint: disable=no-member

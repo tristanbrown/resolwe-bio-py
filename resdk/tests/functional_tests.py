@@ -29,17 +29,7 @@ class UserTest(unittest.TestCase):
 
         # Test upload (consequently also _upload_file & create)
         fn = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'files', 'example.fastq')
-        resolwe.upload('Upload NGS reads', name='name_abc', collections=[1], src=fn)
-
-        # Test download:
-        fn = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'downloaded.fastq.gz')
-        file_stream = resolwe.download([40], 'output.fastq')
-        with open(fn, 'wb') as file_:
-            for part in file_stream:
-                file_.write(part)
-        # Clean up:
-        self.assertTrue(os.path.isfile(fn))
-        os.remove(fn)
+        resolwe.run('import-upload-reads-fastq', input={'src': fn}, collections=[1], data_name='name_abc')
 
 
 if __name__ == '__main__':

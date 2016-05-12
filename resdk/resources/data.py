@@ -7,34 +7,41 @@ from .base import BaseResource
 
 class Data(BaseResource):
     """
-    Resolwe data object annotation.
+    Resolwe Data resource.
     """
 
     endpoint = 'data'
 
-    """
-    Resolwe data object annotation.
-    """
+    def __init__(self, resource, resolwe, fields=None):
+        """
+        Resolwe Data resource.
 
-    def __init__(self, data, resolwe):
-        BaseResource.__init__(self, data, resolwe)
+        :param response: Data resource
+        :type response: slumber.Resource
+        :param resolwe: Resolwe instance
+        :type resolwe: Resolwe object
+        :param fields: Initial field data
+        :type fields: dict
 
-    def update(self, data):
+        """
+        BaseResource.__init__(self, resource, resolwe, fields)
+
+    def _update_fields(self, fields):
         """
         Update the Data object with new data.
 
-        :param data: Annotation data for Data object
-        :type collection: dictionary (JSON that is received from restAPI)
+        :param fields: Data resource fields
+        :type fields: dict
 
         :rtype: None
         """
-        BaseResource.update(self, data)
+        BaseResource._update_fields(self, fields)
 
         self.annotation = {}
         self.annotation.update(
-            self._flatten_field(data['input'], data['process_input_schema'], 'input'))
+            self._flatten_field(fields['input'], fields['process_input_schema'], 'input'))
         self.annotation.update(
-            self._flatten_field(data['output'], data['process_output_schema'], 'output'))
+            self._flatten_field(fields['output'], fields['process_output_schema'], 'output'))
         # TODO Descriptor schema!
 
     def _flatten_field(self, field, schema, path):
