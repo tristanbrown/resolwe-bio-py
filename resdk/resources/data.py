@@ -24,6 +24,9 @@ class Data(BaseResource):
         :type fields: dict
 
         """
+        self.status = None
+        self.input = None
+
         BaseResource.__init__(self, resource, resolwe, fields)
 
     def _update_fields(self, fields):
@@ -81,6 +84,9 @@ class Data(BaseResource):
         dlist = []
         for path, ann in self.annotation.items():
             if path.startswith('output') and ann['type'] == 'basic:file:':
+                if ann['value'] is None:
+                    raise ValueError("No file in field '{}', status {}".format(path, self.status))
+
                 if verbose:
                     dlist.append((self.id,
                                   ann['value']['file'],

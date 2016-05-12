@@ -36,6 +36,8 @@ class BaseResource(object):
         :type fields: dict
 
         """
+        self.id = None  # pylint: disable=invalid-name
+
         self.resolwe = resolwe
         self.resource = resource
         self.api = getattr(resolwe.api, self.endpoint)

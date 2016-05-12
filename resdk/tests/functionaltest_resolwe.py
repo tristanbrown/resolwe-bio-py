@@ -10,9 +10,14 @@ import six
 import resdk
 from resdk.resources import Data, Sample, Collection
 
+
 EMAIL = 'admin'
 PASSW = 'admin'
 URL = 'http://127.0.0.1:8000/'
+# Set test data IDs. The test data should exist on Resolwe server.
+SAMPLE_ID = 25
+COLLECTION_ID = 10
+DATA_ID = 42
 
 
 class TestResolwe(unittest.TestCase):
@@ -37,89 +42,77 @@ class TestResolweQuerry(unittest.TestCase):
 
         # Test authentication
         resolwe = resdk.Resolwe(EMAIL, PASSW, URL)
-        # Prepare id's
-        SAMPLE_ID = int(resolwe.sample.filter()[0].id)
-        COLLECTION_ID = int(resolwe.collection.filter()[0].id)
-        DATA_ID = int(resolwe.collection.filter()[0].data[0])
 
         # Test get
-        d = resolwe.data.get(DATA_ID)
-        self.assertIsInstance(d, Data)
-        d = resolwe.sample.get(SAMPLE_ID)
-        self.assertIsInstance(d, Sample)
-        d = resolwe.collection.get(COLLECTION_ID)
-        self.assertIsInstance(d, Collection)
+        data = resolwe.data.get(DATA_ID)
+        self.assertIsInstance(data, Data)
+        sample = resolwe.sample.get(SAMPLE_ID)
+        self.assertIsInstance(sample, Sample)
+        collection = resolwe.collection.get(COLLECTION_ID)
+        self.assertIsInstance(collection, Collection)
 
         # Test filter
-        d = resolwe.data.filter(status="OK")
-        self.assertIsInstance(d, list)
-        self.assertIsInstance(d[0], Data)
-        d = resolwe.sample.filter(contributor=1)
-        self.assertIsInstance(d, list)
-        self.assertIsInstance(d[0], Sample)
-        d = resolwe.collection.filter(data=DATA_ID)
-        self.assertIsInstance(d, list)
-        self.assertIsInstance(d[0], Collection)
+        data = resolwe.data.filter(status="OK")
+        self.assertIsInstance(data, list)
+        self.assertIsInstance(data[0], Data)
+        samples = resolwe.sample.filter(contributor=1)
+        self.assertIsInstance(samples, list)
+        self.assertIsInstance(samples[0], Sample)
+        collections = resolwe.collection.filter(data=DATA_ID)
+        self.assertIsInstance(collections, list)
+        self.assertIsInstance(collections[0], Collection)
 
 
 class TestFilesAndDownload(unittest.TestCase):
 
     def test_files(self):
-
         # Test authentication
         resolwe = resdk.Resolwe(EMAIL, PASSW, URL)
-        # SAMPLE_ID = int(resolwe.sample.filter()[0].id)
-        # Pick sample id, where sample has some data in sample.data field
-        SAMPLE_ID = 25
-
-        s = resolwe.sample.get(SAMPLE_ID)
+        sample = resolwe.sample.get(SAMPLE_ID)
 
         # Test files() function:
-        flist = s.files()
+        flist = sample.files()
         self.assertIsInstance(flist, list)
         self.assertTrue(len(flist) >= 1)
         self.assertIsInstance(flist[0], six.string_types)
 
-        flist = s.files(verbose=True)
+        flist = sample.files(verbose=True)
         self.assertIsInstance(flist, list)
         self.assertTrue(len(flist) >= 1)
         self.assertIsInstance(flist[0], tuple)
         self.assertEqual(len(flist[0]), 4)
 
     def test_download(self):
-
         # Test authentication
         resolwe = resdk.Resolwe(EMAIL, PASSW, URL)
-        # SAMPLE_ID = int(resolwe.sample.filter()[0].id)
-        # Pick sample id, where sample has some data in sample.data field
-        SAMPLE_ID = 25
+        sample = resolwe.sample.get(SAMPLE_ID)
 
-        s = resolwe.sample.get(SAMPLE_ID)
-        all_files = s.files()
+        all_files = sample.files()
 
         # Test download() function - no params:
-        s.download()
+        sample.download()
+
         # Check if file has bee downloaded
-        for f in all_files:
-            self.assertTrue(os.path.isfile(f))
+        for fname in all_files:
+            self.assertTrue(os.path.isfile(fname))
             # Then clean up = remove file
-            os.remove(f)
+            os.remove(fname)
 
         # Test download() function - param name:
         fname = all_files[0]
-        s.download(name=fname)
+        sample.download(name=fname)
         self.assertTrue(os.path.isfile(fname))
         self.assertFalse(os.path.isfile(all_files[1]))
         os.remove(fname)
 
         # Test download() function - param typ as tuple:
-        s.download(typ=('data:reads:fastq:', 'output.fastq'))
+        sample.download(typ=('data:reads:fastq:', 'output.fastq'))
         self.assertTrue(os.path.isfile(fname))
         self.assertFalse(os.path.isfile(all_files[1]))
         os.remove(fname)
 
         # Test download() function - param typ as abbreviation string:
-        s.download(typ='fastq')
+        sample.download(typ='fastq')
         self.assertTrue(os.path.isfile(fname))
         self.assertFalse(os.path.isfile(all_files[1]))
         os.remove(fname)

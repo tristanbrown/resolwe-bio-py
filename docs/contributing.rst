@@ -41,9 +41,13 @@ Prepare Resolwe SDK for Python for development::
 Running tests
 =============
 
-To run the tests, use::
+Run unit tests::
 
-    TODO
+    python -m unittest discover
+
+Run unit and functional tests::
+
+    python -m unittest discover resdk *test*.py
 
 To run the tests with Tox_, use::
 

@@ -122,7 +122,7 @@ class Resolwe(object):
         elif len(process) == 0:
             raise ValueError("Could not get process for given slug")
         else:
-            raise ValueError("Unexpected behaviour trying to get the process for given slug")
+            raise ValueError("Unexpected behaviour at get process with slug {}".format(slug))
 
         # Upload files in basic:file fields
         try:

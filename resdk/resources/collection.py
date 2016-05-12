@@ -39,7 +39,8 @@ class BaseCollection(BaseResource):
         """
         file_list = []
         for id_ in self.data:  # pylint: disable=no-member
-            file_list += Data(self.resolwe.api.data(id_), self.resolwe).get_download_list(verbose=verbose)
+            data = Data(self.resolwe.api.data(id_), self.resolwe)
+            file_list += data.get_download_list(verbose=verbose)
         return file_list
 
     def print_annotation(self):
