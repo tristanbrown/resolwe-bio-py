@@ -294,9 +294,10 @@ class ResolweQuerry(object):
         """
         try:
             if re.match('^[0-9]+$', str(uid)):  # iud is ID number:
-                return self.resource(self.api(str(uid)).get(), self.resolwe)
+                return self.resource(self.api(str(uid)), self.resolwe)
             else:  # uid is slug
-                return self.resource(self.api.get(slug=uid)[0], self.resolwe)
+                object_json = self.api.get(slug=uid)[0]
+                return self.resource(self.api(object_json['id']), self.resolwe, fields=object_json)
         except slumber.exceptions.HttpNotFoundError:
             raise ValueError('Id: "{}" does not exist or you dont have access '
                              'permission.'.format(str(uid)))
@@ -345,7 +346,7 @@ class ResolweQuerry(object):
 
         Note: The filtering options might change (improve) with time.
         """
-        return [self.resource(x, self.resolwe) for x in self.api.get(**kwargs)]
+        return [self.resource(self.api(x['id']), self.resolwe, x) for x in self.api.get(**kwargs)]
 
     def search(self):
         """
