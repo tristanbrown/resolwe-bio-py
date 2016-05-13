@@ -89,6 +89,31 @@ class Resolwe(object):
             typ = field_schema['type']
             sys.stdout.write("{} -> {}\n".format(name, typ))
 
+    def _version_number(self, version):
+        """Transform dot separated version to int."""
+        version_number_bits = (8, 10, 14)
+        version_numbers = [int(number_string) for number_string in version.split(".")]
+
+        if len(version_numbers) > len(version_number_bits):
+            raise NotImplementedError("Versions with more than {0} decimal places are not supported".format(
+                len(version_number_bits) - 1))
+
+        #add 0s for missing numbers
+        version_numbers.extend([0] * (len(version_number_bits) - len(version_numbers)))
+
+        #convert version to single int
+        version_number = 0
+        total_bits = 0
+        for num, bits in reversed(zip(version_numbers, version_number_bits)):  # pylint: disable=bad-reversed-sequence
+            max_num = (bits + 1) - 1
+            if num >= 1 << max_num:
+                raise ValueError("Number {0} cannot be stored with only {1} bits. Max is {2}".format(
+                    num, bits, max_num))
+            version_number += num << total_bits
+            total_bits += bits
+
+        return version_number
+
     def _register(self, src, slug):
         """Register processes on the server.
 
@@ -125,6 +150,8 @@ class Resolwe(object):
         endswith_colon(process, 'type')
         endswith_colon(process, 'category')
 
+        process['version'] = self._version_number(process['version'])
+
         for field in ['input', 'output']:
             if field not in process:
                 continue
@@ -142,7 +169,22 @@ class Resolwe(object):
             for key, val in process.items():
                 print(key, val)
 
-            response = self.api.process.post(process)
+            server_process = self.api.process.get(slug=process['slug'], ordering='-version', limit=1)
+
+            if len(server_process) == 1:
+                server_process = server_process[0]
+
+                if process['version'] > server_process['version']:
+                    response = self.api.process.post(process)
+                else:
+                    process['version'] = server_process['version'] + 1
+                    print("WARN: Process version increased automatically")
+                    response = self.api.process.post(process)
+
+            elif len(server_process) == 0:
+                response = self.api.process.post(process)
+            else:
+                raise ValueError("Unexpected behaviour at get process with slug {}".format(slug))
 
         except slumber.exceptions.HttpClientError as http_client_error:
             if http_client_error.response.status_code == 405:  # pylint: disable=no-member
