@@ -108,6 +108,7 @@ class Resolwe(object):
         :type collections: list of ints
         :param data_name: Default name of Data object
         :type data_name: string
+
         :rtype: HTTP Response object
 
         """
@@ -164,8 +165,8 @@ class Resolwe(object):
         if len(collections) > 0:
             data['collections'] = collections
 
-        response_fields = self.api.data.post(data)
-        return Data(self.api.data(response_fields['id']), self, response_fields)
+        model_data = self.api.data.post(data)
+        return Data(model_data=model_data, resolwe=self)
 
     def _upload_file(self, fn):
         """Upload a single file on the platform.
@@ -294,10 +295,9 @@ class ResolweQuerry(object):
         """
         try:
             if re.match('^[0-9]+$', str(uid)):  # iud is ID number:
-                return self.resource(self.api(str(uid)), self.resolwe)
+                return self.resource(id=uid, resolwe=self.resolwe)
             else:  # uid is slug
-                object_json = self.api.get(slug=uid)[0]
-                return self.resource(self.api(object_json['id']), self.resolwe, fields=object_json)
+                return self.resource(slug=uid, resolwe=self.resolwe)
         except slumber.exceptions.HttpNotFoundError:
             raise ValueError('Id: "{}" does not exist or you dont have access '
                              'permission.'.format(str(uid)))
@@ -346,7 +346,7 @@ class ResolweQuerry(object):
 
         Note: The filtering options might change (improve) with time.
         """
-        return [self.resource(self.api(x['id']), self.resolwe, x) for x in self.api.get(**kwargs)]
+        return [self.resource(model_data=x, resolwe=self.resolwe) for x in self.api.get(**kwargs)]
 
     def search(self):
         """
