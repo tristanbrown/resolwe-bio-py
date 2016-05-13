@@ -4,6 +4,7 @@ from __future__ import absolute_import, division, print_function
 import ntpath
 import os
 import re
+import subprocess
 import sys
 import uuid
 import yaml
@@ -22,6 +23,9 @@ CHUNK_SIZE = 90000000
 DEFAULT_EMAIL = 'anonymous@genialis.com'
 DEFAULT_PASSWD = 'anonymous'
 DEFAULT_URL = 'https://dictyexpress.research.bcm.edu'
+# Tools directory on the Resolwe server, for example:
+# username@torta.bcmt.bcm.edu://genialis/tools
+TOOLS_REMOTE_HOST = os.environ.get('TOOLS_REMOTE_HOST', None)
 
 
 class Resolwe(object):
@@ -86,7 +90,14 @@ class Resolwe(object):
             sys.stdout.write("{} -> {}\n".format(name, typ))
 
     def _register(self, src, slug):
-        """Register processes on the server."""
+        """Register processes on the server.
+
+        :param src: Register process from source YAML file
+        :type src: str
+        :param slug: Process slug (unique identifier)
+        :type slug: str
+
+        """
         if not os.path.isfile(src):
             raise ValueError("File not found {}".format(src))
 
@@ -140,20 +151,44 @@ class Resolwe(object):
 
         return response
 
+    def _upload_tools(self, tools):
+        """Upload auxiliary scripts to Resolwe server.
+
+        Upload auxiliary script files (tools to call in the processes)
+        to the Resolwe server's runtime Docker container.
+
+        :param tools: Process auxiliary scripts
+        :type tools: list of str
+
+        """
+        if TOOLS_REMOTE_HOST is None:
+            raise ValueError("Define TOOLS_REMOTE_HOST environmental variable")
+
+        print("SCP REMOTE HOST", TOOLS_REMOTE_HOST)
+        for tool in tools:
+            status = subprocess.call('scp {} {}'.format(tool, TOOLS_REMOTE_HOST), shell=True)
+            print("STATUS:", status)
+
     def run(self, slug=None, input={}, descriptor=None,  # pylint: disable=redefined-builtin
-            descriptor_schema=None, collections=[], data_name='', src=None):
+            descriptor_schema=None, collections=[],
+            data_name='', src=None, tools=None):
         """Run process and return the corresponding Data object.
 
         1. Upload files referenced in inputs
         2. Create Data object with given inputs
-        3. Command is run to process inputs into outputs
+        3. Command is run that processes inputs into outputs
         4. Return Data object
 
-        If src given, processes in the corresponding source code file
-        are first uploaded and registered on the server.
+        The processing runs asynchronously, so the returned Data
+        object does not have an OK status or outputs when returned.
+        Use data.update() to refresh the Data resource object.
 
-        The processing runs asynchronously, so the returned Data object
-        does not have an OK status nor outputs yet.
+        For process development, use src and tools arguments. If src
+        argument given, a process from the specified source YAML file
+        is first uploaded and registered on the server. List the
+        process auxiliary scripts (tools to call in the processes)
+        in the tools argument. This scripts will be copied to the
+        server automatically with SCP.
 
         :param slug: Process slug (unique identifier)
         :type slug: str
@@ -167,8 +202,10 @@ class Resolwe(object):
         :type collections: list of ints
         :param data_name: Default name of Data object
         :type data_name: string
-        :param src: Processes source code file
+        :param src: Register process from source YAML file
         :type src: str
+        :param tools: Process auxiliary scripts to upload
+        :type tools: list of str
 
         :rtype: HTTP Response object
 
@@ -179,6 +216,9 @@ class Resolwe(object):
 
         if src is not None:
             self._register(src, slug)
+
+        if tools is not None:
+            self._upload_tools(tools)
 
         process = self.api.process.get(slug=slug, ordering='-version', limit=1)
 
