@@ -46,10 +46,11 @@ setup(
 
     zip_safe=False,
     install_requires=(
-        "requests>=2.6.0",
-        "slumber>=0.7.1",
-        "appdirs>=1.4.0",
-        "six>=1.10.0",
+        'requests>=2.6.0',
+        'slumber>=0.7.1',
+        'appdirs>=1.4.0',
+        'six>=1.10.0',
+        'pyyaml>=3.11',
     ),
     extras_require={
         'docs': [

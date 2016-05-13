@@ -6,6 +6,7 @@ import os
 import re
 import sys
 import uuid
+import yaml
 
 import requests
 import slumber
@@ -84,14 +85,72 @@ class Resolwe(object):
             typ = field_schema['type']
             sys.stdout.write("{} -> {}\n".format(name, typ))
 
+    def _register(self, src, slug):
+        """Register processes on the server."""
+        if not os.path.isfile(src):
+            raise ValueError("File not found {}".format(src))
+
+        processes = []
+
+        try:
+            with open(src) as src_file:
+                processes = yaml.load(src_file)
+
+        except yaml.parser.ParserError as parser_error:
+            raise parser_error
+
+        def endswith_colon(schema, field):
+            """Ensure the field ends with colon."""
+            if field in schema and not schema[field].endswith(':'):
+                schema[field] += ':'
+
+        process = None
+        for process in processes:
+            if process.get('slug', None) == slug:
+                break
+        else:
+            return
+
+        endswith_colon(process, 'type')
+        endswith_colon(process, 'category')
+
+        for field in ['input', 'output']:
+            if field not in process:
+                continue
+
+            for schema, _, _ in iterate_schema({}, process[field], field):
+                endswith_colon(schema, 'type')
+
+            process['{}_schema'.format(field)] = process.pop(field)
+
+        if 'persistence' in process:
+            persistence_map = {'RAW': 'RAW', 'CACHED': 'CAC', 'CAC': 'CAC', 'TEMP': 'TMP', 'TMP': 'TMP'}
+            process['persistence'] = persistence_map[process['persistence']]
+
+        try:
+            for key, val in process.items():
+                print(key, val)
+
+            response = self.api.process.post(process)
+
+        except slumber.exceptions.HttpClientError as http_client_error:
+            if http_client_error.response.status_code == 405:  # pylint: disable=no-member
+                print("Server does not support adding processes")
+            return http_client_error
+
+        return response
+
     def run(self, slug=None, input={}, descriptor=None,  # pylint: disable=redefined-builtin
-            descriptor_schema=None, collections=[], data_name=''):
+            descriptor_schema=None, collections=[], data_name='', src=None):
         """Run process and return the corresponding Data object.
 
         1. Upload files referenced in inputs
         2. Create Data object with given inputs
         3. Command is run to process inputs into outputs
         4. Return Data object
+
+        If src given, processes in the corresponding source code file
+        are first uploaded and registered on the server.
 
         The processing runs asynchronously, so the returned Data object
         does not have an OK status nor outputs yet.
@@ -108,6 +167,8 @@ class Resolwe(object):
         :type collections: list of ints
         :param data_name: Default name of Data object
         :type data_name: string
+        :param src: Processes source code file
+        :type src: str
 
         :rtype: HTTP Response object
 
@@ -115,6 +176,9 @@ class Resolwe(object):
         if ((descriptor and not descriptor_schema) or
                 (not descriptor and descriptor_schema)):
             raise ValueError("Set both or neither descriptor and descriptor_schema")
+
+        if src is not None:
+            self._register(src, slug)
 
         process = self.api.process.get(slug=slug, ordering='-version', limit=1)
 
