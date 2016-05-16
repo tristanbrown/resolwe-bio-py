@@ -25,9 +25,10 @@ Resolwe SDK for Python
     :alt: Number of downloads from PyPI
 
 
-The Resolwe SDK for Python supports writing tools for Resolwe_ dataflow
-package for `Django framework`_ and `Resolwe Bioinformatics`_ that
-includes the bioinformatics pipelines.
+Resolwe_ is a dataflow package for the `Django framework`_.
+`Resolwe Bioinformatics`_ is an extension of Resolwe that provides
+bioinformatics pipelines. Resolwe SDK for Python supports writing
+dataflow pipelines for Resolwe and Resolwe Bioinformatics.
 
 .. _Resolwe Bioinformatics: https://github.com/genialis/resolwe-bio
 .. _Resolwe: https://github.com/genialis/resolwe
@@ -36,65 +37,87 @@ includes the bioinformatics pipelines.
 Docs & Help
 ===========
 
-Read detailed description in the documentation_.
+Read the detailed description in documentation_.
 
 .. _documentation: http://resolwe-bio-py.readthedocs.io/
-
 
 Install
 =======
 
-To install, run::
+Install from PyPI::
 
   pip install resdk
 
-To install for development, run::
+To install for development, `fork on Github`_ and run::
 
+  git clone https://github.com/<GITHUB_USER>/resolwe-bio-py.git
+  cd resolwe-bio-py
   pip install -e .[docs,package,test]
 
+.. _fork on Github: https://github.com/genialis/resolwe-bio-py
 
-Usage
-=====
+Quick Start
+===========
 
-Connect to the Resolwe server:
+Connect to a Resolwe server:
 
 .. code-block:: python
 
    from resdk import Resolwe
-   re = Resolwe('me@mail.com', 'my_password', 'www.resolwe.com')
+   re = Resolwe('admin', 'admin', 'https://torta.bcm.genialis.com')
 
-Get all collections and select the first one:
-
-.. code-block:: python
-
-   collections = re.collections()
-   collection = list(collections.values())[0]
-
-Get expression objects and select the first one:
+Get sample by ID and download the aligned reads (BAM file):
 
 .. code-block:: python
 
-   expressions = collection.data(type__startswith='data:expression:')
-   expression = expressions[0]
+   sample = re.sample.get(1)
+   sample.download(type='bam')
 
-Print annotation:
-
-.. code-block:: python
-
-   expression.print_annotation()
-
-Print file fields:
+Find human samples and download all aligned reads (BAM files):
 
 .. code-block:: python
 
-   expression.print_downloads()
+   samples = re.sample.filter(descriptor__organism="Homo sapiens")
+   for sample in samples:
+       sample.download(type='bam')
 
-Download file:
+Primary analysis (*e.g.,* filtering, alignment, expression estimation)
+starts automatically when samples are annotated. A step in primary
+analysis is represented as ``Data`` object, attached to the sample.
+A ``Sample`` object includes sample annotation. A ``Data`` object
+includes input parameters, results and analysis annotation. Print the
+steps in primary analysis pipeline:
 
 .. code-block:: python
 
-   filename = expression.annotation['output.exp']['value']['file']
-   file_stream = expression.download('output.exp')
-   with open(filename, 'w') as f:
-       for part in file_stream:
-           f.write(part)
+    for data_id in sample.data:
+        data = re.data.get(data_id)
+        print data.process_name
+
+Find ROSE2 analysis results and display a ??? plot of the first result:
+
+.. code-block:: python
+
+   rose2 = re.data.filter(type='data:chipseq:rose2:')
+   # TODO: Plot results
+
+Run Bowtie2 mapping on the reads ``Data`` object of the above sample:
+
+.. code-block:: python
+
+   genome = re.data.filter(type='data:genome:fasta:')[0]
+   reads = sample.data[0]
+   aligned = re.run('alignment-bowtie-2-2-3_trim', input={
+                        genome: genome.id,
+                        reads: reads.id,
+                        reporting: {rep_mode: 'k', k_reports: 1}
+                    })
+   aligned.status()
+
+Continue in the `Getting Started`_ section of Documentation, where we
+explain how to upload files, create samples and provide details about
+the Resolwe backend. Bioinformaticians can learn how to develop
+pipelines in `Writing Pipelines`_.
+
+.. _Getting Started: TODO
+.. _Writing Pipelines: TODO

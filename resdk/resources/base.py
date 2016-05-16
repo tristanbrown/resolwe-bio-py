@@ -89,13 +89,13 @@ class BaseResource(object):
         """
         self._update_fields(self.api(self.id).get())
 
-    def download(self, name=None, typ=None, download_dir=None, force=False):
+    def download(self, name=None, type=None, download_dir=None, force=False):  # pylint: disable=redefined-builtin
         """
-        Download files in resource that match name/typ.
+        Download files in resource that match name/type.
 
         :param name: name of file
         :type name: string
-        :param typ: (process_type, output_field) or abbreviation for most of such common tuples.
+        :param type: (process_type, output_field) or abbreviation for most of such common tuples.
         :type typ: tuple or string
         :param download_dir: download path
         :type download_dir: string
@@ -116,11 +116,11 @@ class BaseResource(object):
 
             or
 
-            * (process_type, output_field) tuple (with keyword **typ**)
+            * (process_type, output_field) tuple (with keyword **type**)
                 In this case only files from output_field from data object
                 with process_type will be downloaded.
                 Example:
-                re.sample.get(42).download(typ=('data:alignment:bam:', 'output.bam'))
+                re.sample.get(42).download(type=('data:alignment:bam:', 'output.bam'))
 
                 For most common types of downloads (bam files,
                 expression files, etc.) shortcut notation is provided:
@@ -128,7 +128,7 @@ class BaseResource(object):
                     * 'exp' for expression files
                     * 'fastq' for fastq files
                 Example:
-                re.sample.get(42).download(typ='bam')
+                re.sample.get(42).download(type='bam')
 
         The current working directory is the default download location. With
         download_dir parameter, this can be modified.
@@ -138,24 +138,24 @@ class BaseResource(object):
             download_dir = os.getcwd()
 
         # list of all files to download - this list is yet to be
-        # filtered by name/typ:
+        # filtered by name/type:
         dfiles = self.files(verbose=True)
 
-        if not (name or typ) or force:
+        if not (name or type) or force:
             pass
 
         elif name:
             dfiles = [d for d in dfiles if d[1] == name]
 
-        elif typ:
+        elif type:
             data_type, output_field = None, None
-            if isinstance(typ, six.string_types):
-                # typ is abbreviation (string)
-                data_type, output_field = DOWNLOAD_TYPES[typ]
-            elif isinstance(typ, tuple) and len(typ) == 2:
-                data_type, output_field = typ
+            if isinstance(type, six.string_types):
+                # type is abbreviation (string)
+                data_type, output_field = DOWNLOAD_TYPES[type]
+            elif isinstance(type, tuple) and len(type) == 2:
+                data_type, output_field = type
             else:
-                raise ValueError('Invalid argument typ.')
+                raise ValueError('Invalid argument type.')
             dfiles = [d for d in dfiles if data_type in d[3] and output_field == d[2]]
 
         if len(dfiles) == 0:

@@ -106,13 +106,13 @@ class TestFilesAndDownload(unittest.TestCase):
         os.remove(fname)
 
         # Test download() function - param typ as tuple:
-        sample.download(typ=('data:reads:fastq:', 'output.fastq'))
+        sample.download(type=('data:reads:fastq:', 'output.fastq'))
         self.assertTrue(os.path.isfile(fname))
         self.assertFalse(os.path.isfile(all_files[1]))
         os.remove(fname)
 
         # Test download() function - param typ as abbreviation string:
-        sample.download(typ='fastq')
+        sample.download(type='fastq')
         self.assertTrue(os.path.isfile(fname))
         self.assertFalse(os.path.isfile(all_files[1]))
         os.remove(fname)
