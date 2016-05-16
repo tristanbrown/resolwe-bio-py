@@ -249,7 +249,7 @@ class Resolwe(object):
         :param tools: Process auxiliary scripts to upload
         :type tools: list of str
 
-        :rtype: HTTP Response object
+        :rtype: Data object
 
         """
         if ((descriptor and not descriptor_schema) or
