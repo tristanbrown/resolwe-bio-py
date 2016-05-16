@@ -119,5 +119,5 @@ explain how to upload files, create samples and provide details about
 the Resolwe backend. Bioinformaticians can learn how to develop
 pipelines in `Writing Pipelines`_.
 
-.. _Getting Started: TODO
-.. _Writing Pipelines: TODO
+.. _Getting Started: http://resdk.readthedocs.io/en/latest/intro.html
+.. _Writing Pipelines: http://resdk.readthedocs.io/en/latest/pipelines.html
