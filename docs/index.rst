@@ -5,9 +5,10 @@
 Resolwe SDK for Python
 ======================
 
-The Resolwe SDK for Python supports writing tools for Resolwe_ dataflow
-package for `Django framework`_ and `Resolwe Bioinformatics`_ that
-includes the bioinformatics pipelines.
+Resolwe_ is a dataflow package for the `Django framework`_.
+`Resolwe Bioinformatics`_ is an extension of Resolwe that provides
+bioinformatics pipelines. Resolwe SDK for Python supports writing
+dataflow pipelines for Resolwe and Resolwe Bioinformatics.
 
 .. _Resolwe Bioinformatics: https://github.com/genialis/resolwe-bio
 .. _Resolwe: https://github.com/genialis/resolwe
@@ -19,5 +20,7 @@ Contents
 .. toctree::
    :maxdepth: 2
 
+   intro
+   pipelines
    ref
    contributing

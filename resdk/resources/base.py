@@ -109,31 +109,33 @@ class BaseResource(object):
         all of them, but this may not be desired, since some files can be
         rather large. User can provide:
 
-            * name of the desired file (with keyword **name**)
-                Only file with corresponding name will be downloaded.
-                Example:
-                re.sample.get(42).download(name="alignment7.bam")
+        * name of the desired file (with keyword **name**)
+          Only file with corresponding name will be downloaded.
+          Example:
+          re.sample.get(42).download(name="alignment7.bam")
 
-            or
+        or
 
-            * (process_type, output_field) tuple (with keyword **type**)
-                In this case only files from output_field from data object
-                with process_type will be downloaded.
-                Example:
-                re.sample.get(42).download(type=('data:alignment:bam:', 'output.bam'))
+        * (process_type, output_field) tuple (with keyword **type**)
+          In this case only files from output_field from data object
+          with process_type will be downloaded.
+          Example:
+          re.sample.get(42).download(type=('data:alignment:bam:', 'output.bam'))
 
-                For most common types of downloads (bam files,
-                expression files, etc.) shortcut notation is provided:
-                    * 'bam' for BAM files
-                    * 'exp' for expression files
-                    * 'fastq' for fastq files
-                Example:
-                re.sample.get(42).download(type='bam')
+          For most common types of downloads (bam files,
+          expression files, etc.) shortcut notation is provided:
+
+          * 'bam' for BAM files
+          * 'exp' for expression files
+          * 'fastq' for fastq files
+
+          Example:
+          re.sample.get(42).download(type='bam')
 
         The current working directory is the default download location. With
         download_dir parameter, this can be modified.
-        """
 
+        """
         if not download_dir:
             download_dir = os.getcwd()
 
