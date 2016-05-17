@@ -1,6 +1,10 @@
 """Data"""
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import requests
+
+from six.moves.urllib.parse import urljoin  # pylint: disable=import-error
+
 from .utils import iterate_schema
 from .base import BaseResource
 
@@ -49,8 +53,10 @@ class Data(BaseResource):
         self.annotation = {}
         self.annotation.update(
             self._flatten_field(fields['input'], fields['process_input_schema'], 'input'))
+
         self.annotation.update(
             self._flatten_field(fields['output'], fields['process_output_schema'], 'output'))
+
         # TODO Descriptor schema!
 
     def _flatten_field(self, field, schema, path):
@@ -105,7 +111,7 @@ class Data(BaseResource):
         """
         Return list of files in resource.
         """
-        # to ne bo ok za data!
+        # XXX: not OK for data!
         file_list = self.resolwe.data.get(self.id).get_download_list(verbose=verbose)  # pylint: disable=no-member
         return file_list
 
@@ -115,3 +121,28 @@ class Data(BaseResource):
         """
         # TODO: Think of neat way to present all annotation. how this would be most neatly presented...
         raise NotImplementedError()
+
+    def stdout(self):
+        """
+        Return process standard output (stdout.txt file content).
+
+        Fetch a stdout.txt file of the corresponding Data object form
+        the Resolwe server and return the file content as a string. The
+        string can be long and ugly.
+
+        :rtype: string
+
+        """
+        output = ''
+        try:
+            url = urljoin(self.resolwe.url, 'data/{}/stdout.txt'.format(self.id))
+            response = requests.get(url, stream=True, auth=self.resolwe.auth)
+            if not response.ok:
+                response.raise_for_status()
+            else:
+                for chunk in response:
+                    output += chunk
+        except requests.exceptions.HTTPError as http_error:
+            raise http_error
+
+        return output
