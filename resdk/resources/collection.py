@@ -39,14 +39,14 @@ class BaseCollection(BaseResource):
         return sorted(  # pylint: disable=no-member
             set(self.resolwe.api.data(id_).get()['process_type'] for id_ in self.data))  # pylint: disable=no-member
 
-    def files(self, verbose=False):
+    def files(self):
         """
         Return list of files in resource.
         """
         file_list = []
         for id_ in self.data:  # pylint: disable=no-member
             data = Data(id=id_, resolwe=self.resolwe)
-            file_list += data.get_download_list(verbose=verbose)
+            file_list.extend(data.get_download_list())
         return file_list
 
     def print_annotation(self):

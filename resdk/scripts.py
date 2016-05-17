@@ -68,7 +68,7 @@ def sequp():
 
     # Application data
     config_file = os.path.join(appdirs.user_data_dir(about.__title__, about.__author__), 'config')
-
+    print(config_file)
     # XXX: Increase to 1h
     change_time_window = 5
 

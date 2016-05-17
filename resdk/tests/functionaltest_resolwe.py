@@ -74,11 +74,6 @@ class TestFilesAndDownload(unittest.TestCase):
         flist = sample.files()
         self.assertIsInstance(flist, list)
         self.assertTrue(len(flist) >= 1)
-        self.assertIsInstance(flist[0], six.string_types)
-
-        flist = sample.files(verbose=True)
-        self.assertIsInstance(flist, list)
-        self.assertTrue(len(flist) >= 1)
         self.assertIsInstance(flist[0], tuple)
         self.assertEqual(len(flist[0]), 4)
 

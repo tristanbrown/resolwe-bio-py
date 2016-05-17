@@ -90,15 +90,18 @@ steps in primary analysis pipeline:
 
 .. code-block:: python
 
-    for data_id in sample.data:
-        data = re.data.get(data_id)
-        print data.process_name
+   sample = re.sample.get(1)
+   for data_id in sample.data:
+       data = re.data.get(data_id)
+       print data.process_name
 
-Find ROSE2 analysis results and display a ??? plot of the first result:
+Find ROSE2 analysis results and display a super-enhancer rank plot of
+the first ROSE2 analysis Data object:
 
 .. code-block:: python
 
-   rose2 = re.data.filter(type='data:chipseq:rose2:')
+   rose2_list = re.data.filter(type='data:chipseq:rose2:')
+   rose2 = rose2_list[0]
    # TODO: Plot results
 
 Run Bowtie2 mapping on the reads ``Data`` object of the above sample:

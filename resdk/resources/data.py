@@ -36,6 +36,7 @@ class Data(BaseResource):
         """
         self.status = None
         self.input = None
+        self.process_type = None
 
         BaseResource.__init__(self, slug, id, model_data, resolwe)
 
@@ -82,37 +83,26 @@ class Data(BaseResource):
 
         return flat
 
-    def get_download_list(self, verbose=False):
+    def get_download_list(self):
         """
         Get list of all downloadable fields
 
-        :param verbose: Verbose output.
-        :type verbose: boolean
-
-        If verbose = False, return list of strings (file names)
-        If verbose = True, return list of tuples. Each tuple contains:
-        (data_id, file_name, field_name, process_type)
+        :rtype: List of tuples (data_id, file_name, field_name, process_type)
         """
         dlist = []
         for path, ann in self.annotation.items():
-            if path.startswith('output') and ann['type'] == 'basic:file:':
-                if ann['value'] is None:
-                    raise ValueError("No file in field '{}', status {}".format(path, self.status))
-
-                if verbose:
-                    dlist.append((self.id,
-                                  ann['value']['file'],
-                                  path, self.process_type))  # pylint: disable=no-member
-                else:
-                    dlist.append(ann['value']['file'])
+            if path.startswith('output') and ann['type'] == 'basic:file:' and ann['value'] is not None:
+                dlist.append((self.id,
+                              ann['value']['file'],
+                              path, self.process_type))
         return dlist
 
-    def files(self, verbose=False):
+    def files(self):
         """
         Return list of files in resource.
         """
         # XXX: not OK for data!
-        file_list = self.resolwe.data.get(self.id).get_download_list(verbose=verbose)  # pylint: disable=no-member
+        file_list = self.resolwe.data.get(self.id).get_download_list()
         return file_list
 
     def print_annotation(self):

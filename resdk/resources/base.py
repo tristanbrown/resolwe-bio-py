@@ -77,7 +77,7 @@ class BaseResource(object):
         """
         pass
 
-    def files(self, verbose=False):
+    def files(self):
         """
         Return list of files in resource.
         """
@@ -141,7 +141,7 @@ class BaseResource(object):
 
         # list of all files to download - this list is yet to be
         # filtered by name/type:
-        dfiles = self.files(verbose=True)
+        dfiles = self.files()
 
         if not (name or type) or force:
             pass
