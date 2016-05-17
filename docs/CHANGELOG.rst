@@ -6,6 +6,15 @@ All notable changes to this project are documented in this file.
 
 
 ==================
+1.3.2 - 2016-05-17
+==================
+
+Fixed
+-----
+* Fix docs use case
+
+
+==================
 1.3.1 - 2016-05-16
 ==================
 
