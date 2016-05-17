@@ -96,48 +96,47 @@ def sequp():
     if args.force and os.path.isfile(config_file):
         os.remove(config_file)
 
-    def get_timestamp():
-        """Get the timestamp for GENIALIS_SEQ_DIR"""
-        data = {}
-        # If file present
-        if os.path.isfile(config_file):
-            with open(config_file, 'r') as file_:
-                for line in file_:
-                    parts = line.strip().split('\t')
-                    data[parts[0]] = float(parts[1])
-            if genialis_seq_dir in data:
-                return data[genialis_seq_dir]
-            else:
-                # File created, no entry, upload all files
-                return 0
+    def read_timestamps():
+        """Read timestamps from config_file.
 
-        # File not present, first iteration, upload all files
-        else:
-            return 0
+        :rtype: Dict of pairs (dir, timestamp)
+
+        """
+        if not os.path.isfile(config_file):
+            return {}
+
+        data = {}
+        with open(config_file, 'r') as file_:
+            for line in file_:
+                parts = line.strip().split('\t')
+                data[parts[0]] = float(parts[1])
+        return data
+
+    def write_timestamps(pairs):
+        """Write timestamps to config_file."""
+        with open(config_file, 'w') as file_:
+            for first, second in pairs.items():
+                file_.write(str(first) + '\t' + str(second) + '\n')
+
+    def get_timestamp():
+        """Get timestamp for GENIALIS_SEQ_DIR."""
+        timestamps = read_timestamps()
+        return timestamps.get(genialis_seq_dir, 0)
 
     def set_timestamp(timestamp):
-        """Set timestamp for GENIALIS_SEQ_DIR"""
-
-        def write_timestamp(pairs):
-            """Write the timestamp into appropriate file"""
-            with open(config_file, 'w') as file_:
-                for first, second in pairs.items():
-                    file_.write(str(first) + '\t' + str(second) + '\n')
-
-        # If file exists, rewrite
-        if os.path.isfile(config_file):
-            pairs = get_timestamp()
+        """Set timestamp for GENIALIS_SEQ_DIR."""
+        if os.path.isfile(config_file):  # Update timestamp
+            pairs = read_timestamps()
             pairs[genialis_seq_dir] = timestamp
-            write_timestamp(pairs)
+            write_timestamps(pairs)
 
-        # If file does not exist, create file and put in the data
-        else:
+        else:  # Create config file and add timestamp
             try:
                 os.makedirs(os.path.dirname(config_file))
-                write_timestamp({genialis_seq_dir: timestamp})
+                write_timestamps({genialis_seq_dir: timestamp})
             except OSError:
                 # Folder already exists, make the file
-                write_timestamp({genialis_seq_dir: timestamp})
+                write_timestamps({genialis_seq_dir: timestamp})
 
     # Get timestamp
     timestamp = get_timestamp()
@@ -171,7 +170,7 @@ def sequp():
                 all_annotation_files.append(os.path.join(root, filename))
 
     def parse_annotation_file(annotation_file):
-        """Parse annotation file to list of annotation objects"""
+        """Parse annotation file to list of annotation objects."""
 
         anns = {}
         # We use 'rU' mode to be able to read also files with '\r' chars
