@@ -5,14 +5,18 @@ Change Log
 All notable changes to this project are documented in this file.
 
 
-==========
-Unreleased
-==========
+==================
+1.3.1 - 2016-05-16
+==================
 
 Changed
 -------
 * Rename ``upload`` method to ``run`` and refactor to run any process
 * Move ``downlad`` method from ``resolwe.py`` to ``resource/base.py``
+
+Added
+-----
+* Writing processes docs
 
 
 ==================
@@ -41,6 +45,7 @@ Added
 * ``Sample`` class with ``files`` and ``download`` methods
 * Tox configuration for running tests
 * Travis configuration for automated testing
+
 
 ==================
 1.2.0 - 2015-11-17
