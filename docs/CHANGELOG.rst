@@ -5,6 +5,16 @@ Change Log
 All notable changes to this project are documented in this file.
 
 
+==========
+Unreleased
+==========
+
+Fixed
+-----
+* Fix docs examples
+* Fix error handling in ID/slug resource query
+
+
 ==================
 1.3.2 - 2016-05-17
 ==================

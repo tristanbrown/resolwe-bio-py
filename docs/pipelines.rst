@@ -7,13 +7,19 @@ run command:
 
 .. code-block:: python
 
-   genome = re.data.get('hg19')
-   reads = re.data.get('TODO: Slug')
-   aligned = re.run('alignment-bowtie-2-2-3_trim', input={
-                        genome: genome.id,
-                        reads: reads.id,
-                        reporting: {rep_mode: 'k', k_reports: 1}
-                    })
+   import resdk
+   res = resdk.Resolwe('admin', 'admin', 'https://torta.bcm.genialis.com')
+
+   genome = res.data.get('hg19')
+   sample = res.sample.get(1)
+   genome_id = genome.id
+   reads_id = sample.data[0]
+
+   aligned = res.run('alignment-bowtie-2-2-3_trim', input={
+                         'genome': genome_id,
+                         'reads': reads_id,
+                         'reporting': {'rep_mode': 'k', 'k_reports': 1}
+                     })
 
 Here we explicitly specify which process to execute on the server,
 with the process slug parameter (*i.e.* alignment-bowtie-2-2-3_trim).
@@ -31,15 +37,13 @@ Bowtie2 process locally (in the `bowtie.yml`_ file), but the process
 runs on the server:
 
 .. code-block:: python
-   :emphasize-lines: 7
+   :emphasize-lines: 5
 
-   genome = re.data.get('hg19')
-   reads = re.data.get('TODO: Slug')
-   aligned = re.run('alignment-bowtie-2-2-3_trim', input={
-                        genome: genome.id,
-                        reads: reads.id,
-                        reporting: {rep_mode: 'k', k_reports: 1}
-                    }, src='bowtie.yml')
+   aligned = res.run('alignment-bowtie-2-2-3_trim', input={
+                         'genome': genome_id,
+                         'reads': reads_id,
+                         'reporting': {'rep_mode': 'k', 'k_reports': 1}
+                     }, src='bowtie.yml')
 
 .. _bowtie.yml: https://github.com/genialis/resolwe-bio/blob/master/resolwe_bio/processes/alignment/bowtie.yml
 
@@ -88,15 +92,13 @@ Now you can reference your ad-hoc scripts in the ``run`` command with
 the tools argument:
 
 .. code-block:: python
-   :emphasize-lines: 7
+   :emphasize-lines: 5
 
-   genome = re.data.get('hg19')
-   reads = re.data.get('TODO: Slug')
-   aligned = re.run('alignment-bowtie-2-2-3_trim', input={
-                        genome: genome.id,
-                        reads: reads.id,
-                        reporting: {rep_mode: 'k', k_reports: 1}
-                    }, src='bowtie.yml', tools=['mergebowtiestats.py'])
+   aligned = res.run('alignment-bowtie-2-2-3_trim', input={
+                         'genome': genome_id,
+                         'reads': reads_id,
+                         'reporting': {'rep_mode': 'k', 'k_reports': 1}
+                     }, src='bowtie.yml', tools=['mergebowtiestats.py'])
 
 The tools folder is in the runtime PATH. If you wish to run your
 scripts in a Resolwe process, remember to make them executable (*e.g.,*
@@ -121,8 +123,7 @@ and debug errors:
 
 .. code-block:: python
 
-   aligned.stdout()
-
+   print aligned.stdout()
 
 You can read how to write processes in YAML syntax in the
 `Writing processes`_ chapter of Resolwe Documentation. You should

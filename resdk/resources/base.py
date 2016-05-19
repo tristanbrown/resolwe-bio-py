@@ -6,6 +6,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import os
 import requests
 import six
+import slumber
 
 from six.moves.urllib.parse import urljoin  # pylint: disable=import-error
 
@@ -54,9 +55,18 @@ class BaseResource(object):
         self.resolwe = resolwe
 
         if id:
-            self._update_fields(self.api(id).get())
+            try:
+                self._update_fields(self.api(id).get())
+            except slumber.exceptions.HttpNotFoundError:
+                raise ValueError("ID '{}' does not exist or you do not "
+                                 "have access permission".format(id))
         elif slug:
-            self._update_fields(self.api(id).get())
+            resources = self.api.get(slug=slug)
+            if len(resources) != 1:
+                raise ValueError("Slug '{}' does not exist or you do not "
+                                 "have access permission".format(slug))
+
+            self._update_fields(resources[0])
         elif model_data:
             self._update_fields(model_data)
 

@@ -19,6 +19,7 @@ from .resources import Data, Collection, Sample
 from .resources.utils import iterate_fields, iterate_schema
 
 
+VERSION_NUMBER_BITS = (8, 10, 14)
 CHUNK_SIZE = 90000000
 DEFAULT_EMAIL = 'anonymous@genialis.com'
 DEFAULT_PASSWD = 'anonymous'
@@ -89,22 +90,21 @@ class Resolwe(object):
             typ = field_schema['type']
             sys.stdout.write("{} -> {}\n".format(name, typ))
 
-    def _version_number(self, version):
-        """Transform dot separated version to int."""
-        version_number_bits = (8, 10, 14)
+    def _version_string_to_int(self, version):
+        """Transform dot separated version string to int."""
         version_numbers = [int(number_string) for number_string in version.split(".")]
 
-        if len(version_numbers) > len(version_number_bits):
+        if len(version_numbers) > len(VERSION_NUMBER_BITS):
             raise NotImplementedError("Versions with more than {0} decimal places are not supported".format(
-                len(version_number_bits) - 1))
+                len(VERSION_NUMBER_BITS) - 1))
 
         #add 0s for missing numbers
-        version_numbers.extend([0] * (len(version_number_bits) - len(version_numbers)))
+        version_numbers.extend([0] * (len(VERSION_NUMBER_BITS) - len(version_numbers)))
 
         #convert version to single int
         version_number = 0
         total_bits = 0
-        for num, bits in reversed(zip(version_numbers, version_number_bits)):  # pylint: disable=bad-reversed-sequence
+        for num, bits in reversed(zip(version_numbers, VERSION_NUMBER_BITS)):  # pylint: disable=bad-reversed-sequence
             max_num = (bits + 1) - 1
             if num >= 1 << max_num:
                 raise ValueError("Number {0} cannot be stored with only {1} bits. Max is {2}".format(
@@ -113,6 +113,19 @@ class Resolwe(object):
             total_bits += bits
 
         return version_number
+
+    def _version_int_to_string(self, number):
+        """Transform int to dot separated version string."""
+        number_strings = []
+        total_bits = sum(VERSION_NUMBER_BITS)
+        for bits in VERSION_NUMBER_BITS:
+            shift_amount = (total_bits-bits)
+            number_segment = number >> shift_amount
+            number_strings.append(str(number_segment))
+            total_bits = total_bits - bits
+            number = number - (number_segment << shift_amount)
+
+        return ".".join(number_strings)
 
     def _register(self, src, slug):
         """Register processes on the server.
@@ -145,12 +158,13 @@ class Resolwe(object):
             if process.get('slug', None) == slug:
                 break
         else:
-            return
+            raise ValueError("Process source given '{}' but process "
+                             "slug not found: '{}'".format(src, slug))
 
         endswith_colon(process, 'type')
         endswith_colon(process, 'category')
 
-        process['version'] = self._version_number(process['version'])
+        process['version'] = self._version_string_to_int(process['version'])
 
         for field in ['input', 'output']:
             if field not in process:
@@ -166,9 +180,6 @@ class Resolwe(object):
             process['persistence'] = persistence_map[process['persistence']]
 
         try:
-            for key, val in process.items():
-                print(key, val)
-
             server_process = self.api.process.get(slug=process['slug'], ordering='-version', limit=1)
 
             if len(server_process) == 1:
@@ -178,7 +189,8 @@ class Resolwe(object):
                     response = self.api.process.post(process)
                 else:
                     process['version'] = server_process['version'] + 1
-                    print("WARN: Process version increased automatically")
+                    print("WARN: Process '{}' version increased automatically: "
+                          "{}".format(slug, self._version_int_to_string(process['version'])))
                     response = self.api.process.post(process)
 
             elif len(server_process) == 0:
@@ -206,10 +218,13 @@ class Resolwe(object):
         if TOOLS_REMOTE_HOST is None:
             raise ValueError("Define TOOLS_REMOTE_HOST environmental variable")
 
-        print("SCP REMOTE HOST", TOOLS_REMOTE_HOST)
+        print("SCP: {}".format(TOOLS_REMOTE_HOST))
         for tool in tools:
-            status = subprocess.call('scp {} {}'.format(tool, TOOLS_REMOTE_HOST), shell=True)
-            print("STATUS:", status)
+            status = subprocess.call('scp -r {} {}'.format(tool, TOOLS_REMOTE_HOST), shell=True)
+            if status == 1:
+                raise ValueError("Tools file not found: '{}'".format(tool))
+            if status > 1:
+                print("STATUS:", status)
 
     def run(self, slug=None, input={}, descriptor=None,  # pylint: disable=redefined-builtin
             descriptor_schema=None, collections=[],
@@ -432,24 +447,17 @@ class ResolweQuerry(object):
 
     def get(self, uid):
         """
-        Get object with provided ID or slug.
+        Get object for given ID or slug.
 
         :param uid: unique identifier - ID or slug
-        :type uid: int(ID) or string(slug)
+        :type uid: int for ID or string for slug
 
         :rtype: object of type self.resource
         """
-        try:
-            if re.match('^[0-9]+$', str(uid)):  # iud is ID number:
-                return self.resource(id=uid, resolwe=self.resolwe)
-            else:  # uid is slug
-                return self.resource(slug=uid, resolwe=self.resolwe)
-        except slumber.exceptions.HttpNotFoundError:
-            raise ValueError('Id: "{}" does not exist or you dont have access '
-                             'permission.'.format(str(uid)))
-        except IndexError:
-            raise ValueError('Slug: "{}" does not exist or you dont have '
-                             'access permission.'.format(uid))
+        if re.match('^[0-9]+$', str(uid)):  # iud is ID number:
+            return self.resource(id=uid, resolwe=self.resolwe)
+        else:  # uid is slug
+            return self.resource(slug=uid, resolwe=self.resolwe)
 
     def filter(self, **kwargs):
         """

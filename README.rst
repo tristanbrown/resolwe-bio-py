@@ -24,7 +24,6 @@ Resolwe SDK for Python
     :target: https://pypi.python.org/pypi/resdk
     :alt: Number of downloads from PyPI
 
-
 Resolwe_ is a dataflow package for the `Django framework`_.
 `Resolwe Bioinformatics`_ is an extension of Resolwe that provides
 bioinformatics pipelines. Resolwe SDK for Python supports writing
@@ -64,20 +63,20 @@ Connect to a Resolwe server:
 .. code-block:: python
 
    from resdk import Resolwe
-   re = Resolwe('admin', 'admin', 'https://torta.bcm.genialis.com')
+   res = Resolwe('admin', 'admin', 'https://torta.bcm.genialis.com')
 
 Get sample by ID and download the aligned reads (BAM file):
 
 .. code-block:: python
 
-   sample = re.sample.get(1)
+   sample = res.sample.get(1)
    sample.download(type='bam')
 
 Find human samples and download all aligned reads (BAM files):
 
 .. code-block:: python
 
-   samples = re.sample.filter(descriptor__organism="Homo sapiens")
+   samples = res.sample.filter(descriptor__organism="Homo sapiens")
    for sample in samples:
        sample.download(type='bam')
 
@@ -90,32 +89,40 @@ steps in primary analysis pipeline:
 
 .. code-block:: python
 
-   sample = re.sample.get(1)
+   sample = res.sample.get(1)
    for data_id in sample.data:
-       data = re.data.get(data_id)
+       data = res.data.get(data_id)
        print data.process_name
 
-Find ROSE2 analysis results and display a super-enhancer rank plot of
+Find ROSE2 analysis results and download a super-enhancer rank plot of
 the first ROSE2 analysis Data object:
 
 .. code-block:: python
 
-   rose2_list = re.data.filter(type='data:chipseq:rose2:')
+   rose2_list = res.data.filter(type='data:chipseq:rose2:')
    rose2 = rose2_list[0]
-   # TODO: Plot results
+   rose2.download(name='20150531-u266-A-H3K27Ac-ML1949_S2_R1_mapped_peaks_Plot_panel.png')
 
 Run Bowtie2 mapping on the reads ``Data`` object of the above sample:
 
 .. code-block:: python
 
-   genome = re.data.filter(type='data:genome:fasta:')[0]
-   reads = sample.data[0]
-   aligned = re.run('alignment-bowtie-2-2-3_trim', input={
-                        genome: genome.id,
-                        reads: reads.id,
-                        reporting: {rep_mode: 'k', k_reports: 1}
-                    })
-   aligned.status()
+   genome = res.data.get('hg19')
+   genome_id = genome.id
+   reads_id = sample.data[0]
+   aligned = res.run('alignment-bowtie-2-2-3_trim', input={
+                         'genome': genome_id,
+                         'reads': reads_id,
+                         'reporting': {'rep_mode': 'k', 'k_reports': 1}
+                     })
+   aligned.status
+
+After a while you can check if the alignment has finished:
+
+.. code-block:: python
+
+   aligned.update()
+   aligned.status
 
 Continue in the `Getting Started`_ section of Documentation, where we
 explain how to upload files, create samples and provide details about

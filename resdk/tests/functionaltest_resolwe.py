@@ -5,7 +5,6 @@ Some simple functional tests.
 
 import os
 import unittest
-import six
 
 import resdk
 from resdk.resources import Data, Sample, Collection
