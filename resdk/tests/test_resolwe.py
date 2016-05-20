@@ -49,22 +49,21 @@ class TestResolweProcesses(unittest.TestCase):
 
 class TestResolwePrintUploadProcesses(unittest.TestCase):
 
-    @patch('resdk.resolwe.sys', spec=True)
+    @patch('resdk.resolwe.print')
     @patch('resdk.resolwe.Resolwe', spec=True)
-    def test_print_upload_processes(self, resolwe_mock, sys_mock):
+    def test_print_upload_processes(self, resolwe_mock, print_mock):
 
         # Check output is correct
         resolwe_mock.processes.return_value = PROCESS_SAMPLE
-        sys_mock.stdout.write = MagicMock()
         Resolwe.print_upload_processes(resolwe_mock)
-        sys_mock.stdout.write.assert_called_with('Upload NGS reads\n')
+        print_mock.assert_called_with('Upload NGS reads')
 
 
 class TestResolwePrintProcessInputs(unittest.TestCase):
 
-    @patch('resdk.resolwe.sys', spec=True)
+    @patch('resdk.resolwe.print')
     @patch('resdk.resolwe.Resolwe', spec=True)
-    def test_print_process_inpts(self, resolwe_mock, sys_mock):
+    def test_print_process_inpts(self, resolwe_mock, print_mock):
 
         # Bad processor name:
         resolwe_mock.processes.return_value = []
@@ -74,26 +73,22 @@ class TestResolwePrintProcessInputs(unittest.TestCase):
 
         # Check output is correct
         resolwe_mock.processes.return_value = PROCESS_SAMPLE
-        sys_mock.stdout.write = MagicMock()
         Resolwe.print_process_inputs(resolwe_mock, 'Upload NGS reads')
-        sys_mock.stdout.write.assert_called_with('src -> basic:file:\n')
+        print_mock.assert_called_with('src -> basic:file:')
 
 
 class TestResolweUploadFile(unittest.TestCase):
 
     @patch('resdk.resolwe.requests')
-    @patch('resdk.resolwe.sys')
     @patch('resdk.resolwe.Resolwe', spec=True)
-    def test_upload_file(self, resolwe_mock, sys_mock, requests_mock):
+    def test_upload_file(self, resolwe_mock, requests_mock):
         # Example file:
         fn = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'files', 'example.fastq')
 
         resolwe_mock.url = 'http://some/url'
 
         resolwe_mock.auth = MagicMock()
-        # Supress upload progress messages:
-        sys_mock.sys.stdout.write = MagicMock()
-        sys_mock.sys.stdout.flush = MagicMock()
+        resolwe_mock.logger = MagicMock()
 
         # Immitate response form server - always status 200
         requests_response = {'files': [{'temp': 'fake_name'}]}

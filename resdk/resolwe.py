@@ -1,14 +1,14 @@
 """Resolwe"""
 from __future__ import absolute_import, division, print_function
 
-import ntpath
 import os
 import re
-import subprocess
-import sys
 import uuid
-import yaml
+import ntpath
+import logging
+import subprocess
 
+import yaml
 import requests
 import slumber
 
@@ -44,6 +44,8 @@ class Resolwe(object):
         self.collection = ResolweQuerry(self, Collection)
         self.sample = ResolweQuerry(self, Sample)
 
+        self.logger = logging.getLogger(__name__)
+
     def processes(self, process_name=None):
         """Return a list of Processor objects.
 
@@ -63,7 +65,7 @@ class Resolwe(object):
         """Print all upload process names."""
         for process in self.processes():
             if 'upload' in process['category']:
-                sys.stdout.write(process['name'] + '\n')
+                print(process['name'])
 
     def print_process_inputs(self, process_name):
         """Print process input fields and types.
@@ -88,7 +90,7 @@ class Resolwe(object):
         for field_schema, _, _ in iterate_schema({}, process['input_schema'], 'input'):
             name = field_schema['name']
             typ = field_schema['type']
-            sys.stdout.write("{} -> {}\n".format(name, typ))
+            print("{} -> {}".format(name, typ))
 
     def _version_string_to_int(self, version):
         """Transform dot separated version string to int."""
@@ -98,10 +100,10 @@ class Resolwe(object):
             raise NotImplementedError("Versions with more than {0} decimal places are not supported".format(
                 len(VERSION_NUMBER_BITS) - 1))
 
-        #add 0s for missing numbers
+        # add 0s for missing numbers
         version_numbers.extend([0] * (len(VERSION_NUMBER_BITS) - len(version_numbers)))
 
-        #convert version to single int
+        # convert version to single int
         version_number = 0
         total_bits = 0
         for num, bits in reversed(zip(version_numbers, VERSION_NUMBER_BITS)):  # pylint: disable=bad-reversed-sequence
@@ -189,8 +191,9 @@ class Resolwe(object):
                     response = self.api.process.post(process)
                 else:
                     process['version'] = server_process['version'] + 1
-                    print("WARN: Process '{}' version increased automatically: "
-                          "{}".format(slug, self._version_int_to_string(process['version'])))
+                    self.logger.warning("Process '%s' version increased automatically: %s",
+                                        slug,
+                                        self._version_int_to_string(process['version']))
                     response = self.api.process.post(process)
 
             elif len(server_process) == 0:
@@ -200,7 +203,7 @@ class Resolwe(object):
 
         except slumber.exceptions.HttpClientError as http_client_error:
             if http_client_error.response.status_code == 405:  # pylint: disable=no-member
-                print("Server does not support adding processes")
+                self.logger.warning("Server does not support adding processes")
             return http_client_error
 
         return response
@@ -218,13 +221,19 @@ class Resolwe(object):
         if TOOLS_REMOTE_HOST is None:
             raise ValueError("Define TOOLS_REMOTE_HOST environmental variable")
 
-        print("SCP: {}".format(TOOLS_REMOTE_HOST))
+        self.logger.info("SCP: %s", TOOLS_REMOTE_HOST)
         for tool in tools:
-            status = subprocess.call('scp -r {} {}'.format(tool, TOOLS_REMOTE_HOST), shell=True)
-            if status == 1:
+            sub_process = subprocess.Popen(
+                'scp -r {} {}'.format(tool, TOOLS_REMOTE_HOST),
+                shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT)
+            stdout, _ = sub_process.communicate()
+            self.logger.info(stdout)
+            if sub_process.returncode == 1:
                 raise ValueError("Tools file not found: '{}'".format(tool))
-            if status > 1:
-                print("STATUS:", status)
+            if sub_process.returncode > 1:
+                self.logger.warning("STATUS: %s", sub_process.returncode)
 
     def run(self, slug=None, input={}, descriptor=None,  # pylint: disable=redefined-builtin
             descriptor_schema=None, collections=[],
@@ -352,8 +361,9 @@ class Resolwe(object):
 
                 for i in range(5):
                     if i > 0 and response is not None:
-                        sys.stdout.write("Chunk upload failed (error {}): repeating for chunk \
-                                         number {}".format(response.status_code, chunk_number))
+                        self.logger.warning("Chunk upload failed (error %s): repeating for chunk number %s",
+                                            response.status_code,
+                                            chunk_number)
 
                     response = requests.post(urljoin(self.url, 'upload/'),
                                              auth=self.auth,
@@ -379,11 +389,10 @@ class Resolwe(object):
                     return None
 
                 progress = 100. * (chunk_number * CHUNK_SIZE + len(chunk)) / file_size
-                sys.stdout.write("\n{:.0f} % Uploaded {}".format(progress, fn))
-                sys.stdout.flush()
+                msg = "{:.0f} % Uploaded {}".format(progress, fn)
+                self.logger.info(msg)
                 chunk_number += 1
 
-        sys.stdout.write("\n")
         return response.json()['files'][0]['temp']
 
 
@@ -394,6 +403,9 @@ class ResAuth(requests.auth.AuthBase):
     """
 
     def __init__(self, email=DEFAULT_EMAIL, password=DEFAULT_PASSWD, url=DEFAULT_URL):
+
+        self.logger = logging.getLogger(__name__)
+
         payload = {'username': email, 'password': password}
 
         try:
@@ -444,6 +456,7 @@ class ResolweQuerry(object):
         self.resource = Resource
         self.endpoint = Resource.endpoint
         self.api = getattr(resolwe.api, Resource.endpoint)
+        self.logger = logging.getLogger(__name__)
 
     def get(self, uid):
         """

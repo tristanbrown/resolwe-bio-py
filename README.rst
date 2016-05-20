@@ -65,6 +65,9 @@ Connect to a Resolwe server:
    from resdk import Resolwe
    res = Resolwe('admin', 'admin', 'https://torta.bcm.genialis.com')
 
+   # Activating default logging
+   resdk.start_logging()
+
 Get sample by ID and download the aligned reads (BAM file):
 
 .. code-block:: python

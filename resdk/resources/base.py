@@ -4,8 +4,10 @@ Constants and abstract classes.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import os
-import requests
+import logging
 import six
+
+import requests
 import slumber
 
 from six.moves.urllib.parse import urljoin  # pylint: disable=import-error
@@ -69,6 +71,8 @@ class BaseResource(object):
             self._update_fields(resources[0])
         elif model_data:
             self._update_fields(model_data)
+
+        self.logger = logging.getLogger(__name__)
 
     def _update_fields(self, fields):
         """
@@ -171,13 +175,13 @@ class BaseResource(object):
             dfiles = [d for d in dfiles if data_type in d[3] and output_field == d[2]]
 
         if len(dfiles) == 0:
-            print("No files matching.")
+            self.logger.info("No files matching.")
             # TODO: "Did you mean..." :-)
         else:
-            print("Following files will be downloaded to direcotry {}:".format(download_dir))
+            self.logger.info("Following files will be downloaded to direcotry %s:", download_dir)
             for dfile in dfiles:
-                print("* {}".format(dfile[1]))
-                # TODO: add file size in print!
+                self.logger.info("* %s", dfile[1])
+                # TODO: add file size in message!
 
             for data_id, filename, _, _ in dfiles:
                 with open(os.path.join(download_dir, filename), 'wb') as file_:

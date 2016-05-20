@@ -19,3 +19,6 @@ Reference
 
 .. autoclass:: resdk.resources.base.BaseResource
    :members:
+
+.. automodule:: resdk.resdk_logger
+  :members:

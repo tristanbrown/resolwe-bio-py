@@ -1,6 +1,8 @@
 """Data"""
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import logging
+
 import requests
 
 from six.moves.urllib.parse import urljoin  # pylint: disable=import-error
@@ -39,6 +41,8 @@ class Data(BaseResource):
         self.process_type = None
 
         BaseResource.__init__(self, slug, id, model_data, resolwe)
+
+        self.logger = logging.getLogger(__name__)
 
     def _update_fields(self, fields):
         """
