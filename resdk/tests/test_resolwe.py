@@ -11,70 +11,10 @@ from mock import patch, MagicMock
 import requests
 
 from resdk.resolwe import Resolwe, ResAuth
-from resdk.tests.mocks.data import PROCESS_SAMPLE
 
 if six.PY2:
     # pylint: disable=deprecated-method
     unittest.TestCase.assertRegex = unittest.TestCase.assertRegexpMatches
-
-
-class TestResolweProcesses(unittest.TestCase):
-
-    @patch('resdk.resolwe.Resolwe', spec=True)
-    def test_process_without_name(self, resolwe_mock):
-        resolwe_mock.api = MagicMock()
-        resolwe_mock.api.process.get = MagicMock(return_value=PROCESS_SAMPLE)
-
-        resolwe = Resolwe.processes(resolwe_mock)
-
-        self.assertIsInstance(resolwe, list)
-        self.assertEqual(len(resolwe), 4)
-        self.assertIsInstance(resolwe[0], dict)
-        self.assertEqual(resolwe[0]['name'], 'Upload NGS reads')
-        self.assertEqual(len(resolwe_mock.api.mock_calls), 1)
-
-    @patch('resdk.resolwe.Resolwe', spec=True)
-    def test_process_with_process_name(self, resolwe_mock):
-        resolwe_mock.api = MagicMock()
-        resolwe_mock.api.process.get = MagicMock(return_value=PROCESS_SAMPLE)
-
-        resolwe = Resolwe.processes(resolwe_mock, 'Variant filtering (Chemical Mutagenesis)')
-
-        self.assertIsInstance(resolwe, list)
-        self.assertEqual(len(resolwe), 1)
-        self.assertIsInstance(resolwe[0], dict)
-        self.assertEqual(resolwe[0]['name'], 'Variant filtering (Chemical Mutagenesis)')
-        self.assertEqual(len(resolwe_mock.api.mock_calls), 1)
-
-
-class TestResolwePrintUploadProcesses(unittest.TestCase):
-
-    @patch('resdk.resolwe.print')
-    @patch('resdk.resolwe.Resolwe', spec=True)
-    def test_print_upload_processes(self, resolwe_mock, print_mock):
-
-        # Check output is correct
-        resolwe_mock.processes.return_value = PROCESS_SAMPLE
-        Resolwe.print_upload_processes(resolwe_mock)
-        print_mock.assert_called_with('Upload NGS reads')
-
-
-class TestResolwePrintProcessInputs(unittest.TestCase):
-
-    @patch('resdk.resolwe.print')
-    @patch('resdk.resolwe.Resolwe', spec=True)
-    def test_print_process_inpts(self, resolwe_mock, print_mock):
-
-        # Bad processor name:
-        resolwe_mock.processes.return_value = []
-        with self.assertRaises(Exception) as exc:
-            Resolwe.print_process_inputs(resolwe_mock, 'Bad processor name')
-        self.assertRegex(exc.exception.args[0], r"Invalid process name: .*.")  # pylint: disable=deprecated-method
-
-        # Check output is correct
-        resolwe_mock.processes.return_value = PROCESS_SAMPLE
-        Resolwe.print_process_inputs(resolwe_mock, 'Upload NGS reads')
-        print_mock.assert_called_with('src -> basic:file:')
 
 
 class TestResolweUploadFile(unittest.TestCase):

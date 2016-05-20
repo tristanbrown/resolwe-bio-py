@@ -15,7 +15,7 @@ import slumber
 from six.moves.urllib.parse import urljoin  # pylint: disable=import-error
 from requests.exceptions import ConnectionError  # pylint: disable=ungrouped-imports, redefined-builtin
 
-from .resources import Data, Collection, Sample
+from .resources import Data, Collection, Sample, Process
 from .resources.utils import iterate_fields, iterate_schema
 
 
@@ -43,54 +43,9 @@ class Resolwe(object):
         self.data = ResolweQuerry(self, Data)
         self.collection = ResolweQuerry(self, Collection)
         self.sample = ResolweQuerry(self, Sample)
+        self.process = ResolweQuerry(self, Process)
 
         self.logger = logging.getLogger(__name__)
-
-    def processes(self, process_name=None):
-        """Return a list of Processor objects.
-
-        :param process_name: Name of the process
-        :type process_name: string
-        :rtype: list of Process objects
-
-        """
-        # TODO: Make a better representation? If this is run from command line
-        # it outputs thousands of lines... Not really helpful.
-        if process_name:
-            return [p for p in self.api.process.get() if process_name in p['name']]
-        else:
-            return self.api.process.get()
-
-    def print_upload_processes(self):
-        """Print all upload process names."""
-        for process in self.processes():
-            if 'upload' in process['category']:
-                print(process['name'])
-
-    def print_process_inputs(self, process_name):
-        """Print process input fields and types.
-
-        :param process_name: Process object name
-        :type process_name: string
-
-        """
-        process = self.processes(process_name=process_name)
-
-        if len(process) == 1:
-            process = process[0]
-        elif len(process) > 1:
-            # Multiple processors with same slug, but different versions:
-            versions = ([int(x['version']) for x in process])
-            # Get index of the latest processor version:
-            top_index = sorted(enumerate(versions), key=lambda x: x[1])[-1][0]
-            process = process[top_index]
-        else:
-            raise ValueError('Invalid process name: {}.'.format(process_name))
-
-        for field_schema, _, _ in iterate_schema({}, process['input_schema'], 'input'):
-            name = field_schema['name']
-            typ = field_schema['type']
-            print("{} -> {}".format(name, typ))
 
     def _version_string_to_int(self, version):
         """Transform dot separated version string to int."""
@@ -394,6 +349,47 @@ class Resolwe(object):
                 chunk_number += 1
 
         return response.json()['files'][0]['temp']
+
+    def download_files(self, files, download_dir=None):  # pylint: disable=redefined-builtin
+        """
+        Download files.
+
+        Download files from the Resolwe server to the download
+        directory (defaults to the current working directory).
+
+        :param files: files to download
+        :type files: list of file URI
+        :param download_dir: download directory
+        :type download_dir: string
+        :rtype: None
+
+        """
+        if not download_dir:
+            download_dir = os.getcwd()
+
+        if not os.path.isfile(download_dir):
+            raise ValueError("Download directory does not exist: {}".format(download_dir))
+
+        if len(files) == 0:
+            self.logger.info("No files to download")
+
+        else:
+            self.logger.info("Downloading files to %s:", download_dir)
+
+            for file_uri in files:
+                file_name = os.path.basename(file_uri)
+                file_url = urljoin(self.url, 'data/{}'.format(file_uri))
+
+                self.logger.info("* %s", file_name)
+
+                with open(os.path.join(download_dir, file_name), 'wb') as file_handle:
+                    response = requests.get(file_url, stream=True, auth=self.auth)
+
+                    if not response.ok:
+                        response.raise_for_status()
+                    else:
+                        for chunk in response:
+                            file_handle.write(chunk)
 
 
 class ResAuth(requests.auth.AuthBase):

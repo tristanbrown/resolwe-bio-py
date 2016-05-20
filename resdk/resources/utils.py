@@ -1,4 +1,5 @@
 """Utils"""
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 
 def iterate_fields(fields, schema):
@@ -56,3 +57,26 @@ def iterate_schema(fields, schema, path=None):
                 yield (field_schema, fields)
             else:
                 yield (field_schema, fields, '{}.{}'.format(path, name))
+
+
+def fill_spaces(word, desired_length):
+    """Fill spaces at the end until word reaches desired length."""
+    return str(word) + ' ' * (desired_length - len(word))
+
+
+def _print_input_line(element_list, level):
+    """ Pretty input_schema print."""
+    spacing = 2
+
+    for element in element_list:
+        if "group" in element:
+            print("{}- {} - {}".format('    ' * level, element['name'], element['label']))
+            _print_input_line(element['group'], level + 1)
+        else:
+            max_name_len = max([len(elm['name']) for elm in element_list])
+            max_type_len = max([len(elm['type']) or 0 for elm in [e for e in element_list if 'group' not in e]])
+            print("{}- {} {} - {}".format(
+                '    ' * level,
+                fill_spaces(element['name'], max_name_len + spacing),
+                fill_spaces("[" + element['type'] + "]", max_type_len + spacing),
+                element['label']))

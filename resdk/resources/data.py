@@ -87,27 +87,58 @@ class Data(BaseResource):
 
         return flat
 
-    def get_download_list(self):
+    def files(self, file_name=None, field_name=None):
         """
-        Get list of all downloadable fields
+        Get list of downloadable fields.
 
+        Filter files by file name or output field.
+
+        :param file_name: name of file
+        :type file_name: string
+        :param field_name: output field name
+        :type field_name: string
         :rtype: List of tuples (data_id, file_name, field_name, process_type)
-        """
-        dlist = []
-        for path, ann in self.annotation.items():
-            if path.startswith('output') and ann['type'] == 'basic:file:' and ann['value'] is not None:
-                dlist.append((self.id,
-                              ann['value']['file'],
-                              path, self.process_type))
-        return dlist
 
-    def files(self):
         """
-        Return list of files in resource.
+        download_list = []
+        for file_field_name, ann in self.annotation.items():
+            if (file_field_name.startswith('output') and
+                    ann['type'].startswith('basic:file:') and
+                    ann['value'] is not None and
+                    (file_name is None or file_name == ann['value']['file']) and
+                    (field_name is None or field_name == file_field_name)):
+
+                download_list.append(ann['value']['file'])
+
+        return download_list
+
+    def download(self, file_name=None, field_name=None, download_dir=None):
         """
-        # XXX: not OK for data!
-        file_list = self.resolwe.data.get(self.id).get_download_list()
-        return file_list
+        Download Data object's files.
+
+        Download files from the Resolwe server to the download
+        directory (defaults to the current working directory).
+
+        :param file_name: name of file
+        :type file_name: string
+        :param field_name: file field name
+        :type field_name: string
+        :param download_dir: download path
+        :type download_dir: string
+        :rtype: None
+
+        Data objects can contain multiple files. All are downloaded by
+        default, but may be filtered by name or output field:
+
+        * re.data.get(42).download(file_name='alignment7.bam')
+        * re.data.get(42).download(field_name='bam')
+
+        """
+        if file_name and field_name:
+            raise ValueError("Only one of file_name or field_name may be given")
+
+        files = ['{}/{}'.format(self.id, fname) for fname in self.files(file_name, field_name)]
+        self.resolwe.download_files(files, download_dir)
 
     def print_annotation(self):
         """

@@ -21,18 +21,7 @@ DATA_ID = 42
 
 class TestResolwe(unittest.TestCase):
 
-    def test_resolwe(self):
-
-        # Test authentication
-        resolwe = resdk.Resolwe(EMAIL, PASSW, URL)
-
-        # Test_processes:
-        processes = resolwe.processes()
-        self.assertIsInstance(processes, list)
-        self.assertTrue(len(processes) > 10)
-        upload_process = resolwe.processes('Upload NGS reads')
-        self.assertIsInstance(upload_process, list)
-        self.assertIsInstance(upload_process[0], dict)
+    pass
 
 
 class TestResolweQuerry(unittest.TestCase):
