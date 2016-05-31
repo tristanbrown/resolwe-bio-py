@@ -38,7 +38,7 @@ Docs & Help
 
 Read the detailed description in documentation_.
 
-.. _documentation: http://resolwe-bio-py.readthedocs.io/
+.. _documentation: http://resdk.readthedocs.io/
 
 Install
 =======

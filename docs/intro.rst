@@ -230,7 +230,7 @@ Attributes specific to process:
 
 Methods:
 
-* :any:`print_inputs <resdk.resources.process.Process.print_inputs>` - pretty print process inputs
+* :any:`print_inputs <resdk.resources.Process.print_inputs>` - pretty print process inputs
 
 Data
 ^^^^
@@ -260,7 +260,7 @@ Methods:
 
 * :any:`update <resdk.resources.base.BaseResource.update>` - retrieve the latest data and update the values of attributes
 * :any:`files <resdk.resources.Data.files>` - get list of files produced by data object
-* :any:`download <resdk.resources.base.BaseResource.download>` - download some/all files produces by data object
+* :any:`download <resdk.resources.Data.download>` - download some/all files produces by data object
 * :any:`stdout <resdk.resources.Data.stdout>` - download file ``stdout.txt`` which stores the standard output of data object's algorithm
 
 Sample, Collection, Study
@@ -279,5 +279,5 @@ Methods:
 
 * :any:`update <resdk.resources.base.BaseResource.update>` - retrieve the latest data and update the values of attributes
 * :any:`files <resdk.resources.collection.BaseCollection.files>` - get list of files produced by data object
-* :any:`download <resdk.resources.base.BaseResource.download>` - download some/all files produced by data objects in resource
+* :any:`download <resdk.resources.collection.BaseCollection.download>` - download some/all files produced by data objects in resource
 * :any:`data_types <resdk.resources.collection.BaseCollection.data_types>` - get all types of data objects in resource
