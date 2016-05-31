@@ -12,30 +12,27 @@ from .base import BaseResource
 
 
 class Data(BaseResource):
-    """
-    Resolwe Data resource.
+
+    """Resolwe Data resource.
+
+    One and only one of the identifiers (slug, id or model_data)
+    should be given.
+
+    :param slug: Resource slug
+    :type slug: str
+    :param id: Resource ID
+    :type id: int
+    :param model_data: Resource model data
+    :type model_data: dict
+    :param resolwe: Resolwe instance
+    :type resolwe: Resolwe object
+
     """
 
     endpoint = 'data'
 
     def __init__(self, slug=None, id=None,  # pylint: disable=redefined-builtin
                  model_data=None, resolwe=None):
-        """
-        Resolwe Data resource.
-
-        One and only one of the identifiers (slug, id or model_data)
-        should be given.
-
-        :param slug: Resource slug
-        :type slug: str
-        :param id: Resource ID
-        :type id: int
-        :param model_data: Resource model data
-        :type model_data: dict
-        :param resolwe: Resolwe instance
-        :type resolwe: Resolwe object
-
-        """
         self.status = None
         self.input = None
         self.process_type = None
@@ -45,13 +42,12 @@ class Data(BaseResource):
         self.logger = logging.getLogger(__name__)
 
     def _update_fields(self, fields):
-        """
-        Update the Data object with new data.
+        """Update the Data object with new data.
 
         :param fields: Data resource fields
         :type fields: dict
-
         :rtype: None
+
         """
         BaseResource._update_fields(self, fields)
 
@@ -65,8 +61,7 @@ class Data(BaseResource):
         # TODO Descriptor schema!
 
     def _flatten_field(self, field, schema, path):
-        """
-        Reduce dicts of dicts to dot separated keys.
+        """Reduce dicts of dicts to dot separated keys.
 
         :param field: Field instance (e.g. input)
         :type field: dict
@@ -76,6 +71,7 @@ class Data(BaseResource):
         :type path: string
         :return: flattened annotations
         :rtype: dictionary
+
         """
         flat = {}
         for field_schema, fields, path in iterate_schema(field, schema, path):
@@ -88,8 +84,7 @@ class Data(BaseResource):
         return flat
 
     def files(self, file_name=None, field_name=None):
-        """
-        Get list of downloadable fields.
+        """Get list of downloadable fields.
 
         Filter files by file name or output field.
 
@@ -113,8 +108,7 @@ class Data(BaseResource):
         return download_list
 
     def download(self, file_name=None, field_name=None, download_dir=None):
-        """
-        Download Data object's files.
+        """Download Data object's files.
 
         Download files from the Resolwe server to the download
         directory (defaults to the current working directory).
@@ -141,15 +135,12 @@ class Data(BaseResource):
         self.resolwe.download_files(files, download_dir)
 
     def print_annotation(self):
-        """
-        Provide annotation data.
-        """
+        """Provide annotation data."""
         # TODO: Think of neat way to present all annotation. how this would be most neatly presented...
         raise NotImplementedError()
 
     def stdout(self):
-        """
-        Return process standard output (stdout.txt file content).
+        """Return process standard output (stdout.txt file content).
 
         Fetch a stdout.txt file of the corresponding Data object form
         the Resolwe server and return the file content as a string. The

@@ -1,4 +1,15 @@
-"""Resolwe"""
+"""
+=======
+Resolwe
+=======
+
+.. autoclass:: resdk.Resolwe
+   :members:
+
+.. autoclass:: resdk.ResolweQuerry
+   :members:
+
+"""
 from __future__ import absolute_import, division, print_function
 
 import os
@@ -30,12 +41,19 @@ TOOLS_REMOTE_HOST = os.environ.get('TOOLS_REMOTE_HOST', None)
 
 
 class Resolwe(object):
-    """Resolwe SDK for Python."""
+
+    """Connect to a Resolwe server.
+
+    :param email: user's email
+    :type email: str
+    :param password: user's password
+    :type password: str
+    :param url: Resolwe server instance
+    :type url: str
+
+    """
 
     def __init__(self, email=DEFAULT_EMAIL, password=DEFAULT_PASSWD, url=DEFAULT_URL):
-        """
-        Connect to Resolwe on desired url and provide credentials.
-        """
         self.url = url
         self.auth = ResAuth(email, password, url)
         self.api = slumber.API(urljoin(url, '/api/'), self.auth, append_slash=False)
@@ -351,8 +369,7 @@ class Resolwe(object):
         return response.json()['files'][0]['temp']
 
     def download_files(self, files, download_dir=None):  # pylint: disable=redefined-builtin
-        """
-        Download files.
+        """Download files.
 
         Download files from the Resolwe server to the download
         directory (defaults to the current working directory).
@@ -394,8 +411,15 @@ class Resolwe(object):
 
 class ResAuth(requests.auth.AuthBase):
 
-    """
-    Attach HTTP Resolwe Authentication to Request object.
+    """HTTP Resolwe Authentication for Request object.
+
+    :param email: user's email
+    :type email: str
+    :param password: user's password
+    :type password: str
+    :param url: Resolwe server instance
+    :type url: str
+
     """
 
     def __init__(self, email=DEFAULT_EMAIL, password=DEFAULT_PASSWD, url=DEFAULT_URL):
@@ -433,18 +457,19 @@ class ResAuth(requests.auth.AuthBase):
 
 
 class ResolweQuerry(object):
-    """
-    Enable querries on data, collection and sample endpoints in Resolwe.
 
-    Each Resolwe instance (for example "re") has threee "endpoints": re.data,
-    re.collections and re.sample. Each such andpooint is an instance of
-    ResolweQuerry class. ResolweQuerry enables querries on
-    corresponding objects, for example:
+    """Query resource endpoints.
+
+    A Resolwe instance (for example "res") has several endpoints:
+    res.data, res.collections, res.sample and res.process. Each
+    andpooint is an instance of the ResolweQuerry class. ResolweQuerry
+    supports querries on corresponding objects, for example:
 
     re.data.get(42) # return Data object with ID 42.
     re.sample.filter(contributor=1) # return all samples made by contributor 1
 
     Detailed description of methods can be found in method docstrings.
+
     """
 
     def __init__(self, resolwe, Resource):
@@ -455,13 +480,13 @@ class ResolweQuerry(object):
         self.logger = logging.getLogger(__name__)
 
     def get(self, uid):
-        """
-        Get object for given ID or slug.
+        """Get object for given ID or slug.
 
         :param uid: unique identifier - ID or slug
         :type uid: int for ID or string for slug
 
         :rtype: object of type self.resource
+
         """
         if re.match('^[0-9]+$', str(uid)):  # iud is ID number:
             return self.resource(id=uid, resolwe=self.resolwe)
@@ -469,8 +494,7 @@ class ResolweQuerry(object):
             return self.resource(slug=uid, resolwe=self.resolwe)
 
     def filter(self, **kwargs):
-        """
-        Return a list of Data objects that match kwargs.
+        """Return a list of Data objects that match kwargs.
 
         Querries can be made with the following keywords (and operators)
             * Fields (and operators) for **data** endpoint:
@@ -508,11 +532,10 @@ class ResolweQuerry(object):
         re.collection.filter(data=42, contributor=1)
 
         Note: The filtering options might change (improve) with time.
+
         """
         return [self.resource(model_data=x, resolwe=self.resolwe) for x in self.api.get(**kwargs)]
 
     def search(self):
-        """
-        Full text search.
-        """
+        """Full text search."""
         raise NotImplementedError()

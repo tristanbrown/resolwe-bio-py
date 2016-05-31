@@ -16,30 +16,27 @@ DOWNLOAD_TYPES = {
 
 
 class BaseResource(object):
-    """
-    Abstract resource class BaseResource.
+
+    """Abstract resource.
+
+    One and only one of the identifiers (slug, id or model_data)
+    should be given.
+
+    :param slug: Resource slug
+    :type slug: str
+    :param id: Resource ID
+    :type id: int
+    :param model_data: Resource model data
+    :type model_data: dict
+    :param resolwe: Resolwe instance
+    :type resolwe: Resolwe object
+
     """
 
     endpoint = None
 
     def __init__(self, slug=None, id=None,  # pylint: disable=redefined-builtin
                  model_data=None, resolwe=None):
-        """
-        Abstract resource.
-
-        One and only one of the identifiers (slug, id or model_data)
-        should be given.
-
-        :param slug: Resource slug
-        :type slug: str
-        :param id: Resource ID
-        :type id: int
-        :param model_data: Resource model data
-        :type model_data: dict
-        :param resolwe: Resolwe instance
-        :type resolwe: Resolwe object
-
-        """
         # Verify that one and only one of slug, id, model_data is given
         identifiers = iter((slug, id, model_data))
         if not any(identifiers) or any(identifiers):
@@ -70,8 +67,7 @@ class BaseResource(object):
         self.logger = logging.getLogger(__name__)
 
     def _update_fields(self, fields):
-        """
-        Update resource fields.
+        """Update resource fields.
 
         :param fields: Resource fields
         :type fields: dict
@@ -81,9 +77,7 @@ class BaseResource(object):
             setattr(self, field_name, field_value)
 
     def update(self):
-        """
-        Update resource fields from the server.
-        """
+        """Update resource fields from the server."""
         self._update_fields(self.api(self.id).get())
 
     def __repr__(self):

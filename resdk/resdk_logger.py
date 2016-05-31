@@ -1,7 +1,9 @@
 """
-*********************
-Logging configuration
-*********************
+.. _resdk_resdk_logger:
+
+=======
+Logging
+=======
 
 Module contents:
 
@@ -11,72 +13,66 @@ Module contents:
 #. Override sys.excepthook to log all uncaught exceptions
 
 
-1. Parent logger for all modules in resdk library
-=================================================
+Parent logger
+=============
 Loggers in resdk are named by their module name. This is achieved by::
 
     logger = logging.getLogger(__name__)
 
 This makes it easy to locate the souce of a log message.
 
+Logging handlers
+================
 
-2. Handlers STDOUT_HANDLER and FILE_HANDLER ("turned off" by default)
-=====================================================================
+Two basic handlers STDOUT_HANDLER and FILE_HANDLER are created but not
+automatically added to ROOT_LOGGER, which means they do not do anything.
+The handlers are activated when users call logger configuaration
+functions like ``start_logging()``.
 
-Two basic handlers are created but not yet added to ROOT_LOGGER, which means
-they cannot do anything. Only whern user calls ``start_logging()``
-or other functions to configure handlers, these handlers are activated.
-
-
-3. Handler configuration functions
-==========================================
-As a good logging practice, library itself should never register handlers by
-default. The reason is that if the library is included in some application,
-developers of that application will probably want to register loggers by
-themself. Therefore, if a user wishes to register the pre-defined handlers
-(which are not activated by default) he/she should add a line of code::
+Handler configuration functions
+===============================
+As a good logging practice, the library does not register handlers by
+default. The reason is that if the library is included in some
+application, developers of that application will probably want to
+register loggers by themself. Therefore, if a user wishes to register
+the pre-defined handlers she can run::
 
     import resdk
     resdk.start_logging()
 
-    normal code...
+.. automethod:: resdk.resdk_logger.start_logging(logging_level=logging.INFO)
 
-.. Useful links:
-.. http://pieces.openpolitics.com/2012/04/python-logging-best-practices/
-.. http://pythonsweetness.tumblr.com/post/67394619015/use-of-logging-package-from-within-a-library
+.. automethod:: resdk.resdk_logger.log_to_stdout
 
+.. automethod:: resdk.resdk_logger.log_to_file
 
-4. Override sys.excepthook to log all uncaught exceptions
-=========================================================
+Log uncaught exceptions
+=======================
 
-All python exceptions are handled by function, stored in ``sys.excepthook.``
-By rewriting the default implementation, we can modify it for our puruses - to
-log all uncaught exceptions.
+All python exceptions are handled by function, stored in
+``sys.excepthook.`` By rewriting the default implementation, we can
+modify it for our puruses - to log all uncaught exceptions.
 
-Note#1: modified behaviour (logging of all uncaught exceptions) applies only
-when runing in non-interactive mode.
+Note#1: Modified behaviour (logging of all uncaught exceptions) applies
+only when runing in non-interactive mode.
 
-Note#2:
-Any exception can be caught/uncaought and it can happen in
-interactive/non-interactive mode. This makes 4 different scenarios. The
-sys.excepthook modification takes care of uncaught exceptions in
-non-interactive mode. In interactive mode, user is notified directly if
-exception is raised. If exception is caught and not reraised, it should be
-logged somehow, since it can provide valuable information for developer when
-debugging. Therefore, we should use the following convention for logging in
-resdk: "Exceptions are explicitly logged only when they are caught and
-not re-raised."
+Note#2: Any exception can be caught/uncaought and it can happen in
+interactive/non-interactive mode. This makes 4 different scenarios.
+The sys.excepthook modification takes care of uncaught exceptions in
+non-interactive mode. In interactive mode, user is notified directly
+if exception is raised. If exception is caught and not reraised, it
+should  be logged somehow, since it can provide valuable information
+for  developer when debugging. Therefore, we should use the following
+convention for logging in resdk: "Exceptions are explicitly logged
+only when they are caught and not re-raised."
 
-.. Useful links:
-.. https://docs.python.org/2/library/sys.html#sys.excepthook
-.. http://stackoverflow.com/questions/5451746/sys-excepthook-doesnt-work-in-imported-modules?rq=1
-.. http://bugs.python.org/issue11705
 """
 import os
 import sys
 import logging
 
 from six import string_types
+
 
 LEVEL_MAP = {"DEBUG": logging.DEBUG,
              "INFO": logging.INFO,
@@ -85,7 +81,6 @@ LEVEL_MAP = {"DEBUG": logging.DEBUG,
              "EXCEPTION": logging.ERROR,
              "CRITICAL": logging.CRITICAL}
 
-#######################################################################
 LOGGER_NAME = __name__.split('.')[0]
 
 # Create root logger:
@@ -98,7 +93,6 @@ ROOT_LOGGER.setLevel(logging.DEBUG)  # lowest possible value
 # having NullHandler prevents message: "No handlers could be found for logger XXXX".
 ROOT_LOGGER.addHandler(logging.NullHandler())
 
-#######################################################################
 # Default settings for stdout handler:
 STDOUT_LOG_LEVEL = logging.INFO
 STDOUT_LOG_ON = True
@@ -107,7 +101,6 @@ STDOUT_LOG_ON = True
 FILE_LOG_LEVEL = logging.WARNING
 FILE_LOG_ON = False
 FILE_LOG_PATH = os.path.join(os.path.dirname(__file__), 'logfile.txt')
-
 
 # Create stdout handler and make initial configuration:
 STDOUT_HANDLER = logging.StreamHandler()
@@ -120,8 +113,6 @@ FORMATTER2 = logging.Formatter(
     fmt='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S')
 FILE_HANDLER.setFormatter(FORMATTER2)
-
-#######################################################################
 
 
 def _configure_handler(handler, is_on=None, level=None):
@@ -156,29 +147,27 @@ def _configure_handler(handler, is_on=None, level=None):
 
 
 def log_to_stdout(is_on=None, level=None):
-    """
-    Configure logging to stdout.
+    """Configure logging to stdout.
 
     :param is_on: If True, log to standard output
     :type is_on: bool
     :param level: logging threshold level - integer in [0-50]
     :type level: int
-
     :rtype: None
+
     """
     _configure_handler(STDOUT_HANDLER, is_on=is_on, level=level)
 
 
 def log_to_file(is_on=None, level=None, path=None):
-    """
-    Configure logging to file.
+    """Configure logging to file.
 
     :param is_on: If True, log to file
     :type is_on: bool
     :param level: logging threshold level - integer in [0-50]
     :type level: int
-
     :rtype: None
+
     """
     if path is not None:
         global FILE_HANDLER  # pylint: disable=global-statement
@@ -193,8 +182,7 @@ def log_to_file(is_on=None, level=None, path=None):
 
 
 def start_logging(logging_level=logging.INFO):
-    """
-    Start logging resdk with the default configuration
+    """Start logging resdk with the default configuration
 
     :param logging_level: logging threshold level - integer in [0-50]
     :type logging_level: int
@@ -207,16 +195,14 @@ def start_logging(logging_level=logging.INFO):
     * logging.WARNING(30)
     * logging.ERROR(40)
     * logging.CRITICAL(50)
+
     """
     log_to_stdout(is_on=STDOUT_LOG_ON, level=logging_level or STDOUT_LOG_LEVEL)
     log_to_file(is_on=FILE_LOG_ON, level=logging_level or FILE_LOG_LEVEL)
 
 
-# #####################################################################
-
 def _log_all_uncaught_exceptions(exc_type, exc_value, exc_traceback):
-    """
-    Log all uncaught exceptions in non-interactive mode.
+    """Log all uncaught exceptions in non-interactive mode.
 
     All python exceptions are handled by function, stored in
     ``sys.excepthook.`` By rewriting the default implementation, we
@@ -224,6 +210,7 @@ def _log_all_uncaught_exceptions(exc_type, exc_value, exc_traceback):
 
     Warning: modified behaviour (logging of all uncaught exceptions)
     applies only when runing in non-interactive mode.
+
     """
     # ignore KeyboardInterrupt
     if not issubclass(exc_type, KeyboardInterrupt):
