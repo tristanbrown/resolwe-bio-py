@@ -226,11 +226,12 @@ def _log_all_uncaught_exceptions(exc_type, exc_value, exc_traceback):
     applies only when runing in non-interactive mode.
     """
     # ignore KeyboardInterrupt
-    if issubclass(exc_type, KeyboardInterrupt):
-        sys.__excepthook__(exc_type, exc_value, exc_traceback)
-        return
+    if not issubclass(exc_type, KeyboardInterrupt):
+        ROOT_LOGGER.error("", exc_info=(exc_type, exc_value, exc_traceback))
 
-    ROOT_LOGGER.error("", exc_info=(exc_type, exc_value, exc_traceback))
+    sys.__excepthook__(exc_type, exc_value, exc_traceback)
+    return
+
 
 # Rewrite the default implementation os sys.excepthook to log all
 # uncaught exceptions:
