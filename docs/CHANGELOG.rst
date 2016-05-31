@@ -12,6 +12,7 @@ Unreleased
 Added
 -----
 * Add process resource
+* Docs: Getting started and writing pipelines
 
 
 ==================

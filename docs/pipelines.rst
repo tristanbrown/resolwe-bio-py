@@ -116,14 +116,14 @@ manually check if results are ready from time to time:
 .. code-block:: python
 
    aligned.update()
-   print aligned.status
+   print(aligned.status)
 
 You can view the process' ``stdout`` to inspect if it runs as intended
 and debug errors:
 
 .. code-block:: python
 
-   print aligned.stdout()
+   print(aligned.stdout())
 
 You can read how to write processes in YAML syntax in the
 `Writing processes`_ chapter of Resolwe Documentation. You should
