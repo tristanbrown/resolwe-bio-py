@@ -43,17 +43,11 @@ Running tests
 
 Run unit tests::
 
-    python -m unittest discover
+    python setup.py test
 
 Run unit and functional tests::
 
-    python -m unittest discover resdk *test*.py
-
-To run the tests with Tox_, use::
-
-    TODO: Support tox -r
-
-.. _Tox: http://tox.testrun.org/
+    python setup.py test --test-suite resdk.tests.functional
 
 Building documentation
 ======================

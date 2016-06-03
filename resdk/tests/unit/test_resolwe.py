@@ -23,7 +23,7 @@ class TestResolweUploadFile(unittest.TestCase):
     @patch('resdk.resolwe.Resolwe', spec=True)
     def test_upload_file(self, resolwe_mock, requests_mock):
         # Example file:
-        fn = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'files', 'example.fastq')
+        fn = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'files', 'example.fastq')
 
         resolwe_mock.url = 'http://some/url'
 
