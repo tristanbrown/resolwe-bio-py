@@ -1,15 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-
-"""Resolwe SDK for Python
+"""
+Resolwe SDK for Python
 
 See: https://github.com/genialis/resolwe-bio-py
-"""
 
+"""
 from setuptools import setup, find_packages
-# Use codecs' open for a consistent encoding
-from codecs import open
+from codecs import open  # Use codecs' open for a consistent encoding
 from os import path
 
 
