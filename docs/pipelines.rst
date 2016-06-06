@@ -2,8 +2,11 @@
 Writing pipelines
 =================
 
-Resolwe SDK supports running processes on the Resolwe server with the
-run command:
+In :doc:`previous chapter<run>` we introduced how to run process
+with the ``run`` command. We define the process to execute on the
+server with the slug parameter (*i.e.* ``alignment-bowtie-2-2-3_trim``).
+The process has to be registered (installed) in the server, or the
+command will fail.
 
 .. code-block:: python
 
@@ -21,13 +24,8 @@ run command:
                          'reporting': {'rep_mode': 'k', 'k_reports': 1}
                      })
 
-Here we explicitly specify which process to execute on the server,
-with the process slug parameter (*i.e.* alignment-bowtie-2-2-3_trim).
-The process has to be registered (installed) in the server, or the
-command would fail.
-
 This is great for running processes, but not so much for development.
-Developers want to modify the analysis process itself. Two argument of
+Developers want to modify the analysis process itself. Two arguments of
 the ``run`` method help developers overcome this challenge, ``src`` and
 ``tools``. With the ``src`` argument, you can reference a local script
 with process definition. The process definition will first
@@ -47,7 +45,7 @@ runs on the server:
 
 .. _bowtie.yml: https://github.com/genialis/resolwe-bio/blob/master/resolwe_bio/processes/alignment/bowtie.yml
 
-The processes are written in bash. We can directly call programms that
+The process's algorithm is written in bash. We can directly call programms that
 are included in the runtime (*e.g.,* cat, head and grep). Resolwe
 Bioinformatics runs processes in a `Docker container`_ with many
 bioinformatics tools pre-installed. In the *Aligner (Bowtie 2.2.3)*
@@ -75,7 +73,7 @@ For instance, to post-process Bowtie results, we call
 Resolwe allows to place the ad-hoc scripts in a ``tools`` folder that
 is added to runtime PATH. The ``tools`` folder is on Resolwe server,
 so SDK helps you upload your ad-hoc scripts to the server automatically.
-Files are transfares via SCP, so you should have an SSH access to the
+Files are transfered via SCP, so you should have an SSH access to the
 Resolwe server. Also, you have to configure the `password-less
 authentication`_.
 

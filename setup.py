@@ -66,7 +66,7 @@ setup(
             'pep8>=1.6.2',
             'pylint>=1.4.3',
             'readme_renderer',
-            'codeclimate-test-reporter',
+            'codecov',
         ],
     },
 

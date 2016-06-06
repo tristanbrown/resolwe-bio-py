@@ -27,7 +27,24 @@ class BaseCollection(BaseResource):
 
     def __init__(self, slug=None, id=None,  # pylint: disable=redefined-builtin
                  model_data=None, resolwe=None):
+
+        #: id's of data objects in the resource
         self.data = None
+
+        #: a description
+        self.description = None
+
+        #: settings
+        self.settings = None
+
+        #: descriptor
+        self.descriptor = None
+
+        #: descriptor schema
+        self.descriptor_schema = None
+
+        #: collections
+        self.collections = None
 
         BaseResource.__init__(self, slug, id, model_data, resolwe)
 

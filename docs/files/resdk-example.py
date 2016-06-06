@@ -101,3 +101,18 @@ print(result.stdout())
 result.process_info
 result.process_warning
 result.process_error
+
+data1 = res.data.get(1)
+file_list = data1.files()
+print(file_list)
+
+# Filter the results if searching for specific file name
+file_list = data1.files(file_name='reads.fq')
+print(file_list)
+
+# Or filter by field_name
+file_list = data1.files(field_name='output.fastq')
+print(file_list)
+
+sample = res.sample.get(1)
+sample.download(field_name='output.fastq', download_dir="/path/to/target/dir/")

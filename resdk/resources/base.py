@@ -42,8 +42,24 @@ class BaseResource(object):
         if not any(identifiers) or any(identifiers):
             raise ValueError("One and only one of slug, id or model_data must be given")
 
+        #: a descriptive name of the resource
+        self.name = ""
+        #: unique identifier
         self.id = id  # pylint: disable=invalid-name
+        #: human-readable unique identifier
         self.slug = slug
+
+        #: user id of the contributor
+        self.contributor = None
+
+        #: date of creation
+        self.created = ""
+
+        #: date of latest modification
+        self.modified = ""
+
+        #: permissions - (view/download/add/edit/share/owner for user/group/public)
+        self.permissions = {}
 
         self.api = getattr(resolwe.api, self.endpoint)
         self.resolwe = resolwe
