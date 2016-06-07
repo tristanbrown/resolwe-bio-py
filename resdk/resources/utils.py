@@ -80,3 +80,16 @@ def _print_input_line(element_list, level):
                 fill_spaces(element['name'], max_name_len + spacing),
                 fill_spaces("[" + element['type'] + "]", max_type_len + spacing),
                 element['label']))
+
+
+def endswith_colon(schema, field):
+    """
+    Ensure the field ends with colon.
+
+    :param schema: Register process from source YAML file
+    :type schema: dict
+    :param field: field name
+    :type field: str
+    """
+    if field in schema and not schema[field].endswith(':'):
+        schema[field] += ':'

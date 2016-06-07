@@ -27,7 +27,7 @@ from six.moves.urllib.parse import urljoin  # pylint: disable=import-error
 from requests.exceptions import ConnectionError  # pylint: disable=ungrouped-imports, redefined-builtin
 
 from .resources import Data, Collection, Sample, Process
-from .resources.utils import iterate_fields, iterate_schema
+from .resources.utils import iterate_fields, iterate_schema, endswith_colon
 
 
 VERSION_NUMBER_BITS = (8, 10, 14)
@@ -70,7 +70,7 @@ class Resolwe(object):
         version_numbers = [int(number_string) for number_string in version.split(".")]
 
         if len(version_numbers) > len(VERSION_NUMBER_BITS):
-            raise NotImplementedError("Versions with more than {0} decimal places are not supported".format(
+            raise NotImplementedError("Versions with more than {0} decimal places are not supported.".format(
                 len(VERSION_NUMBER_BITS) - 1))
 
         # add 0s for missing numbers
@@ -79,10 +79,10 @@ class Resolwe(object):
         # convert version to single int
         version_number = 0
         total_bits = 0
-        for num, bits in reversed(zip(version_numbers, VERSION_NUMBER_BITS)):  # pylint: disable=bad-reversed-sequence
+        for num, bits in zip(reversed(version_numbers), reversed(VERSION_NUMBER_BITS)):
             max_num = (bits + 1) - 1
             if num >= 1 << max_num:
-                raise ValueError("Number {0} cannot be stored with only {1} bits. Max is {2}".format(
+                raise ValueError("Number {0} cannot be stored with only {1} bits. Max is {2}.".format(
                     num, bits, max_num))
             version_number += num << total_bits
             total_bits += bits
@@ -112,7 +112,7 @@ class Resolwe(object):
 
         """
         if not os.path.isfile(src):
-            raise ValueError("File not found {}".format(src))
+            raise ValueError("File not found: {}.".format(src))
 
         processes = []
 
@@ -123,18 +123,13 @@ class Resolwe(object):
         except yaml.parser.ParserError as parser_error:
             raise parser_error
 
-        def endswith_colon(schema, field):
-            """Ensure the field ends with colon."""
-            if field in schema and not schema[field].endswith(':'):
-                schema[field] += ':'
-
         process = None
         for process in processes:
             if process.get('slug', None) == slug:
                 break
         else:
             raise ValueError("Process source given '{}' but process "
-                             "slug not found: '{}'".format(src, slug))
+                             "slug not found: '{}'.".format(src, slug))
 
         endswith_colon(process, 'type')
         endswith_colon(process, 'category')
@@ -142,11 +137,9 @@ class Resolwe(object):
         process['version'] = self._version_string_to_int(process['version'])
 
         for field in ['input', 'output']:
-            if field not in process:
-                continue
-
-            for schema, _, _ in iterate_schema({}, process[field], field):
-                endswith_colon(schema, 'type')
+            if field in process:
+                for schema, _, _ in iterate_schema({}, process[field], field):
+                    endswith_colon(schema, 'type')
 
             process['{}_schema'.format(field)] = process.pop(field)
 
@@ -155,29 +148,31 @@ class Resolwe(object):
             process['persistence'] = persistence_map[process['persistence']]
 
         try:
-            server_process = self.api.process.get(slug=process['slug'], ordering='-version', limit=1)
+            server_process = self.process.filter(slug=process['slug'], ordering='-version', limit=1)
 
             if len(server_process) == 1:
                 server_process = server_process[0]
-
-                if process['version'] > server_process['version']:
-                    response = self.api.process.post(process)
-                else:
+                # Version for newly reistered process has to be increased. If
+                # this has not been already done in yaml file it is raised now.
+                if not process['version'] > server_process['version']:
                     process['version'] = server_process['version'] + 1
-                    self.logger.warning("Process '%s' version increased automatically: %s",
-                                        slug,
-                                        self._version_int_to_string(process['version']))
-                    response = self.api.process.post(process)
+                    self.logger.warning(
+                        "Process '%s' version increased automatically: %s",
+                        slug,
+                        self._version_int_to_string(process['version']))
+
+                response = self.api.process.post(process)
 
             elif len(server_process) == 0:
                 response = self.api.process.post(process)
             else:
                 raise ValueError("Unexpected behaviour at get process with slug {}".format(slug))
 
+        # Updating processes is supported only on development servers - this error will be raised on production server.
         except slumber.exceptions.HttpClientError as http_client_error:
             if http_client_error.response.status_code == 405:  # pylint: disable=no-member
                 self.logger.warning("Server does not support adding processes")
-            return http_client_error
+            raise http_client_error
 
         return response
 
@@ -190,21 +185,27 @@ class Resolwe(object):
         :param tools: Process auxiliary scripts
         :type tools: list of str
 
+        :rtype: None
+
         """
         if TOOLS_REMOTE_HOST is None:
             raise ValueError("Define TOOLS_REMOTE_HOST environmental variable")
 
         self.logger.info("SCP: %s", TOOLS_REMOTE_HOST)
         for tool in tools:
+            # Define subprocess, but not yet run it. Also:
+            # (1) redirect stderr to stdout
+            # (2) enable to retrieve stdout of the subprocess in here
             sub_process = subprocess.Popen(
                 'scp -r {} {}'.format(tool, TOOLS_REMOTE_HOST),
                 shell=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT)
+            # Run the subprocess:
             stdout, _ = sub_process.communicate()
             self.logger.info(stdout)
             if sub_process.returncode == 1:
-                raise ValueError("Tools file not found: '{}'".format(tool))
+                raise ValueError("Tools file not found: '{}'.".format(tool))
             if sub_process.returncode > 1:
                 self.logger.warning("STATUS: %s", sub_process.returncode)
 
@@ -251,7 +252,7 @@ class Resolwe(object):
         """
         if ((descriptor and not descriptor_schema) or
                 (not descriptor and descriptor_schema)):
-            raise ValueError("Set both or neither descriptor and descriptor_schema")
+            raise ValueError("Set both or neither descriptor and descriptor_schema.")
 
         if src is not None:
             self._register(src, slug)
@@ -264,7 +265,7 @@ class Resolwe(object):
         if len(process) == 1:
             process = process[0]
         elif len(process) == 0:
-            raise ValueError("Could not get process for given slug")
+            raise ValueError("Could not get process for given slug.")
         else:
             raise ValueError("Unexpected behaviour at get process with slug {}".format(slug))
 
@@ -291,7 +292,7 @@ class Resolwe(object):
                     }
 
         except KeyError as key_error:
-            raise KeyError("Field '{}' not in process '{}' input schema".format(key_error.args[0], process['slug']))
+            raise KeyError("Field '{}' not in process '{}' input schema.".format(key_error.args[0], process['slug']))
 
         data = {
             'process': process['slug'],
@@ -314,7 +315,7 @@ class Resolwe(object):
     def _upload_file(self, fn):
         """Upload a single file on the platform.
 
-        File is uploaded in chunks of 1,024 bytes.
+        File is uploaded in chunks of size CHUNK_SIZE bytes.
 
         :param fn: File path
         :type fn: string
@@ -334,27 +335,29 @@ class Resolwe(object):
 
                 for i in range(5):
                     if i > 0 and response is not None:
-                        self.logger.warning("Chunk upload failed (error %s): repeating for chunk number %s",
-                                            response.status_code,
-                                            chunk_number)
+                        self.logger.warning(
+                            "Chunk upload failed (error %s): repeating for chunk number %s",
+                            response.status_code,
+                            chunk_number)
 
-                    response = requests.post(urljoin(self.url, 'upload/'),
-                                             auth=self.auth,
+                    response = requests.post(
+                        urljoin(self.url, 'upload/'),
+                        auth=self.auth,
 
-                                             # request are smart and make
-                                             # 'CONTENT_TYPE': 'multipart/form-data;''
-                                             files={'file': (base_name, chunk)},
+                        # request are smart and make
+                        # 'CONTENT_TYPE': 'multipart/form-data;''
+                        files={'file': (base_name, chunk)},
 
-                                             # stuff in data will be in response.POST on server
-                                             data={
-                                                 '_chunkSize': CHUNK_SIZE,
-                                                 '_totalSize': file_size,
-                                                 '_chunkNumber': chunk_number,
-                                                 '_currentChunkSize': len(chunk),
-                                             },
-                                             headers={
-                                                 'Session-Id': session_id
-                                             })
+                        # stuff in data will be in response.POST on server
+                        data={
+                            '_chunkSize': CHUNK_SIZE,
+                            '_totalSize': file_size,
+                            '_chunkNumber': chunk_number,
+                            '_currentChunkSize': len(chunk)},
+                        headers={
+                            'Session-Id': session_id}
+                    )
+
                     if response.status_code in [200, 201]:
                         break
                 else:
@@ -362,8 +365,8 @@ class Resolwe(object):
                     return None
 
                 progress = 100. * (chunk_number * CHUNK_SIZE + len(chunk)) / file_size
-                msg = "{:.0f} % Uploaded {}".format(progress, fn)
-                self.logger.info(msg)
+                message = "{:.0f} % Uploaded {}".format(progress, fn)
+                self.logger.info(message)
                 chunk_number += 1
 
         return response.json()['files'][0]['temp']
@@ -388,7 +391,7 @@ class Resolwe(object):
             raise ValueError("Download directory does not exist: {}".format(download_dir))
 
         if len(files) == 0:
-            self.logger.info("No files to download")
+            self.logger.info("No files to download.")
 
         else:
             self.logger.info("Downloading files to %s:", download_dir)
@@ -405,7 +408,7 @@ class Resolwe(object):
                     if not response.ok:
                         response.raise_for_status()
                     else:
-                        for chunk in response:
+                        for chunk in response.iter_content(chunk_size=CHUNK_SIZE):
                             file_handle.write(chunk)
 
 
@@ -446,8 +449,7 @@ class ResAuth(requests.auth.AuthBase):
 
     def __call__(self, request):
         # modify and return the request
-        request.headers['Cookie'] = 'csrftoken={}; sessionid={}'.format(self.csrftoken,
-                                                                        self.sessionid)
+        request.headers['Cookie'] = 'csrftoken={}; sessionid={}'.format(self.csrftoken, self.sessionid)
         request.headers['X-CSRFToken'] = self.csrftoken
 
         # Not needed until we support HTTP Push with the API
