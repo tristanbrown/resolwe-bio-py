@@ -36,3 +36,7 @@ distribute*.tar.gz
 
 # Ignore virtualenv folder
 venv
+
+# ignore Coverage.py files
+.coverage
+htmlcov/

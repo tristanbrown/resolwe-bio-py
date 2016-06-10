@@ -14,6 +14,10 @@ Added
 * Add process resource
 * Docs: Getting started and writing pipelines
 
+Changed
+-------
+* Track test coverage with Codecov
+
 
 ==================
 1.3.3 - 2016-05-18

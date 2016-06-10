@@ -43,11 +43,18 @@ Running tests
 
 Run unit tests::
 
-    python setup.py test
+    py.test
 
-Run unit and functional tests::
+Coverage report
+===============
 
-    python setup.py test --test-suite resdk.tests.functional
+To see the tests' code coverage, use::
+
+    py.test --cov=resdk
+
+To generate a HTML with tests' code coverage, use::
+
+    py.test --cov=resdk --cov-report=html
 
 Building documentation
 ======================
