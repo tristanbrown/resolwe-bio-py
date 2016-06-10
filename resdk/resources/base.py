@@ -5,6 +5,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import logging
 
+import six
 import slumber
 
 
@@ -42,8 +43,18 @@ class BaseResource(object):
         if not any(identifiers) or any(identifiers):
             raise ValueError("One and only one of slug, id or model_data must be given")
 
-        #: a descriptive name of the resource
-        self.name = ""
+        if id:
+            if not isinstance(id, int):
+                raise ValueError("id should be an integer.")
+        elif slug:
+            if not isinstance(slug, six.string_types):
+                raise ValueError("slug should be a string.")
+        else:
+            if not isinstance(model_data, dict):
+                raise ValueError("model_data should be a dict.")
+
+#: a descriptive name of the resource
+        self.name = None
         #: unique identifier
         self.id = id  # pylint: disable=invalid-name
         #: human-readable unique identifier
@@ -53,13 +64,13 @@ class BaseResource(object):
         self.contributor = None
 
         #: date of creation
-        self.created = ""
+        self.created = None
 
         #: date of latest modification
-        self.modified = ""
+        self.modified = None
 
         #: permissions - (view/download/add/edit/share/owner for user/group/public)
-        self.permissions = {}
+        self.permissions = None
 
         self.api = getattr(resolwe.api, self.endpoint)
         self.resolwe = resolwe
@@ -69,12 +80,12 @@ class BaseResource(object):
                 self._update_fields(self.api(id).get())
             except slumber.exceptions.HttpNotFoundError:
                 raise ValueError("ID '{}' does not exist or you do not "
-                                 "have access permission".format(id))
+                                 "have access permission.".format(id))
         elif slug:
             resources = self.api.get(slug=slug)
             if len(resources) != 1:
                 raise ValueError("Slug '{}' does not exist or you do not "
-                                 "have access permission".format(slug))
+                                 "have access permission.".format(slug))
 
             self._update_fields(resources[0])
         elif model_data:
@@ -97,4 +108,4 @@ class BaseResource(object):
         self._update_fields(self.api(self.id).get())
 
     def __repr__(self):
-        return u"{} <id: {}, slug: '{}', name: '{}'>".format(self.__class__.__name__, self.id, self.slug, self.name)  # pylint: disable=no-member
+        return u"{} <id: {}, slug: '{}', name: '{}'>".format(self.__class__.__name__, self.id, self.slug, self.name)
