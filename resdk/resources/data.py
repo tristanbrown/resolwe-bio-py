@@ -181,7 +181,7 @@ class Data(BaseResource):
 
         """
         if file_name and field_name:
-            raise ValueError("Only one of file_name or field_name may be given")
+            raise ValueError("Only one of file_name or field_name may be given.")
 
         files = ['{}/{}'.format(self.id, fname) for fname in self.files(file_name, field_name)]
         self.resolwe.download_files(files, download_dir)
@@ -194,23 +194,19 @@ class Data(BaseResource):
     def stdout(self):
         """Return process standard output (stdout.txt file content).
 
-        Fetch a stdout.txt file of the corresponding Data object form
-        the Resolwe server and return the file content as a string. The
-        string can be long and ugly.
+        Fetch stdout.txt file from the corresponding Data object and return the
+        file content as string. The string can be long and ugly.
 
         :rtype: string
 
         """
         output = ''
-        try:
-            url = urljoin(self.resolwe.url, 'data/{}/stdout.txt'.format(self.id))
-            response = requests.get(url, stream=True, auth=self.resolwe.auth)
-            if not response.ok:
-                response.raise_for_status()
-            else:
-                for chunk in response:
-                    output += chunk
-        except requests.exceptions.HTTPError as http_error:
-            raise http_error
+        url = urljoin(self.resolwe.url, 'data/{}/stdout.txt'.format(self.id))
+        response = requests.get(url, stream=True, auth=self.resolwe.auth)
+        if not response.ok:
+            response.raise_for_status()
+        else:
+            for chunk in response.iter_content():
+                output += chunk
 
         return output
