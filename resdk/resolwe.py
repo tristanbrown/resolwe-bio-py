@@ -271,10 +271,7 @@ class Resolwe(object):
 
         # Upload files in basic:file fields
         try:
-            for schema, fields in iterate_fields(input, process['input_schema']):
-                field_name = schema['name']
-                field_type = schema['type']
-                field_value = fields[field_name]
+            for field_name, field_type, _, field_value, _ in iterate_fields(input, process['input_schema']):  # pylint: disable=unused-variable
 
                 if field_type.startswith('basic:file:'):
                     if not os.path.isfile(field_value):
@@ -286,7 +283,7 @@ class Resolwe(object):
                         raise Exception("Upload failed for {}.".format(field_value))
 
                     file_name = ntpath.basename(field_value)
-                    fields[field_name] = {
+                    field_name = {
                         'file': file_name,
                         'file_temp': file_temp
                     }

@@ -2,22 +2,40 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 
-def iterate_fields(fields, schema):
-    """Recursively iterate over all DictField sub-fields.
+def iterate_fields(fields, schema, path=None):
+    """
+    Get field (name, type, label, value, path) tuple for specific schema.
+
+    Typically ``fields`` are input/output of data object and
+    schema is input_schema/output_schema.
+
+    Practical example::
+
+        for name, type, val in iterate_fields(input, input_schema):
+            ...
+
+    In this case we retrive the name, type and value of all fields
+    simultaneously. This is useful since the value is contained in
+    input, but type is contained in input_schema.
 
     :param fields: Field instance (e.g. input)
     :type fields: dict
     :param schema: Schema instance (e.g. input_schema)
-    :type schema: dict
-
+    :type schema: list
     """
     schema_dict = {val['name']: val for val in schema}
-    for field_id, properties in fields.items():
-        if 'group' in schema_dict[field_id]:
-            for _field_schema, _fields in iterate_fields(properties, schema_dict[field_id]['group']):
-                yield (_field_schema, _fields)
+
+    for field_name, field_value in fields.items():
+        if 'group' in schema_dict[field_name]:
+            for name, typ, label, val, path in iterate_fields(field_value, schema_dict[field_name]['group']):
+                yield (name, typ, label, val, path)
         else:
-            yield (schema_dict[field_id], fields)
+            yield (
+                field_name,
+                schema_dict[field_name]['type'],
+                schema_dict[field_name]['label'],
+                field_value,
+                None if path is None else '{}.{}'.format(path, field_name))
 
 
 def find_field(schema, field_name):
@@ -65,7 +83,7 @@ def fill_spaces(word, desired_length):
 
 
 def _print_input_line(element_list, level):
-    """ Pretty input_schema print."""
+    """ Pretty print of input_schema."""
     spacing = 2
 
     for element in element_list:
