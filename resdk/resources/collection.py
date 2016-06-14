@@ -57,12 +57,12 @@ class BaseCollection(BaseResource):
         return sorted(  # pylint: disable=no-member
             set(self.resolwe.api.data(id_).get()['process_type'] for id_ in self.data))  # pylint: disable=no-member
 
-    def files(self):
+    def files(self, file_name=None, field_name=None):
         """Return list of files in resource."""
         file_list = []
         for id_ in self.data:
             data = Data(id=id_, resolwe=self.resolwe)
-            file_list.extend(file_name for file_name, _ in data.files())
+            file_list.extend(file_name for file_name in data.files(file_name=None, field_name=None))
 
         return file_list
 
@@ -98,17 +98,18 @@ class BaseCollection(BaseResource):
             elif isinstance(data_type, tuple) and len(data_type) == 2:
                 data_type, output_field = data_type
             else:
-                raise ValueError("Invalid argument value data_type")
+                raise ValueError("Invalid argument value data_type.")
 
         for id_ in self.data:
             data = Data(id=id_, resolwe=self.resolwe)
 
-            if data_type and data_type != data.process_type:
+            if data_type and data_type not in data.process_type:
                 continue
 
-            files.extend(data.files(file_name, output_field))
+            data_files = data.files(file_name, output_field)
+            files.extend(zip(data_files, [id_] * len(data_files)))
 
-        files = ['{}/{}'.format(self.id, _file) for _file in files]
+        files = ['{}/{}'.format(id_, file_) for file_, id_ in files]
         self.resolwe.download_files(files, download_dir)
 
     def print_annotation(self):
