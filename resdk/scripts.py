@@ -225,14 +225,14 @@ def sequp():
 
         # Paired-end reads
         if annotations[fn]['PAIRED_END'] == 'Y' and annotations[fn]['FASTQ_PATH_PAIR']:
-            slug = 'import-upload-reads-fastq-paired-end'
-            input_['src1'] = fn
-            input_['src2'] = os.path.join(genialis_seq_dir, annotations[fn]['FASTQ_PATH_PAIR'])
+            slug = 'upload-fastq-paired'
+            input_['src1'] = [fn]
+            input_['src2'] = [os.path.join(genialis_seq_dir, annotations[fn]['FASTQ_PATH_PAIR'])]
 
         # Single-end reads
         else:
-            slug = 'import-upload-reads-fastq'
-            input_['src'] = fn
+            slug = 'upload-fastq-single'
+            input_['src'] = [fn]
 
         data = resolwe.run(slug, input_, descriptor, descriptor_schema, data_name=annotations[fn]['SAMPLE_NAME'])
 
@@ -286,9 +286,9 @@ def readsup():
     cols = [args.collection]
 
     if args.r:
-        resolwe.run('import-upload-reads-fastq', {'src': args.r}, collections=cols)
+        resolwe.run('upload-fastq-single', {'src': [args.r]}, collections=cols)
     else:
-        resolwe.run('import-upload-reads-fastq-paired-end', {'src1': args.r1, 'src2': args.r2}, collections=cols)
+        resolwe.run('upload-fastq-paired', {'src1': [args.r1], 'src2': [args.r2]}, collections=cols)
 
 
 def readsup_batch():
@@ -319,8 +319,8 @@ def readsup_batch():
 
     if args.r:
         for read_file in args.r:
-            resolwe.run('import-upload-reads-fastq', {'src': read_file}, collections=[args.collection])
+            resolwe.run('upload-fastq-single', {'src': [read_file]}, collections=[args.collection])
     else:
         for read_file1, read_file2 in zip(args.r1, args.r2):
-            resolwe.run('import-upload-reads-fastq-paired-end', {'src1': read_file1, 'src2': read_file2},
+            resolwe.run('upload-fastq-paired', {'src1': [read_file1], 'src2': [read_file2]},
                         collections=[args.collection])
