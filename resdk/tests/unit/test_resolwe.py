@@ -187,6 +187,45 @@ class TestUploadTools(unittest.TestCase):
         self.assertEqual(self.resolwe_mock.logger.warning.call_count, 1)
 
 
+class TestProcessFileField(unittest.TestCase):
+
+    @patch('resdk.resolwe.os', autospec=True)
+    @patch('resdk.resolwe.Resolwe', autospec=True)
+    def test_invalid_file_name(self, resolwe_mock, os_mock):
+        os_mock.configure_mock(**{'path.isfile.return_value': False})
+
+        message = r"File .* not found."
+        with six.assertRaisesRegex(self, ValueError, message):
+            Resolwe._process_file_field(resolwe_mock, "/bad/path/to/file")
+        self.assertEqual(resolwe_mock._upload_file.call_count, 0)
+
+    @patch('resdk.resolwe.os')
+    @patch('resdk.resolwe.Resolwe', spec=True)
+    def test_if_upload_fails(self, resolwe_mock, os_mock):
+        # Good file, upload fails
+        os_mock.configure_mock(**{'path.isfile.return_value': True})
+        resolwe_mock._upload_file = MagicMock(return_value=None)
+
+        message = r'Upload failed for .*'
+        with six.assertRaisesRegex(self, Exception, message):
+            Resolwe._process_file_field(resolwe_mock, "/good/path/to/file")
+        self.assertEqual(resolwe_mock._upload_file.call_count, 1)
+
+    @patch('resdk.resolwe.ntpath')
+    @patch('resdk.resolwe.os')
+    @patch('resdk.resolwe.Resolwe', spec=True)
+    def test_if_upload_ok(self, resolwe_mock, os_mock, ntpath_mock):
+        # Good file, upload fails
+        os_mock.configure_mock(**{'path.isfile.return_value': True})
+        resolwe_mock._upload_file = MagicMock(return_value="temporary_file")
+        ntpath_mock.basename.return_value = "Basename returned!"
+
+        output = Resolwe._process_file_field(resolwe_mock, "/good/path/to/file.txt")
+        self.assertEqual(output, {'file': "Basename returned!", 'file_temp': "temporary_file"})
+
+        resolwe_mock._upload_file.assert_called_once_with("/good/path/to/file.txt")
+
+
 class TestRun(unittest.TestCase):
 
     def setUp(self):
@@ -196,7 +235,10 @@ class TestRun(unittest.TestCase):
              'input_schema':
                 [{"label": "NGS reads (FASTQ)",  # pylint: disable=bad-continuation
                   "type": "basic:file:",
-                  "name": "src"}]}]
+                  "name": "src"},
+                 {"label": "list of NGS reads",  # pylint: disable=bad-continuation
+                  "type": "list:basic:file:",
+                  "name": "src_list"}]}]
 
     @patch('resdk.resolwe.Resolwe', spec=True)
     def test_bad_descriptor_input(self, resolwe_mock):
@@ -224,44 +266,6 @@ class TestRun(unittest.TestCase):
 
     @patch('resdk.resolwe.os')
     @patch('resdk.resolwe.Resolwe', spec=True)
-    def test_invalid_file_name(self, resolwe_mock, os_mock):
-        resolwe_mock.api = MagicMock(**{'process.get.return_value': self.process_json})
-        os_mock.path = MagicMock()
-        os_mock.path.isfile.return_value = False
-        message = r"File .* not found."
-        with six.assertRaisesRegex(self, ValueError, message):
-            Resolwe.run(resolwe_mock, input={"src": "/bad/path/to/file"})
-
-    @patch('resdk.resolwe.os')
-    @patch('resdk.resolwe.Resolwe', spec=True)
-    def test_if_upload_fails(self, resolwe_mock, os_mock):
-        # Good file, upload fails
-        os_mock.path.isfile.return_value = True
-        resolwe_mock.api = MagicMock(**{'process.get.return_value': self.process_json})
-        resolwe_mock._upload_file = MagicMock(return_value=None)
-        message = r'Upload failed for .*'
-        with six.assertRaisesRegex(self, Exception, message):
-            Resolwe.run(resolwe_mock, input={"src": "/good/path/to/file"})
-
-    @patch('resdk.resolwe.Data')
-    @patch('resdk.resolwe.ntpath')
-    @patch('resdk.resolwe.os')
-    @patch('resdk.resolwe.Resolwe', spec=True)
-    def test_if_upload_ok(self, resolwe_mock, os_mock, ntpath_mock, data_mock):
-        # Good file, upload fails
-        os_mock.path.isfile.return_value = True
-        resolwe_mock.api = MagicMock(**{
-            'process.get.return_value': self.process_json,
-            'data.post.return_value': {"id": 1}})
-        resolwe_mock._upload_file = MagicMock(return_value="temporary_file")
-        ntpath_mock.basename.return_value = "Basename returned!"
-
-        Resolwe.run(resolwe_mock, input={"src": "/good/path/"})
-
-        resolwe_mock._upload_file.assert_called_once_with("/good/path/")
-
-    @patch('resdk.resolwe.os')
-    @patch('resdk.resolwe.Resolwe', spec=True)
     def test_bad_inputs(self, resolwe_mock, os_mock):
         # Good file, upload fails becouse of bad input keyword
         os_mock.path.isfile.return_value = True
@@ -270,6 +274,21 @@ class TestRun(unittest.TestCase):
         message = r'Field .* not in process .* input schema.'
         with six.assertRaisesRegex(self, KeyError, message):
             Resolwe.run(resolwe_mock, input={"bad_key": "/good/path/to/file"})
+
+    @patch('resdk.resolwe.Data')
+    @patch('resdk.resolwe.Resolwe', spec=True)
+    def test_file_processing(self, resolwe_mock, data_mock):
+
+        resolwe_mock.api = MagicMock(**{'process.get.return_value': self.process_json, 'data.post.return_value': {}})
+        resolwe_mock._process_file_field = MagicMock(side_effect=[
+            {'file': 'file_name1', 'file_temp': 'temp_file1'},
+            {'file': 'file_name2', 'file_temp': 'temp_file2'},
+            {'file': 'file_name3', 'file_temp': 'temp_file3'}])
+        data_mock.return_value = "Data object"
+
+        Resolwe.run(resolwe_mock,
+                    input={"src": "/path/to/file1",
+                           "src_list": ["/path/to/file2", "/path/to/file3"]})
 
     @patch('resdk.resolwe.Data')
     @patch('resdk.resolwe.os')

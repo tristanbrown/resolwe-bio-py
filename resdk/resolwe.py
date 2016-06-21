@@ -209,7 +209,15 @@ class Resolwe(object):
             if sub_process.returncode > 1:
                 self.logger.warning("STATUS: %s", sub_process.returncode)
 
-    def process_file_field(self, path):
+    def _process_file_field(self, path):
+        """
+        Upload file on ``path`` and return it's basename and temporary location.
+
+        :param path: path to file
+        :type path: str/path
+
+        :rtype: dict
+        """
         if not os.path.isfile(path):
             raise ValueError("File {} not found.".format(path))
 
@@ -292,12 +300,12 @@ class Resolwe(object):
                 field_value = fields[field_name]
 
                 if field_type == 'basic:file:':
-                    fields[field_name] = self.process_file_field(field_value)
+                    fields[field_name] = self._process_file_field(field_value)
 
                 elif field_type == 'list:basic:file:':
                     file_list = []
                     for obj in fields[field_name]:
-                        file_list.append(self.process_file_field(obj))
+                        file_list.append(self._process_file_field(obj))
                     fields[field_name] = file_list
 
         except KeyError as key_error:
