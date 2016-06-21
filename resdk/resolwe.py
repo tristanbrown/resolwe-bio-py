@@ -209,6 +209,21 @@ class Resolwe(object):
             if sub_process.returncode > 1:
                 self.logger.warning("STATUS: %s", sub_process.returncode)
 
+    def process_file_field(self, path):
+        if not os.path.isfile(path):
+            raise ValueError("File {} not found.".format(path))
+
+        file_temp = self._upload_file(path)
+
+        if not file_temp:
+            raise Exception("Upload failed for {}.".format(path))
+
+        file_name = ntpath.basename(path)
+        return {
+            'file': file_name,
+            'file_temp': file_temp,
+        }
+
     def run(self, slug=None, input={}, descriptor=None,  # pylint: disable=redefined-builtin
             descriptor_schema=None, collections=[],
             data_name='', src=None, tools=None):
@@ -276,20 +291,14 @@ class Resolwe(object):
                 field_type = schema['type']
                 field_value = fields[field_name]
 
-                if field_type.startswith('basic:file:'):
-                    if not os.path.isfile(field_value):
-                        raise ValueError("File {} not found.".format(field_value))
+                if field_type == 'basic:file:':
+                    fields[field_name] = self.process_file_field(field_value)
 
-                    file_temp = self._upload_file(field_value)
-
-                    if not file_temp:
-                        raise Exception("Upload failed for {}.".format(field_value))
-
-                    file_name = ntpath.basename(field_value)
-                    fields[field_name] = {
-                        'file': file_name,
-                        'file_temp': file_temp
-                    }
+                elif field_type == 'list:basic:file:':
+                    file_list = []
+                    for obj in fields[field_name]:
+                        file_list.append(self.process_file_field(obj))
+                    fields[field_name] = file_list
 
         except KeyError as key_error:
             raise KeyError("Field '{}' not in process '{}' input schema.".format(key_error.args[0], process['slug']))
