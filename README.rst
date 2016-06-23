@@ -2,7 +2,7 @@
 Resolwe SDK for Python
 ======================
 
-|build| |coverage| |docs| |pypi_version| |pypi_pyversions| |pypi_downloads|
+|build| |coverage| |docs| |pypi_version| |pypi_pyversions|
 
 .. |build| image:: https://travis-ci.org/genialis/resolwe-bio-py.svg?branch=master
     :target: https://travis-ci.org/genialis/resolwe-bio-py
