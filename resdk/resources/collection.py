@@ -62,7 +62,7 @@ class BaseCollection(BaseResource):
         file_list = []
         for id_ in self.data:
             data = Data(id=id_, resolwe=self.resolwe)
-            file_list.extend(file_name for file_name in data.files(file_name=None, field_name=None))
+            file_list.extend(fname for fname in data.files(file_name=file_name, field_name=field_name))
 
         return file_list
 
