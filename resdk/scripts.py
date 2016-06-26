@@ -158,7 +158,7 @@ def sequp():
     time.sleep(change_time_window)
     sizes2 = {f: os.path.getsize(f) for f in all_new_read_files}
 
-    all_new_read_files_uploaded = [f for f in all_new_read_files if sizes1[f] == sizes2[f]]
+    all_new_read_files_uploaded = [os.path.normpath(f) for f in all_new_read_files if sizes1[f] == sizes2[f]]
 
     # Find all annotation files
     all_annotation_files = []
@@ -172,6 +172,7 @@ def sequp():
         """Parse annotation file to list of annotation objects."""
 
         anns = {}
+        seq_paths = []
         # We use 'rU' mode to be able to read also files with '\r' chars
         with open(annotation_file, 'rU') as file_:
             try:
@@ -184,12 +185,14 @@ def sequp():
                     row.update({k.upper(): v for k, v in row.items()})
 
                     if 'FASTQ_PATH' in row:
-                        seqfile = os.path.normpath(os.path.join(genialis_seq_dir,
-                                                                row['FASTQ_PATH']))
+                        for seqfile in row['FASTQ_PATH'].split(','):
+                            seq_path = os.path.normpath(os.path.join(genialis_seq_dir,seqfile))
+                            seq_paths.append(seq_path)
 
-                        if os.path.isfile(seqfile):
-                            row['FASTQ_PATH'] = seqfile
-                            anns[seqfile] = row
+                        if all(os.path.isfile(sf) for sf in seq_paths):
+                            row['FASTQ_PATH'] = ','.join(seq_paths)
+                            anns[row['SAMPLE_NAME']] = row
+                            seq_paths = []
 
             except csv.Error:
                 print("File type not supported", file=sys.stderr)
@@ -209,52 +212,56 @@ def sequp():
 
     # Upload all files in all_new_read_files_uploaded with annotations
     uploaded_files = []
-    input_ = {}
-    for fn in set(set(annotations.keys()) & set(all_new_read_files_uploaded)):
-        descriptor, descriptor_schema = None, None
 
-        if read_schema:
-            descriptor_schema = read_schema['slug']
-            descriptor = {
-                'barcode': annotations[fn].get('BARCODE', None),
-                'barcode_removed': True if annotations[fn].get('BARCODE_REMOVED', 'N').upper() == 'Y' else False,
-                'instrument_type': annotations[fn].get('INSTRUMENT', None),
-                'seq_date': annotations[fn].get('SEQ_DATE', None),
-            }
+    for sample_n in annotations.keys():
+        input_ = {}
+        if set(annotations[sample_n]['FASTQ_PATH'].split(',')).issubset(set(all_new_read_files_uploaded)):
+            descriptor, descriptor_schema = None, None
 
-        # Paired-end reads
-        if annotations[fn]['PAIRED_END'] == 'Y' and annotations[fn]['FASTQ_PATH_PAIR']:
-            slug = 'upload-fastq-paired'
-            input_['src1'] = [fn]
-            input_['src2'] = [os.path.join(genialis_seq_dir, annotations[fn]['FASTQ_PATH_PAIR'])]
+            if read_schema:
+                descriptor_schema = read_schema['slug']
+                descriptor = {
+                    'barcode': annotations[sample_n].get('BARCODE', None),
+                    'barcode_removed': True if annotations[sample_n].get('BARCODE_REMOVED', 'N').upper() == 'Y' else False,
+                    'instrument_type': annotations[sample_n].get('INSTRUMENT', None),
+                    'seq_date': annotations[sample_n].get('SEQ_DATE', None),
+                }
 
-        # Single-end reads
-        else:
-            slug = 'upload-fastq-single'
-            input_['src'] = [fn]
+            # Paired-end reads
+            if annotations[sample_n]['PAIRED_END'] == 'Y' and annotations[sample_n]['FASTQ_PATH_PAIR']:
+                slug = 'upload-fastq-paired'
+                input_['src1'] = annotations[sample_n]['FASTQ_PATH'].split(',')
+                input_['src2'] = [os.path.join(genialis_seq_dir, f) for f in annotations[sample_n]['FASTQ_PATH_PAIR'].split(',')]
+                fn = input_['src1'] + input_['src2']
 
-        data = resolwe.run(slug, input_, descriptor, descriptor_schema, data_name=annotations[fn]['SAMPLE_NAME'])
+            # Single-end reads
+            else:
+                slug = 'upload-fastq-single'
+                input_['src'] = annotations[sample_n]['FASTQ_PATH'].split(',')
+                fn = input_['src']
 
-        if data:
-            uploaded_files.append(fn)
+            data = resolwe.run(slug, input=input_, descriptor=descriptor, descriptor_schema=descriptor_schema, data_name=sample_n)
 
-            presample = resolwe.api.presample.get(data=data.id)[0]
+            if data:
+                [uploaded_files.append(f) for f in fn]
 
-            if 'geo' not in presample['descriptor']:
-                presample['descriptor']['geo'] = {}
+                presample = resolwe.api.presample.get(data=data.id)[0]
 
-            organism = ORGANISMS.get(annotations[fn]['ORGANISM'].upper(), '')
-            if organism:
-                presample['descriptor']['geo']['organism'] = organism
+                if 'geo' not in presample['descriptor']:
+                    presample['descriptor']['geo'] = {}
 
-            experiment_type = EXPERIMENT_TYPE.get(annotations[fn]['SEQ_TYPE'].upper(), '')
-            if experiment_type:
-                presample['descriptor']['geo']['experiment_type'] = experiment_type
+                organism = ORGANISMS.get(annotations[sample_n]['ORGANISM'].upper(), '')
+                if organism:
+                    presample['descriptor']['geo']['organism'] = organism
 
-            resolwe.api.presample(presample['id']).patch({'descriptor': presample['descriptor']})
+                experiment_type = EXPERIMENT_TYPE.get(annotations[sample_n]['SEQ_TYPE'].upper(), '')
+                if experiment_type:
+                    presample['descriptor']['geo']['experiment_type'] = experiment_type
 
-        else:
-            print("Error uploading {}".format(fn), file=sys.stderr)
+                resolwe.api.presample(presample['id']).patch({'descriptor': presample['descriptor']})
+
+            else:
+                print("Error uploading {}".format(sample_n), file=sys.stderr)
 
     # Set the modification timestamp
     modif_times = [os.path.getmtime(f) for f in uploaded_files]
