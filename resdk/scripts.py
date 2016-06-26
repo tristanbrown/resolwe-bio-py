@@ -186,7 +186,7 @@ def sequp():
 
                     if 'FASTQ_PATH' in row:
                         for seqfile in row['FASTQ_PATH'].split(','):
-                            seq_path = os.path.normpath(os.path.join(genialis_seq_dir,seqfile))
+                            seq_path = os.path.normpath(os.path.join(genialis_seq_dir, seqfile))
                             seq_paths.append(seq_path)
 
                         if all(os.path.isfile(sf) for sf in seq_paths):
@@ -215,37 +215,46 @@ def sequp():
 
     for sample_n in annotations.keys():
         input_ = {}
-        if set(annotations[sample_n]['FASTQ_PATH'].split(',')).issubset(set(all_new_read_files_uploaded)):
+        fw_reads = annotations[sample_n]['FASTQ_PATH'].split(',')
+
+        if set(fw_reads).issubset(set(all_new_read_files_uploaded)):
             descriptor, descriptor_schema = None, None
 
             if read_schema:
                 descriptor_schema = read_schema['slug']
                 descriptor = {
                     'barcode': annotations[sample_n].get('BARCODE', None),
-                    'barcode_removed': True if annotations[sample_n].get('BARCODE_REMOVED', 'N').upper() == 'Y' else False,
+                    'barcode_removed': True if annotations[sample_n].get('BARCODE_REMOVED', 'N').upper() == 'Y'
+                                       else False,
                     'instrument_type': annotations[sample_n].get('INSTRUMENT', None),
                     'seq_date': annotations[sample_n].get('SEQ_DATE', None),
                 }
 
             # Paired-end reads
             if annotations[sample_n]['PAIRED_END'] == 'Y' and annotations[sample_n]['FASTQ_PATH_PAIR']:
+                rw_reads = annotations[sample_n]['FASTQ_PATH_PAIR'].split(',')
                 slug = 'upload-fastq-paired'
-                input_['src1'] = annotations[sample_n]['FASTQ_PATH'].split(',')
-                input_['src2'] = [os.path.join(genialis_seq_dir, f) for f in annotations[sample_n]['FASTQ_PATH_PAIR'].split(',')]
+                input_['src1'] = fw_reads
+                input_['src2'] = [os.path.normpath((os.path.join(genialis_seq_dir, f)) for f in rw_reads]
                 fn = input_['src1'] + input_['src2']
 
             # Single-end reads
             else:
                 slug = 'upload-fastq-single'
-                input_['src'] = annotations[sample_n]['FASTQ_PATH'].split(',')
+                input_['src'] = fw_reads
                 fn = input_['src']
 
-            data = resolwe.run(slug, input=input_, descriptor=descriptor, descriptor_schema=descriptor_schema, data_name=sample_n)
+            data = resolwe.run(slug,
+                               input=input_,
+                               descriptor=descriptor,
+                               descriptor_schema=descriptor_schema,
+                               data_name=sample_n)
 
             if data:
-                [uploaded_files.append(f) for f in fn]
+                for up_file in fn:
+                    uploaded_files.append(up_file)
 
-                presample = resolwe.api.presample.get(data=data.id)[0]
+                presample = resolwe.presample.filter(data=data.id)[0]
 
                 if 'geo' not in presample['descriptor']:
                     presample['descriptor']['geo'] = {}
@@ -258,7 +267,7 @@ def sequp():
                 if experiment_type:
                     presample['descriptor']['geo']['experiment_type'] = experiment_type
 
-                resolwe.api.presample(presample['id']).patch({'descriptor': presample['descriptor']})
+                presample.update_descriptor(presample['descriptor'])
 
             else:
                 print("Error uploading {}".format(sample_n), file=sys.stderr)

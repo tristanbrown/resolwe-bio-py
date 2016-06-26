@@ -96,7 +96,7 @@ to recognize the structure:
    flags/parameters for the command line programs used in process's
    algorithm.
 
-A handy function when inspectig process inputs is ``print_inputs()``:
+A handy function when inspecting process inputs is ``print_inputs()``:
 
 .. literalinclude:: files/resdk-example.py
    :lines: 73

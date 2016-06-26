@@ -66,8 +66,8 @@ Connect to a Resolwe server:
 
 .. code-block:: python
 
-   from resdk import Resolwe
-   res = Resolwe('admin', 'admin', 'https://torta.bcm.genialis.com')
+   import resdk
+   res = resdk.Resolwe('admin', 'admin', 'https://torta.bcm.genialis.com')
 
    # Recomended: start logging
    resdk.start_logging()
@@ -75,12 +75,12 @@ Connect to a Resolwe server:
 If you do not have access to the Resolwe server, contact us at
 info@genialis.com.
 
-Get sample by ID and download the aligned reads (BAM file):
+Get sample by slug and download the aligned reads (BAM file):
 
 .. code-block:: python
 
-   sample = res.sample.get(1)
-   sample.download(type='bam')
+   sample = res.sample.get('primary_chor_142a2a4_h3k27ac')
+   sample.download(file_type='bam')
 
 Find human samples and download all aligned reads (BAM files):
 
@@ -88,7 +88,7 @@ Find human samples and download all aligned reads (BAM files):
 
    samples = res.sample.filter(descriptor__organism="Homo sapiens")
    for sample in samples:
-       sample.download(type='bam')
+       sample.download(file_type='bam')
 
 Primary analysis (*e.g.,* filtering, alignment, expression estimation)
 starts automatically when samples are annotated. A step in primary
@@ -99,7 +99,7 @@ steps in primary analysis pipeline:
 
 .. code-block:: python
 
-   sample = res.sample.get(1)
+   sample = res.sample.get('primary_chor_142a2a4_h3k27ac')
    for data_id in sample.data:
        data = res.data.get(data_id)
        print data.process_name
@@ -120,7 +120,7 @@ Run Bowtie2 mapping on the reads ``Data`` object of the above sample:
    genome = res.data.get('hg19')
    genome_id = genome.id
    reads_id = sample.data[0]
-   aligned = res.run('alignment-bowtie-2-2-3_trim', input={
+   aligned = res.run('alignment-bowtie2', input={
                          'genome': genome_id,
                          'reads': reads_id,
                          'reporting': {'rep_mode': 'k', 'k_reports': 1}

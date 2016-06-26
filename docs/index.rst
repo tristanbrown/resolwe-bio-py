@@ -50,5 +50,6 @@ Documentation
    intro
    run
    pipelines
+   tutorial
    ref
    contributing
