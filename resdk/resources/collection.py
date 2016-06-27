@@ -106,7 +106,14 @@ class BaseCollection(BaseResource):
             if data_type and data_type not in data.process_type:
                 continue
 
-            data_files = data.files(file_name, output_field)
+            def format_output_field(ofield):
+                """Ensure that output_field starts with output"""
+                if ofield is not None and not ofield.startswith('output'):
+                    return '.'.join(['output'] + ofield.split('.'))
+                else:
+                    return ofield
+
+            data_files = data.files(file_name, format_output_field(output_field))
             files.extend(zip(data_files, [id_] * len(data_files)))
 
         files = ['{}/{}'.format(id_, file_) for file_, id_ in files]
