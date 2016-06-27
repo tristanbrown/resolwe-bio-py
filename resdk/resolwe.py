@@ -111,6 +111,7 @@ class Resolwe(object):
         :type slug: str
 
         """
+        print('oin register')
         if not os.path.isfile(src):
             raise ValueError("File not found: {}.".format(src))
 
@@ -154,8 +155,8 @@ class Resolwe(object):
                 server_process = server_process[0]
                 # Version for newly reistered process has to be increased. If
                 # this has not been already done in yaml file it is raised now.
-                if not process['version'] > server_process['version']:
-                    process['version'] = server_process['version'] + 1
+                if not process['version'] > server_process.version:
+                    process['version'] = server_process.version + 1
                     self.logger.warning(
                         "Process '%s' version increased automatically: %s",
                         slug,
