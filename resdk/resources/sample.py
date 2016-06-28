@@ -25,9 +25,22 @@ class Sample(BaseCollection):
     endpoint = 'sample'
 
     def __init__(self, slug=None, id=None,  # pylint: disable=redefined-builtin
-                 model_data=None, resolwe=None):
+                 model_data=None, resolwe=None, presample=False):
+        self.endpoint = 'presample' if presample else 'sample'
         BaseCollection.__init__(self, slug, id, model_data, resolwe)
 
     def print_annotation(self):
         """Provide annotation data."""
         raise NotImplementedError()
+
+    def update_descriptor(self, descriptor):
+        """Update descriptor and descriptor_schema"""
+        self.api(self.id).patch({'descriptor': descriptor})
+
+    def confirm_is_annotated(self):
+        """Move Sample object from presample to sample endpoint"""
+        if self.endpoint == 'presample':
+            self.api(self.id).patch({'presample': False})
+            self.logger.info('Moved Sample %s from presmaples to samples', self.id)
+        else:
+            raise NotImplementedError("This method is only imeplemented for objects in presample endpoint.")

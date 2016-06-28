@@ -31,8 +31,16 @@ class TestResolweQuerry(unittest.TestCase):
         resq_mock.api.get = MagicMock(return_value=[{'id': 40}])
         resq_mock.resolwe = MagicMock()
         resq_mock.resource = MagicMock(return_value="Some response")
+
+        resq_mock.endpoint = 'anything'
         data = ResolweQuerry.get(resq_mock, 40)
         self.assertEqual(data, "Some response")
+        resq_mock.resource.assert_called_with(id=40, resolwe=resq_mock.resolwe)
+
+        resq_mock.endpoint = 'presample'
+        data = ResolweQuerry.get(resq_mock, 40)
+        self.assertEqual(data, "Some response")
+        resq_mock.resource.assert_called_with(id=40, resolwe=resq_mock.resolwe, presample=True)
 
         # User provides wrong ID.
         message = r'Id: .* does not exist or you dont have access permission.'
@@ -44,8 +52,16 @@ class TestResolweQuerry(unittest.TestCase):
         resq_mock.api = MagicMock()
         resq_mock.resolwe = MagicMock()
         resq_mock.resource = MagicMock(return_value="Some response")
-        data = ResolweQuerry.get(resq_mock, "some-slug")
+
+        resq_mock.endpoint = 'anything'
+        data = ResolweQuerry.get(resq_mock, "abc")
         self.assertEqual(data, "Some response")
+        resq_mock.resource.assert_called_with(slug='abc', resolwe=resq_mock.resolwe)
+
+        resq_mock.endpoint = 'presample'
+        data = ResolweQuerry.get(resq_mock, "abc")
+        self.assertEqual(data, "Some response")
+        resq_mock.resource.assert_called_with(slug='abc', resolwe=resq_mock.resolwe, presample=True)
 
         # User provides wrong slug.
         message = r'Slug: .* does not exist or you dont have access permission.'
@@ -60,6 +76,14 @@ class TestResolweQuerry(unittest.TestCase):
         resq_mock.api.get = MagicMock(return_value=[{'id': 42}])
         resq_mock.resolwe = MagicMock()
         resq_mock.resource = MagicMock(return_value=12345)
+        resq_mock.endpoint = 'anything_but_presample'
+
+        data = ResolweQuerry.filter(resq_mock, slug="some-slug")
+        self.assertIsInstance(data, list)
+        self.assertEqual(data[0], 12345)
+
+        resq_mock.endpoint = 'presample'
+
         data = ResolweQuerry.filter(resq_mock, slug="some-slug")
         self.assertIsInstance(data, list)
         self.assertEqual(data[0], 12345)

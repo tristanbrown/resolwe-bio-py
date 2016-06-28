@@ -11,12 +11,17 @@ Unreleased
 
 Added
 -----
+* Support logging
 * Add process resource
 * Docs: Getting started and writing pipelines
+* Add unit tests for almost all modules of the package
+* Support ``list:basic:file:`` field
+* Support managing Samples on presample endpoint
 
 Changed
 -------
 * Track test coverage with Codecov
+* Modify scripts.py to work with added features
 
 
 ==================

@@ -30,7 +30,7 @@ class TestResolwe(unittest.TestCase):
         self.assertEqual(resauth_mock.call_count, 1)
         self.assertEqual(slumber_mock.API.call_count, 1)
         # There are four instances of ResolweQuerry in init: data, process, sample and collection:
-        self.assertEqual(resolwe_querry_mock.call_count, 4)
+        self.assertEqual(resolwe_querry_mock.call_count, 5)
         self.assertEqual(log_mock.getLogger.call_count, 1)
 
 
@@ -92,7 +92,7 @@ class TestRegister(unittest.TestCase):
 
     def test_update_existing_process(self):
         """If process with given slug already exists, process.filter will return list with exactly one element."""
-        self.resolwe_mock.process.filter.return_value = [{'version': 16777228}]
+        self.resolwe_mock.process.filter.return_value = [MagicMock(version=16777228)]
 
         # local process version > server process version
         Resolwe._register(self.resolwe_mock, self.yaml_file, "alignment-bowtie")
@@ -103,7 +103,7 @@ class TestRegister(unittest.TestCase):
         self.resolwe_mock.reset_mock()
 
         # local process version = server process version
-        self.resolwe_mock.process.filter.return_value = [{'version': 16777229}]
+        self.resolwe_mock.process.filter.return_value = [MagicMock(version=16777229)]
         Resolwe._register(self.resolwe_mock, self.yaml_file, "alignment-bowtie")
         self.assertEqual(self.resolwe_mock.api.process.post.call_count, 1)
         # Confirm version was NOT raised (_version_int_to_string NOT called)
