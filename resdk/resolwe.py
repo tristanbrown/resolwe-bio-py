@@ -193,6 +193,8 @@ class Resolwe(object):
 
         self.logger.info("SCP: %s", TOOLS_REMOTE_HOST)
         for tool in tools:
+            if not os.path.isfile(tool):
+                raise ValueError("Tools file not found: '{}'.".format(tool))
             # Define subprocess, but not yet run it. Also:
             # (1) redirect stderr to stdout
             # (2) enable to retrieve stdout of the subprocess in here
@@ -205,7 +207,7 @@ class Resolwe(object):
             stdout, _ = sub_process.communicate()
             self.logger.info(stdout)
             if sub_process.returncode == 1:
-                raise ValueError("Tools file not found: '{}'.".format(tool))
+                raise ValueError("Something wrong while SCP for tool: '{}'.".format(tool))
             if sub_process.returncode > 1:
                 self.logger.warning("STATUS: %s", sub_process.returncode)
 
@@ -380,7 +382,7 @@ class Resolwe(object):
 
         return response.json()['files'][0]['temp']
 
-    def download_files(self, files, download_dir=None):  # pylint: disable=redefined-builtin
+    def _download_files(self, files, download_dir=None):  # pylint: disable=redefined-builtin
         """Download files.
 
         Download files from the Resolwe server to the download

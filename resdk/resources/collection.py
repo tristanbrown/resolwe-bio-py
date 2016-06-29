@@ -107,7 +107,7 @@ class BaseCollection(BaseResource):
             files.extend(zip(data_files, [id_] * len(data_files)))
 
         files = ['{}/{}'.format(id_, file_) for file_, id_ in files]
-        self.resolwe.download_files(files, download_dir)
+        self.resolwe._download_files(files, download_dir)  # pylint: disable=protected-access
 
     def print_annotation(self):
         """Provide annotation data."""

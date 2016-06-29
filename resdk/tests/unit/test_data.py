@@ -77,11 +77,12 @@ class TestData(unittest.TestCase):
         data_mock.configure_mock(**{'files.return_value': ['file1.txt', 'file2.fq.gz']})
 
         Data.download(data_mock)
-        data_mock.resolwe.download_files.assert_called_once_with([u'123/file1.txt', u'123/file2.fq.gz'], None)
+        data_mock.resolwe._download_files.assert_called_once_with([u'123/file1.txt', u'123/file2.fq.gz'], None)
 
         data_mock.reset_mock()
         Data.download(data_mock, download_dir="/some/path/")
-        data_mock.resolwe.download_files.assert_called_once_with([u'123/file1.txt', u'123/file2.fq.gz'], '/some/path/')
+        data_mock.resolwe._download_files.assert_called_once_with(
+            [u'123/file1.txt', u'123/file2.fq.gz'], '/some/path/')
 
     @patch('resdk.resources.data.Data', spec=True)
     def test_print_annotation(self, data_mock):
@@ -97,7 +98,7 @@ class TestData(unittest.TestCase):
         urljoin_mock.return_value = "some_url"
 
         # If response.ok = True:
-        response = MagicMock(ok=True, **{'iter_content.return_value': ["abc", "def"]})
+        response = MagicMock(ok=True, **{'iter_content.return_value': [b"abc", b"def"]})
         requests_mock.configure_mock(**{'get.return_value': response})
 
         out = Data.stdout(data_mock)

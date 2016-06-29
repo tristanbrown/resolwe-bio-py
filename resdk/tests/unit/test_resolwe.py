@@ -156,6 +156,15 @@ class TestUploadTools(unittest.TestCase):
         with six.assertRaisesRegex(self, ValueError, message):
             Resolwe._upload_tools(self.resolwe_mock, self.tools)
 
+    @patch('resdk.resolwe.os')
+    def test_tools_file_not_found(self, os_mock):
+        resolwe.TOOLS_REMOTE_HOST = 'something'
+        os_mock.configure_mock(**{'path.isfile.return_value': False})
+
+        message = r"Tools file not found: .*"
+        with six.assertRaisesRegex(self, ValueError, message):
+            Resolwe._upload_tools(self.resolwe_mock, self.tools)
+
     @patch('resdk.resolwe.subprocess')
     def test_logger_calls(self, subprocess_mock):
         fake_subprocess = MagicMock(returncode=0, **{'communicate.return_value': ['Standard output...', ' ']})
@@ -173,7 +182,7 @@ class TestUploadTools(unittest.TestCase):
 
         subprocess_mock.Popen = MagicMock(return_value=fake_subprocess)
 
-        message = r"Tools file not found: .*"
+        message = r"Something wrong while SCP for tool: .*"
         with six.assertRaisesRegex(self, ValueError, message):
             Resolwe._upload_tools(self.resolwe_mock, self.tools)
 
@@ -374,7 +383,7 @@ class TestDownload(unittest.TestCase):
 
         message = "Download directory does not exist: .*"
         with six.assertRaisesRegex(self, ValueError, message):
-            Resolwe.download_files(resolwe_mock, self.file_list)
+            Resolwe._download_files(resolwe_mock, self.file_list)
 
     @patch('resdk.resolwe.os')
     @patch('resdk.resolwe.Resolwe', spec=True)
@@ -382,7 +391,7 @@ class TestDownload(unittest.TestCase):
         resolwe_mock.configure_mock(**self.config)
         os_mock.path.isfile.return_value = True
 
-        Resolwe.download_files(resolwe_mock, [])
+        Resolwe._download_files(resolwe_mock, [])
 
         resolwe_mock.logger.info.assert_called_once_with("No files to download.")
 
@@ -399,7 +408,7 @@ class TestDownload(unittest.TestCase):
         requests_mock.get.return_value = MagicMock(ok=False, **response)
 
         with six.assertRaisesRegex(self, Exception, "abc"):
-            Resolwe.download_files(resolwe_mock, self.file_list[:1])
+            Resolwe._download_files(resolwe_mock, self.file_list[:1])
         self.assertEqual(resolwe_mock.logger.info.call_count, 2)
 
     @patch('resdk.resolwe.open')
@@ -415,7 +424,7 @@ class TestDownload(unittest.TestCase):
 
         requests_mock.get.return_value = MagicMock(ok=True, **{'iter_content.return_value': range(3)})
 
-        Resolwe.download_files(resolwe_mock, self.file_list)
+        Resolwe._download_files(resolwe_mock, self.file_list)
         self.assertEqual(resolwe_mock.logger.info.call_count, 3)
 
         # This asserts may seem wierd. To check what is happening behind the scenes:

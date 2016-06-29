@@ -60,13 +60,13 @@ class TestBaseCollectionDownload(unittest.TestCase):
 
         BaseCollection.download(collection_mock, file_type='output.exp')
         flist = [u'2/outfile.exp']
-        collection_mock.resolwe.download_files.assert_called_once_with(flist, None)
+        collection_mock.resolwe._download_files.assert_called_once_with(flist, None)
 
         # Check if ok to also provide ``output_field`` that does not start with 'output'
         flist = [u'1/reads.fq', u'1/arch.gz']
         collection_mock.reset_mock()
         BaseCollection.download(collection_mock, file_type='fastq')
-        collection_mock.resolwe.download_files.assert_called_once_with(flist, None)
+        collection_mock.resolwe._download_files.assert_called_once_with(flist, None)
 
     @patch('resdk.resources.collection.Data')
     @patch('resdk.resources.collection.BaseCollection', spec=True)

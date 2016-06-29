@@ -194,7 +194,7 @@ class Data(BaseResource):
             raise ValueError("Only one of file_name or field_name may be given.")
 
         files = ['{}/{}'.format(self.id, fname) for fname in self.files(file_name, field_name)]
-        self.resolwe.download_files(files, download_dir)
+        self.resolwe._download_files(files, download_dir)  # pylint: disable=protected-access
 
     def print_annotation(self):
         """Provide annotation data."""
@@ -210,7 +210,7 @@ class Data(BaseResource):
         :rtype: string
 
         """
-        output = ''
+        output = b''
         url = urljoin(self.resolwe.url, 'data/{}/stdout.txt'.format(self.id))
         response = requests.get(url, stream=True, auth=self.resolwe.auth)
         if not response.ok:
@@ -219,4 +219,4 @@ class Data(BaseResource):
             for chunk in response.iter_content():
                 output += chunk
 
-        return output
+        return output.decode("utf-8")
