@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import six
 
-from .base import BaseResource, DOWNLOAD_TYPES
+from .base import BaseResource
 from .data import Data
 
 
@@ -66,7 +66,7 @@ class BaseCollection(BaseResource):
 
         return file_list
 
-    def download(self, file_name=None, data_type=None, download_dir=None):
+    def download(self, file_name=None, file_type=None, download_dir=None):
         """Download output files of associated Data objects.
 
         Download files from the Resolwe server to the download
@@ -75,7 +75,7 @@ class BaseCollection(BaseResource):
         :param file_name: name of file
         :type file_name: string
         :param file_type: data object type
-        :type file_type: tuple or string
+        :type file_type: string
         :param download_dir: download path
         :type download_dir: string
         :rtype: None
@@ -88,32 +88,22 @@ class BaseCollection(BaseResource):
         * re.collection.get(42).download(data_type='bam')
 
         """
-        output_field = None
         files = []
 
-        if data_type:
-            if isinstance(data_type, six.string_types) and data_type in DOWNLOAD_TYPES.keys():
-                # type is a shortcut (string)
-                data_type, output_field = DOWNLOAD_TYPES[data_type]
-            elif isinstance(data_type, tuple) and len(data_type) == 2:
-                data_type, output_field = data_type
-            else:
-                raise ValueError("Invalid argument value data_type.")
+        if file_type and not isinstance(file_type, six.string_types):
+            raise ValueError("Invalid argument value `file_type`.")
 
         for id_ in self.data:
             data = Data(id=id_, resolwe=self.resolwe)
 
-            if data_type and data_type not in data.process_type:
-                continue
-
-            def format_output_field(ofield):
-                """Ensure that output_field starts with output"""
+            def format_file_type(ofield):
+                """Ensure that `ofield` starts with `output`"""
                 if ofield is not None and not ofield.startswith('output'):
                     return '.'.join(['output'] + ofield.split('.'))
                 else:
                     return ofield
 
-            data_files = data.files(file_name, format_output_field(output_field))
+            data_files = data.files(file_name, format_file_type(file_type))
             files.extend(zip(data_files, [id_] * len(data_files)))
 
         files = ['{}/{}'.format(id_, file_) for file_, id_ in files]
