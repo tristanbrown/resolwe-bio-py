@@ -213,7 +213,7 @@ def sequp():
     # Upload all files in all_new_read_files_uploaded with annotations
     uploaded_files = []
 
-    for sample_n in annotations.keys():
+    for sample_n in annotations:
         input_ = {}
         fw_reads = annotations[sample_n]['FASTQ_PATH'].split(',')
 
@@ -235,7 +235,7 @@ def sequp():
                 rw_reads = annotations[sample_n]['FASTQ_PATH_PAIR'].split(',')
                 slug = 'upload-fastq-paired'
                 input_['src1'] = fw_reads
-                input_['src2'] = [os.path.normpath((os.path.join(genialis_seq_dir, f)) for f in rw_reads]
+                input_['src2'] = [os.path.normpath(os.path.join(genialis_seq_dir, f)) for f in rw_reads]
                 fn = input_['src1'] + input_['src2']
 
             # Single-end reads
