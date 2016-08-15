@@ -256,18 +256,18 @@ def sequp():
 
                 presample = resolwe.presample.filter(data=data.id)[0]
 
-                if 'geo' not in presample['descriptor']:
-                    presample['descriptor']['geo'] = {}
+                if 'geo' not in presample.descriptor:
+                    presample.descriptor['geo'] = {}
 
                 organism = ORGANISMS.get(annotations[sample_n]['ORGANISM'].upper(), '')
                 if organism:
-                    presample['descriptor']['geo']['organism'] = organism
+                    presample.descriptor['geo']['organism'] = organism
 
                 experiment_type = EXPERIMENT_TYPE.get(annotations[sample_n]['SEQ_TYPE'].upper(), '')
                 if experiment_type:
-                    presample['descriptor']['geo']['experiment_type'] = experiment_type
+                    presample.descriptor['geo']['experiment_type'] = experiment_type
 
-                presample.update_descriptor(presample['descriptor'])
+                presample.update_descriptor(presample.descriptor)
 
             else:
                 print("Error uploading {}".format(sample_n), file=sys.stderr)
