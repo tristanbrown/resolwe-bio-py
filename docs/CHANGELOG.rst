@@ -4,6 +4,16 @@ Change Log
 
 All notable changes to this project are documented in this file.
 
+
+==================
+1.3.6 - 2016-08-15
+==================
+
+Fixed
+-----
+* Fix descriptor in the sequp script
+
+
 ==================
 1.3.5 - 2016-08-04
 ==================
