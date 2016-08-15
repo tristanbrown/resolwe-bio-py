@@ -73,8 +73,7 @@ setup(
     entry_points={
         'console_scripts': [
             'resolwe-sequp = resdk.scripts:sequp',
-            'resolwe-upload-reads = resdk.scripts:readsup',
-            'resolwe-upload-reads-batch = resdk.scripts:readsup_batch',
+            'resolwe-upload-reads = resdk.scripts:upload_reads',
         ],
     },
 

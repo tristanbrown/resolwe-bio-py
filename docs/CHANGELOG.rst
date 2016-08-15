@@ -13,6 +13,15 @@ Added
 -----
 * Check PEP 8 and PEP 257
 
+Changed
+-------
+* Remove resolwe-upload-reads-batch script
+* Add option to enable logger (verbose reporting) in scripts
+
+Fixed
+-----
+* Fix resolwe-upload-reads script
+
 
 ==================
 1.3.6 - 2016-08-15
@@ -74,19 +83,27 @@ Fixed
 1.3.1 - 2016-05-16
 ==================
 
+Added
+-----
+* Writing processes docs
+
 Changed
 -------
 * Rename ``upload`` method to ``run`` and refactor to run any process
 * Move ``downlad`` method from ``resolwe.py`` to ``resource/base.py``
 
-Added
------
-* Writing processes docs
-
 
 ==================
 1.3.0 - 2016-05-10
 ==================
+
+Added
+-----
+* Endpoints ``data``, ``sample`` and ``collections`` in ``Resolwe`` class
+* ``ResolweQuerry`` class with ``get`` and ``filter`` methods
+* ``Sample`` class with ``files`` and ``download`` methods
+* Tox configuration for running tests
+* Travis configuration for automated testing
 
 Changed
 -------
@@ -102,14 +119,6 @@ Fixed
 * ``Sequp`` for paired-end data
 * Pylint & PEP8 formatting
 * Packaging - add missing files and packages
-
-Added
------
-* Endpoints ``data``, ``sample`` and ``collections`` in ``Resolwe`` class
-* ``ResolweQuerry`` class with ``get`` and ``filter`` methods
-* ``Sample`` class with ``files`` and ``download`` methods
-* Tox configuration for running tests
-* Travis configuration for automated testing
 
 
 ==================
@@ -136,6 +145,10 @@ Changed
 1.1.1 - 2015-04-27
 ==================
 
+Added
+-----
+* Query data directly.
+
 Changed
 -------
 * Query projects by slug or ID.
@@ -144,10 +157,6 @@ Fixed
 -----
 * Renamed genapi module in README.
 * Renamed some methods for fetching resources.
-
-Added
------
-* Query data directly.
 
 
 ==================
@@ -174,27 +183,27 @@ Fixed
 1.0.2 - 2015-04-22
 ==================
 
-Changed
--------
-* Docs updated to work for recent changes.
-
 Added
 -----
 * Universal flag set in setup.cfg.
+
+Changed
+-------
+* Docs updated to work for recent changes.
 
 
 ==================
 1.0.1 - 2015-04-21
 ==================
 
+Added
+-----
+* Added label field to annotation.
+
 Fixed
 -----
 * URL set to dictyexpress.research.bcm.edu by default.
 * Id and name attribute are set on init.
-
-Added
------
-* Added label field to annotation.
 
 
 ==================

@@ -11,6 +11,7 @@ import time
 import appdirs
 
 from . import __about__ as about
+from . import resdk_logger
 from . import Resolwe
 
 
@@ -78,8 +79,12 @@ def sequp():
     parser.add_argument('-p', '--password', help='User password')
     parser.add_argument('-d', '--directory', help='Observed directory with reads')
     parser.add_argument('-f', '--force', action='store_true', help='Force upload of all files')
+    parser.add_argument('-v', '--verbose', action='store_true', help='Enable verbose reporting')
 
     args = parser.parse_args()
+
+    if args.verbose:
+        resdk_logger.start_logging()
 
     genialis_url = args.address or os.getenv('GENIALIS_URL') or 'http://localhost:8000'
     genialis_email = args.email or os.getenv('GENIALIS_EMAIL') or 'admin'
@@ -279,56 +284,48 @@ def sequp():
         set_timestamp(sorted(modif_times)[-1])
 
 
-def readsup():
+def upload_reads():
     """Upload NGS reads to the Resolwe server."""
-    parser = argparse.ArgumentParser(description='Upload NGS reads to the Resolwe server.')
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
+                description='Upload single-end or paired-end NGS reads to the Resolwe server.\n '
+                '\n'
+                'USAGE EXAMPLES:\n'
+                '\n'
+                'UPLOAD A SINGLE-END FASTQ FILE:\n'
+                'resolwe-upload-reads -r sample1.fastq.gz\n'
+                '\n'
+                'UPLOAD A SET OF MULTI-LANE FASTQ FILES:\n'
+                'resolwe-upload-reads -r sample1_lane1.fastq.gz sample1_lane2.fastq.gz\n'
+                '\n'
+                'UPLOAD A PAIR OF PAIRED-END READS FILES:\n'
+                'resolwe-upload-reads -r1 sample1_mate1.fastq.gz -r2 sample1_mate2.fastq.gz\n'
+                '\n'
+                'UPLOAD ALL SINGLE-END READS IN A WORKING DIRECTORY:\n'
+                'for reads_file in *.fastq.gz\n'
+                'do\n'
+                '   resolwe-upload-reads -r ${reads_file}\n'
+                'done\n')
 
-    parser.add_argument('collection', help='Collection ID')
-    parser.add_argument('-a', '--address', default='http://cloud.genialis.com',
-                        help='Resolwe server address')
-    parser.add_argument('-e', '--email', default='anonymous@genialis.com', help='User e-mail')
-    parser.add_argument('-p', '--password', default='anonymous', help='User password')
-    parser.add_argument('-r', metavar='READS', help='NGS fastq file')
-    parser.add_argument('-r1', metavar='READS-1', help='NGS fastq file (mate 1)')
-    parser.add_argument('-r2', metavar='READS-2', help='NGS fastq file (mate 2)')
+    parser.add_argument('-a', '--address', default='https://torta.bcm.genialis.com', help='Resolwe server address')
+    parser.add_argument('-e', '--email', default='admin', help='User name')
+    parser.add_argument('-p', '--password', default='admin', help='User password')
+    parser.add_argument('-c', '--collection', nargs='*', type=int, help='Collection ID(s)')
+    parser.add_argument('-v', '--verbose', action='store_true', help='Enable verbose reporting')
+    parser.add_argument('-r', metavar='READS-LANE-X', nargs='*',
+                        help='Single-end reads (<read1_lane1 read1_lane2, ..>)')
+    parser.add_argument('-r1', metavar='MATE-1-LANE-X', nargs='*',
+                        help='Paired-end reads mate1 (<mate1_lane1 mate1_lane2, ..>)')
+    parser.add_argument('-r2', metavar='MATE-2-LANE-X', nargs='*',
+                        help='Paired-end reads mate2 (<mate1_lane1 mate1_lane2, ..>)')
 
     args = parser.parse_args()
+
+    if args.verbose:
+        resdk_logger.start_logging()
 
     if not (args.r or (args.r1 and args.r2)) or (args.r and (args.r1 or args.r2)):
         parser.print_help()
         print("\nERROR: define either -r or -r1 and -r2.\n")
-        exit(1)
-
-    resolwe = Resolwe(args.email, args.password, args.address)
-    cols = [args.collection]
-
-    if args.r:
-        resolwe.run('upload-fastq-single', {'src': [args.r]}, collections=cols)
-    else:
-        resolwe.run('upload-fastq-paired', {'src1': [args.r1],
-                                            'src2': [args.r2]}, collections=cols)
-
-
-def readsup_batch():
-    """Upload a batch NGS reads to the Resolwe server."""
-    parser = argparse.ArgumentParser(description='Upload a batch NGS reads to the Resolwe server.')
-
-    parser.add_argument('collection', help='Collection ID')
-    parser.add_argument('-a', '--address', default='http://cloud.genialis.com',
-                        help='Resolwe server address')
-    parser.add_argument('-e', '--email', default='anonymous@genialis.com', help='User e-mail')
-    parser.add_argument('-p', '--password', default='anonymous', help='User password')
-    parser.add_argument('-r', metavar='READS', nargs='*', help='List of NGS fastq files')
-    parser.add_argument('-r1', metavar='READS-1', nargs='*',
-                        help='List of NGS fastq files (mate 1)')
-    parser.add_argument('-r2', metavar='READS-2', nargs='*',
-                        help='List of NGS fastq files (mate 2)')
-
-    args = parser.parse_args()
-
-    if not (args.r or (args.r1 and args.r2)) or (args.r and (args.r1 or args.r2)):
-        parser.print_help()
-        print("\nERROR: define either -r or -r1 and -r2\n")
         exit(1)
 
     if not args.r and len(args.r1) != len(args.r2):
@@ -339,9 +336,14 @@ def readsup_batch():
     resolwe = Resolwe(args.email, args.password, args.address)
 
     if args.r:
-        for read_file in args.r:
-            resolwe.run('upload-fastq-single', {'src': [read_file]}, collections=[args.collection])
+        if all(os.path.isfile(file) for file in args.r):
+            resolwe.run('upload-fastq-single', {'src': args.r}, collections=args.collection)
+        else:
+            print("\nERROR: Incorrect file path(s).\n")
+            exit(1)
     else:
-        for read_file1, read_file2 in zip(args.r1, args.r2):
-            resolwe.run('upload-fastq-paired', {'src1': [read_file1], 'src2': [read_file2]},
-                        collections=[args.collection])
+        if all(os.path.isfile(file) for file in args.r1) and all(os.path.isfile(file) for file in args.r2):
+            resolwe.run('upload-fastq-paired', {'src1': args.r1, 'src2': args.r2}, collections=cols)
+        else:
+            print("\nERROR: Incorrect file path(s).\n")
+            exit(1)
