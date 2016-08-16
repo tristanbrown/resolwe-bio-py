@@ -12,6 +12,7 @@ Unreleased
 Added
 -----
 * Check PEP 8 and PEP 257
+* Support delete() method
 
 Changed
 -------

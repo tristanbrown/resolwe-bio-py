@@ -101,6 +101,10 @@ class BaseResource(object):
         """Update resource fields from the server."""
         self._update_fields(self.api(self.id).get())
 
+    def delete(self):
+        """Delete the resource object from the server."""
+        self.api(self.id).delete()
+
     def __repr__(self):
         """Format resource name."""
         return "{} <id: {}, slug: '{}', name: '{}'>".format(self.__class__.__name__,

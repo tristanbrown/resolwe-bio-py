@@ -286,27 +286,28 @@ def sequp():
 
 def upload_reads():
     """Upload NGS reads to the Resolwe server."""
-    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
-                description='Upload single-end or paired-end NGS reads to the Resolwe server.\n '
-                '\n'
-                'USAGE EXAMPLES:\n'
-                '\n'
-                'UPLOAD A SINGLE-END FASTQ FILE:\n'
-                'resolwe-upload-reads -r sample1.fastq.gz\n'
-                '\n'
-                'UPLOAD A SET OF MULTI-LANE FASTQ FILES:\n'
-                'resolwe-upload-reads -r sample1_lane1.fastq.gz sample1_lane2.fastq.gz\n'
-                '\n'
-                'UPLOAD A PAIR OF PAIRED-END READS FILES:\n'
-                'resolwe-upload-reads -r1 sample1_mate1.fastq.gz -r2 sample1_mate2.fastq.gz\n'
-                '\n'
-                'UPLOAD ALL SINGLE-END READS IN A WORKING DIRECTORY:\n'
-                'for reads_file in *.fastq.gz\n'
-                'do\n'
-                '   resolwe-upload-reads -r ${reads_file}\n'
-                'done\n')
+    description = """Upload single-end or paired-end NGS reads to the Resolwe server.
 
-    parser.add_argument('-a', '--address', default='https://torta.bcm.genialis.com', help='Resolwe server address')
+UPLOAD A SINGLE-END FASTQ FILE:
+resolwe-upload-reads -r sample1.fastq.gz
+
+UPLOAD A SET OF MULTI-LANE FASTQ FILES:
+resolwe-upload-reads -r sample1_lane1.fastq.gz sample1_lane2.fastq.gz
+
+UPLOAD A PAIR OF PAIRED-END READS FILES:
+resolwe-upload-reads -r1 sample1_mate1.fastq.gz -r2 sample1_mate2.fastq.gz
+
+UPLOAD ALL SINGLE-END READS IN A WORKING DIRECTORY:
+for reads_file in *.fastq.gz
+do
+   resolwe-upload-reads -r ${reads_file}
+done
+"""
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
+                                     description=description)
+
+    parser.add_argument('-a', '--address', default='https://torta.bcm.genialis.com',
+                        help='Resolwe server address')
     parser.add_argument('-e', '--email', default='admin', help='User name')
     parser.add_argument('-p', '--password', default='admin', help='User password')
     parser.add_argument('-c', '--collection', nargs='*', type=int, help='Collection ID(s)')
@@ -342,8 +343,10 @@ def upload_reads():
             print("\nERROR: Incorrect file path(s).\n")
             exit(1)
     else:
-        if all(os.path.isfile(file) for file in args.r1) and all(os.path.isfile(file) for file in args.r2):
-            resolwe.run('upload-fastq-paired', {'src1': args.r1, 'src2': args.r2}, collections=cols)
+        if (all(os.path.isfile(file) for file in args.r1) and
+                all(os.path.isfile(file) for file in args.r2)):
+            resolwe.run('upload-fastq-paired', {'src1': args.r1, 'src2': args.r2},
+                        collections=args.collection)
         else:
             print("\nERROR: Incorrect file path(s).\n")
             exit(1)
