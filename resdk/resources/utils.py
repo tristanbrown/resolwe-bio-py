@@ -1,4 +1,4 @@
-"""Resource utility functions"""
+"""Resource utility functions."""
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 
@@ -9,12 +9,13 @@ def iterate_fields(fields, schema):
     :type fields: dict
     :param schema: Schema instance (e.g. input_schema)
     :type schema: dict
+
     """
     schema_dict = {val['name']: val for val in schema}
     for field_id, properties in fields.items():
         if 'group' in schema_dict[field_id]:
-            for _field_schema, _fields in iterate_fields(properties, schema_dict[field_id]['group']):
-                yield (_field_schema, _fields)
+            for _field_sch, _fields in iterate_fields(properties, schema_dict[field_id]['group']):
+                yield (_field_sch, _fields)
         else:
             yield (schema_dict[field_id], fields)
 
@@ -64,7 +65,7 @@ def fill_spaces(word, desired_length):
 
 
 def _print_input_line(element_list, level):
-    """ Pretty print of input_schema."""
+    """Pretty print of input_schema."""
     spacing = 2
 
     for element in element_list:
@@ -73,7 +74,8 @@ def _print_input_line(element_list, level):
             _print_input_line(element['group'], level + 1)
         else:
             max_name_len = max([len(elm['name']) for elm in element_list])
-            max_type_len = max([len(elm['type']) or 0 for elm in [e for e in element_list if 'group' not in e]])
+            max_type_len = max([len(elm['type']) or 0 for elm in [e for e in element_list if
+                                                                  'group' not in e]])
             print("{}- {} {} - {}".format(
                 '    ' * level,
                 fill_spaces(element['name'], max_name_len + spacing),
@@ -82,13 +84,13 @@ def _print_input_line(element_list, level):
 
 
 def endswith_colon(schema, field):
-    """
-    Ensure the field ends with colon.
+    """Ensure the field ends with colon.
 
     :param schema: Register process from source YAML file
     :type schema: dict
     :param field: field name
     :type field: str
+
     """
     if field in schema and not schema[field].endswith(':'):
         schema[field] += ':'

@@ -1,4 +1,4 @@
-"""Process"""
+"""Process resource."""
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from .utils import _print_input_line
@@ -6,7 +6,6 @@ from .base import BaseResource
 
 
 class Process(BaseResource):
-
     """Resolwe Process resource.
 
     One and only one of the identifiers (slug, id or model_data)
@@ -27,7 +26,7 @@ class Process(BaseResource):
 
     def __init__(self, slug=None, id=None,  # pylint: disable=redefined-builtin
                  model_data=None, resolwe=None):
-
+        """Initialize attributes."""
         self.data_name = None
         """
         the default name of data object using this process. When data object
@@ -42,8 +41,8 @@ class Process(BaseResource):
         #: the type of process ``"type:sub_type:sub_sub_type:..."``
         self.type = None
 
-        #: Current options: "sample"/None. If sample, new "sample" will be created (if not already existing) and
-        #: annotated with provided descriptor.
+        #: Current options: "sample"/None. If sample, new "sample" will be created
+        #: (if not already existing) and annotated with provided descriptor.
         self.flow_collection = None
 
         #: used to group processes in a GUI. Examples: ``upload:``, ``analyses:variants:``, ...

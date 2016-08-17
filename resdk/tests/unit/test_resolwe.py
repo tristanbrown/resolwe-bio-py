@@ -18,6 +18,9 @@ from resdk.resolwe import Resolwe, ResAuth
 from resdk import resolwe
 
 
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+
+
 class TestResolwe(unittest.TestCase):
 
     @patch('resdk.resolwe.logging')
@@ -47,7 +50,7 @@ class TestVersionConverters(unittest.TestCase):
         self.assertEqual(version, 201424896)
 
         # Fail if version has 4 or more "decimal places":
-        message = r"Versions with more than \d+ decimal places are not supported."
+        message = 'Version should have at most 2 decimal places.'
         with six.assertRaisesRegex(self, NotImplementedError, message):
             Resolwe._version_string_to_int(resolwe_mock, "1.2.3.4")
 
@@ -68,8 +71,8 @@ class TestRegister(unittest.TestCase):
 
     @patch('resdk.resolwe.Resolwe', spec=True)
     def setUp(self, resolwe_mock):  # pylint: disable=arguments-differ
-        self.yaml_file = os.path.normpath(os.path.dirname(__file__) + "./../files/bowtie.yaml")
-        self.bad_yaml_file = os.path.normpath(os.path.dirname(__file__) + "./../files/bowtie_bad.yaml")
+        self.yaml_file = os.path.join(BASE_DIR, 'files', 'bowtie.yaml')
+        self.bad_yaml_file = os.path.join(BASE_DIR, 'files', 'bowtie_bad.yaml')
         self.resolwe_mock = resolwe_mock
         self.resolwe_mock._version_string_to_int = MagicMock(return_value=16777229)
         self.resolwe_mock.api = MagicMock()
@@ -91,7 +94,7 @@ class TestRegister(unittest.TestCase):
             Resolwe._register(self.resolwe_mock, self.yaml_file, "bad-slug")
 
     def test_update_existing_process(self):
-        """If process with given slug already exists, process.filter will return list with exactly one element."""
+        """If process exists, process.filter returns list with exactly one element."""
         self.resolwe_mock.process.filter.return_value = [MagicMock(version=16777228)]
 
         # local process version > server process version
@@ -147,7 +150,7 @@ class TestUploadTools(unittest.TestCase):
     def setUp(self, resolwe_mock):  # pylint: disable=arguments-differ
         self.resolwe_mock = resolwe_mock
         self.resolwe_mock.logger = MagicMock()
-        self.tools = [os.path.normpath(os.path.dirname(__file__) + "./../files/tool1.py")]
+        self.tools = [os.path.join(BASE_DIR, 'files', 'tool1.py')]
         resolwe.TOOLS_REMOTE_HOST = "not_none"
 
     def test_remote_host_not_set(self):
@@ -167,7 +170,8 @@ class TestUploadTools(unittest.TestCase):
 
     @patch('resdk.resolwe.subprocess')
     def test_logger_calls(self, subprocess_mock):
-        fake_subprocess = MagicMock(returncode=0, **{'communicate.return_value': ['Standard output...', ' ']})
+        fake_subprocess = MagicMock(returncode=0,
+                                    **{'communicate.return_value': ['Standard output...', ' ']})
         subprocess_mock.Popen = MagicMock(return_value=fake_subprocess)
 
         Resolwe._upload_tools(self.resolwe_mock, self.tools)
@@ -178,7 +182,8 @@ class TestUploadTools(unittest.TestCase):
 
     @patch('resdk.resolwe.subprocess')
     def test_raise_if_returncode_1(self, subprocess_mock):
-        fake_subprocess = MagicMock(returncode=1, **{'communicate.return_value': ['Standard output...', 'b']})
+        fake_subprocess = MagicMock(returncode=1,
+                                    **{'communicate.return_value': ['Standard output...', 'b']})
 
         subprocess_mock.Popen = MagicMock(return_value=fake_subprocess)
 
@@ -188,7 +193,8 @@ class TestUploadTools(unittest.TestCase):
 
     @patch('resdk.resolwe.subprocess')
     def test_log_if_returncode_gt1(self, subprocess_mock):
-        fake_subprocess = MagicMock(returncode=2, **{'communicate.return_value': ['Standard output...', 'b']})
+        fake_subprocess = MagicMock(returncode=2,
+                                    **{'communicate.return_value': ['Standard output...', 'b']})
         subprocess_mock.Popen = MagicMock(return_value=fake_subprocess)
 
         Resolwe._upload_tools(self.resolwe_mock, self.tools)
@@ -288,7 +294,8 @@ class TestRun(unittest.TestCase):
     @patch('resdk.resolwe.Resolwe', spec=True)
     def test_file_processing(self, resolwe_mock, data_mock):
 
-        resolwe_mock.api = MagicMock(**{'process.get.return_value': self.process_json, 'data.post.return_value': {}})
+        resolwe_mock.api = MagicMock(**{'process.get.return_value': self.process_json,
+                                        'data.post.return_value': {}})
         resolwe_mock._process_file_field = MagicMock(side_effect=[
             {'file': 'file_name1', 'file_temp': 'temp_file1'},
             {'file': 'file_name2', 'file_temp': 'temp_file2'},
@@ -326,7 +333,7 @@ class TestRun(unittest.TestCase):
 class TestUploadFile(unittest.TestCase):
 
     def setUp(self):
-        self.fn = os.path.normpath(os.path.dirname(__file__) + "./../files/example.fastq")
+        self.file_path = os.path.join(BASE_DIR, 'files', 'example.fastq')
         self.config = {'url': 'http://some/url', 'auth': MagicMock(), 'logger': MagicMock()}
 
     @patch('resdk.resolwe.requests')
@@ -335,9 +342,10 @@ class TestUploadFile(unittest.TestCase):
         resolwe_mock.configure_mock(**self.config)
         # Immitate response form server - always status 200:
         requests_response = {'files': [{'temp': 'fake_name'}]}
-        requests_mock.post.return_value = MagicMock(status_code=200, **{'json.return_value': requests_response})
+        requests_mock.post.return_value = MagicMock(status_code=200,
+                                                    **{'json.return_value': requests_response})
 
-        response = Resolwe._upload_file(resolwe_mock, self.fn)
+        response = Resolwe._upload_file(resolwe_mock, self.file_path)
 
         self.assertEqual(response, 'fake_name')
 
@@ -348,7 +356,7 @@ class TestUploadFile(unittest.TestCase):
         # Immitate response form server - always status 400
         requests_mock.post.return_value = MagicMock(status_code=400)
 
-        response = Resolwe._upload_file(resolwe_mock, self.fn)
+        response = Resolwe._upload_file(resolwe_mock, self.file_path)
 
         self.assertIsNone(response)
         self.assertEqual(resolwe_mock.logger.warning.call_count, 4)
@@ -363,7 +371,7 @@ class TestUploadFile(unittest.TestCase):
         # Immitate response form server - one status 400, but other 200:
         requests_mock.post.side_effect = [response_fails, response_ok, response_ok]
 
-        response = Resolwe._upload_file(resolwe_mock, self.fn)
+        response = Resolwe._upload_file(resolwe_mock, self.file_path)
 
         self.assertEqual(response, 'fake_name')
         self.assertEqual(resolwe_mock.logger.warning.call_count, 1)
@@ -422,7 +430,8 @@ class TestDownload(unittest.TestCase):
         # When mocking open one wants it to return a "file-like" mock: (spec=io.IOBase)
         mock_open.return_value = MagicMock(spec=io.IOBase)
 
-        requests_mock.get.return_value = MagicMock(ok=True, **{'iter_content.return_value': range(3)})
+        requests_mock.get.return_value = MagicMock(ok=True,
+                                                   **{'iter_content.return_value': range(3)})
 
         Resolwe._download_files(resolwe_mock, self.file_list)
         self.assertEqual(resolwe_mock.logger.info.call_count, 3)
@@ -430,7 +439,7 @@ class TestDownload(unittest.TestCase):
         # This asserts may seem wierd. To check what is happening behind the scenes:
         # print(open_mock.mock_calls)
         self.assertEqual(open_mock.return_value.__enter__.return_value.write.call_count, 6)
-        # Why 6? 2 files in self.file_list, each takes 3 chunks to download (defined in response mock)
+        # Why 6? 2 files in self.file_list, each downloads 3 chunks (defined in response mock)
 
 
 class TestResAuth(unittest.TestCase):
@@ -443,7 +452,8 @@ class TestResAuth(unittest.TestCase):
     def test_bad_url(self, requests_mock):
         requests_mock.post = MagicMock(side_effect=[requests.exceptions.ConnectionError()])
 
-        with six.assertRaisesRegex(self, ValueError, r"Server not accessible on .*. Wrong url?"):
+        with six.assertRaisesRegex(self, ValueError,
+                                   'Server not accessible on www.abc.com. Wrong url?'):
             ResAuth.__init__(self.auth_mock, email='a', password='p', url='www.abc.com')
 
     @patch('resdk.resolwe.requests')

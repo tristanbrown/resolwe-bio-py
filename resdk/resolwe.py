@@ -1,4 +1,5 @@
-"""
+""".. Ignore pydocstyle D400.
+
 =======
 Resolwe
 =======
@@ -20,10 +21,10 @@ import subprocess
 
 import yaml
 import requests
+# Needed because we mock requests in test_resolwe.py
+from requests.exceptions import ConnectionError  # pylint: disable=redefined-builtin
 import slumber
-
 from six.moves.urllib.parse import urljoin  # pylint: disable=import-error
-from requests.exceptions import ConnectionError  # pylint: disable=ungrouped-imports, redefined-builtin
 
 from .resources import Data, Collection, Sample, Process
 from .resources.utils import iterate_fields, iterate_schema, endswith_colon
@@ -40,7 +41,6 @@ TOOLS_REMOTE_HOST = os.environ.get('TOOLS_REMOTE_HOST', None)
 
 
 class Resolwe(object):
-
     """Connect to a Resolwe server.
 
     :param email: user's email
@@ -53,6 +53,7 @@ class Resolwe(object):
     """
 
     def __init__(self, email=DEFAULT_EMAIL, password=DEFAULT_PASSWD, url=DEFAULT_URL):
+        """Initialize attributes."""
         self.url = url
         self.auth = ResAuth(email, password, url)
         self.api = slumber.API(urljoin(url, '/api/'), self.auth, append_slash=False)
@@ -70,7 +71,7 @@ class Resolwe(object):
         version_numbers = [int(number_string) for number_string in version.split(".")]
 
         if len(version_numbers) > len(VERSION_NUMBER_BITS):
-            raise NotImplementedError("Versions with more than {0} decimal places are not supported.".format(
+            raise NotImplementedError("Version should have at most {} decimal places.".format(
                 len(VERSION_NUMBER_BITS) - 1))
 
         # add 0s for missing numbers
@@ -82,7 +83,7 @@ class Resolwe(object):
         for num, bits in zip(reversed(version_numbers), reversed(VERSION_NUMBER_BITS)):
             max_num = (bits + 1) - 1
             if num >= 1 << max_num:
-                raise ValueError("Number {0} cannot be stored with only {1} bits. Max is {2}.".format(
+                raise ValueError("Number {} cannot be stored with only {} bits. Max is {}.".format(
                     num, bits, max_num))
             version_number += num << total_bits
             total_bits += bits
@@ -94,7 +95,7 @@ class Resolwe(object):
         number_strings = []
         total_bits = sum(VERSION_NUMBER_BITS)
         for bits in VERSION_NUMBER_BITS:
-            shift_amount = (total_bits-bits)
+            shift_amount = (total_bits - bits)
             number_segment = number >> shift_amount
             number_strings.append(str(number_segment))
             total_bits = total_bits - bits
@@ -144,11 +145,13 @@ class Resolwe(object):
             process['{}_schema'.format(field)] = process.pop(field)
 
         if 'persistence' in process:
-            persistence_map = {'RAW': 'RAW', 'CACHED': 'CAC', 'CAC': 'CAC', 'TEMP': 'TMP', 'TMP': 'TMP'}
+            persistence_map = {'RAW': 'RAW', 'CACHED': 'CAC',
+                               'CAC': 'CAC', 'TEMP': 'TMP', 'TMP': 'TMP'}
             process['persistence'] = persistence_map[process['persistence']]
 
         try:
-            server_process = self.process.filter(slug=process['slug'], ordering='-version', limit=1)
+            server_process = self.process.filter(slug=process['slug'],
+                                                 ordering='-version', limit=1)
 
             if len(server_process) == 1:
                 server_process = server_process[0]
@@ -168,7 +171,8 @@ class Resolwe(object):
             else:
                 raise ValueError("Unexpected behaviour at get process with slug {}".format(slug))
 
-        # Updating processes is supported only on development servers - this error will be raised on production server.
+        # Updating processes is supported only on development servers
+        # This error will be raised on production server.
         except slumber.exceptions.HttpClientError as http_client_error:
             if http_client_error.response.status_code == 405:  # pylint: disable=no-member
                 self.logger.warning("Server does not support adding processes")
@@ -303,7 +307,8 @@ class Resolwe(object):
                     fields[field_name] = file_list
 
         except KeyError as key_error:
-            raise KeyError("Field '{}' not in process '{}' input schema.".format(key_error.args[0], process['slug']))
+            raise KeyError("Field '{}' not in process '{}' input schema.".format(key_error.args[0],
+                                                                                 process['slug']))
 
         data = {
             'process': process['slug'],
@@ -323,22 +328,21 @@ class Resolwe(object):
         model_data = self.api.data.post(data)
         return Data(model_data=model_data, resolwe=self)
 
-    def _upload_file(self, fn):
+    def _upload_file(self, file_path):
         """Upload a single file on the platform.
 
         File is uploaded in chunks of size CHUNK_SIZE bytes.
 
-        :param fn: File path
-        :type fn: string
+        :param str file_path: File path
 
         """
         response = None
         chunk_number = 0
         session_id = str(uuid.uuid4())
-        file_size = os.path.getsize(fn)
-        base_name = os.path.basename(fn)
+        file_size = os.path.getsize(file_path)
+        base_name = os.path.basename(file_path)
 
-        with open(fn, 'rb') as file_:
+        with open(file_path, 'rb') as file_:
             while True:
                 chunk = file_.read(CHUNK_SIZE)
                 if not chunk:
@@ -376,7 +380,7 @@ class Resolwe(object):
                     return None
 
                 progress = 100. * (chunk_number * CHUNK_SIZE + len(chunk)) / file_size
-                message = "{:.0f} % Uploaded {}".format(progress, fn)
+                message = "{:.0f} % Uploaded {}".format(progress, file_path)
                 self.logger.info(message)
                 chunk_number += 1
 
@@ -424,7 +428,6 @@ class Resolwe(object):
 
 
 class ResAuth(requests.auth.AuthBase):
-
     """HTTP Resolwe Authentication for Request object.
 
     :param email: user's email
@@ -437,7 +440,7 @@ class ResAuth(requests.auth.AuthBase):
     """
 
     def __init__(self, email=DEFAULT_EMAIL, password=DEFAULT_PASSWD, url=DEFAULT_URL):
-
+        """Authenticate user on Resolwe server."""
         self.logger = logging.getLogger(__name__)
 
         payload = {'username': email, 'password': password}
@@ -449,7 +452,8 @@ class ResAuth(requests.auth.AuthBase):
 
         status_code = response.status_code
         if status_code in [400, 403]:
-            raise ValueError('Response HTTP status code {}. Invalid credentials?'.format(status_code))
+            msg = 'Response HTTP status code {}. Invalid credentials?'.format(status_code)
+            raise ValueError(msg)
 
         if not ('sessionid' in response.cookies and 'csrftoken' in response.cookies):
             raise Exception('Missing sessionid or csrftoken. Invalid credentials?')
@@ -459,8 +463,9 @@ class ResAuth(requests.auth.AuthBase):
         # self.subscribe_id = str(uuid.uuid4())
 
     def __call__(self, request):
-        # modify and return the request
-        request.headers['Cookie'] = 'csrftoken={}; sessionid={}'.format(self.csrftoken, self.sessionid)
+        """Set request headers."""
+        request.headers['Cookie'] = 'csrftoken={}; sessionid={}'.format(self.csrftoken,
+                                                                        self.sessionid)
         request.headers['X-CSRFToken'] = self.csrftoken
 
         # Not needed until we support HTTP Push with the API
@@ -470,7 +475,6 @@ class ResAuth(requests.auth.AuthBase):
 
 
 class ResolweQuerry(object):
-
     """Query resource endpoints.
 
     A Resolwe instance (for example "res") has several endpoints:
@@ -486,6 +490,7 @@ class ResolweQuerry(object):
     """
 
     def __init__(self, resolwe, Resource, endpoint=None):
+        """Initialize attributes."""
         self.resolwe = resolwe
         self.resource = Resource
         self.endpoint = endpoint if endpoint else Resource.endpoint

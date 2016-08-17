@@ -29,7 +29,8 @@ class TestBaseCollection(unittest.TestCase):
 
     @patch('resdk.resources.collection.BaseCollection', spec=True)
     def test_data_types(self, collection_mock):
-        api_mock = MagicMock(**{'data.return_value': MagicMock(**{'get.return_value': DATA_SAMPLE[0]})})
+        get_mock = MagicMock(**{'get.return_value': DATA_SAMPLE[0]})
+        api_mock = MagicMock(**{'data.return_value': get_mock})
         collection_mock.configure_mock(data=[1, 2], resolwe=MagicMock(api=api_mock))
 
         types = BaseCollection.data_types(collection_mock)
@@ -113,7 +114,8 @@ class TestSample(unittest.TestCase):
         with self.assertRaises(NotImplementedError):
             Sample.confirm_is_annotated(sample_mock)
 
-        sample_mock.configure_mock(endpoint='presample', id=42, api=MagicMock(), logger=MagicMock())
+        sample_mock.configure_mock(endpoint='presample', id=42,
+                                   api=MagicMock(), logger=MagicMock())
         Sample.confirm_is_annotated(sample_mock)
         sample_mock.api(42).patch.assert_called_once_with({'presample': False})
 

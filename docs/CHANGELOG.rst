@@ -5,6 +5,15 @@ Change Log
 All notable changes to this project are documented in this file.
 
 
+==========
+Unreleased
+==========
+
+Added
+-----
+* Check PEP 8 and PEP 257
+
+
 ==================
 1.3.6 - 2016-08-15
 ==================

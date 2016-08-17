@@ -1,4 +1,4 @@
-"""Command line scripts"""
+"""Command line scripts."""
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import argparse
@@ -60,7 +60,6 @@ def sequp():
     modification time is stored in config_file.
 
     """
-
     # XXX: Saving the config_file in user_data_dir is probably not the
     # right decision. We want multiple users to be able to upload data
     # to the same directory - therefore the config_file should be set
@@ -86,6 +85,7 @@ def sequp():
     genialis_email = args.email or os.getenv('GENIALIS_EMAIL') or 'admin'
     genialis_pass = args.password or os.getenv('GENIALIS_PASS') or 'admin'
     genialis_seq_dir = args.directory or os.getenv('GENIALIS_SEQ_DIR') or os.path.expanduser('~')
+    genialis_seq_dir = os.path.normpath(genialis_seq_dir)
 
     print('Address:', genialis_url)
     print('User:', genialis_email)
@@ -158,7 +158,8 @@ def sequp():
     time.sleep(change_time_window)
     sizes2 = {f: os.path.getsize(f) for f in all_new_read_files}
 
-    all_new_read_files_uploaded = [os.path.normpath(f) for f in all_new_read_files if sizes1[f] == sizes2[f]]
+    all_new_read_files_uploaded = [os.path.normpath(f) for f in all_new_read_files if
+                                   sizes1[f] == sizes2[f]]
 
     # Find all annotation files
     all_annotation_files = []
@@ -170,7 +171,6 @@ def sequp():
 
     def parse_annotation_file(annotation_file):
         """Parse annotation file to list of annotation objects."""
-
         anns = {}
         seq_paths = []
         # We use 'rU' mode to be able to read also files with '\r' chars
@@ -186,7 +186,7 @@ def sequp():
 
                     if 'FASTQ_PATH' in row:
                         for seqfile in row['FASTQ_PATH'].split(','):
-                            seq_path = os.path.normpath(os.path.join(genialis_seq_dir, seqfile))
+                            seq_path = os.path.join(genialis_seq_dir, seqfile)
                             seq_paths.append(seq_path)
 
                         if all(os.path.isfile(sf) for sf in seq_paths):
@@ -222,27 +222,28 @@ def sequp():
 
             if read_schema:
                 descriptor_schema = read_schema['slug']
+                barcode_removed = annotations[sample_n].get('BARCODE_REMOVED', 'N').strip().upper()
                 descriptor = {
                     'barcode': annotations[sample_n].get('BARCODE', None),
-                    'barcode_removed': True if annotations[sample_n].get('BARCODE_REMOVED', 'N').upper() == 'Y'
-                                       else False,
+                    'barcode_removed': True if barcode_removed == 'Y' else False,
                     'instrument_type': annotations[sample_n].get('INSTRUMENT', None),
                     'seq_date': annotations[sample_n].get('SEQ_DATE', None),
                 }
 
             # Paired-end reads
-            if annotations[sample_n]['PAIRED_END'] == 'Y' and annotations[sample_n]['FASTQ_PATH_PAIR']:
+            if (annotations[sample_n]['PAIRED_END'] == 'Y' and
+                    annotations[sample_n]['FASTQ_PATH_PAIR']):
                 rw_reads = annotations[sample_n]['FASTQ_PATH_PAIR'].split(',')
                 slug = 'upload-fastq-paired'
                 input_['src1'] = fw_reads
-                input_['src2'] = [os.path.normpath(os.path.join(genialis_seq_dir, f)) for f in rw_reads]
-                fn = input_['src1'] + input_['src2']
+                input_['src2'] = [os.path.join(genialis_seq_dir, f) for f in rw_reads]
+                file_path = input_['src1'] + input_['src2']
 
             # Single-end reads
             else:
                 slug = 'upload-fastq-single'
                 input_['src'] = fw_reads
-                fn = input_['src']
+                file_path = input_['src']
 
             data = resolwe.run(slug,
                                input=input_,
@@ -251,7 +252,7 @@ def sequp():
                                data_name=sample_n)
 
             if data:
-                for up_file in fn:
+                for up_file in file_path:
                     uploaded_files.append(up_file)
 
                 presample = resolwe.presample.filter(data=data.id)[0]
@@ -263,9 +264,9 @@ def sequp():
                 if organism:
                     presample.descriptor['geo']['organism'] = organism
 
-                experiment_type = EXPERIMENT_TYPE.get(annotations[sample_n]['SEQ_TYPE'].upper(), '')
-                if experiment_type:
-                    presample.descriptor['geo']['experiment_type'] = experiment_type
+                exp_type = EXPERIMENT_TYPE.get(annotations[sample_n]['SEQ_TYPE'].upper(), '')
+                if exp_type:
+                    presample.descriptor['geo']['experiment_type'] = exp_type
 
                 presample.update_descriptor(presample.descriptor)
 
@@ -283,7 +284,8 @@ def readsup():
     parser = argparse.ArgumentParser(description='Upload NGS reads to the Resolwe server.')
 
     parser.add_argument('collection', help='Collection ID')
-    parser.add_argument('-a', '--address', default='http://cloud.genialis.com', help='Resolwe server address')
+    parser.add_argument('-a', '--address', default='http://cloud.genialis.com',
+                        help='Resolwe server address')
     parser.add_argument('-e', '--email', default='anonymous@genialis.com', help='User e-mail')
     parser.add_argument('-p', '--password', default='anonymous', help='User password')
     parser.add_argument('-r', metavar='READS', help='NGS fastq file')
@@ -303,7 +305,8 @@ def readsup():
     if args.r:
         resolwe.run('upload-fastq-single', {'src': [args.r]}, collections=cols)
     else:
-        resolwe.run('upload-fastq-paired', {'src1': [args.r1], 'src2': [args.r2]}, collections=cols)
+        resolwe.run('upload-fastq-paired', {'src1': [args.r1],
+                                            'src2': [args.r2]}, collections=cols)
 
 
 def readsup_batch():
@@ -311,12 +314,15 @@ def readsup_batch():
     parser = argparse.ArgumentParser(description='Upload a batch NGS reads to the Resolwe server.')
 
     parser.add_argument('collection', help='Collection ID')
-    parser.add_argument('-a', '--address', default='http://cloud.genialis.com', help='Resolwe server address')
+    parser.add_argument('-a', '--address', default='http://cloud.genialis.com',
+                        help='Resolwe server address')
     parser.add_argument('-e', '--email', default='anonymous@genialis.com', help='User e-mail')
     parser.add_argument('-p', '--password', default='anonymous', help='User password')
     parser.add_argument('-r', metavar='READS', nargs='*', help='List of NGS fastq files')
-    parser.add_argument('-r1', metavar='READS-1', nargs='*', help='List of NGS fastq files (mate 1)')
-    parser.add_argument('-r2', metavar='READS-2', nargs='*', help='List of NGS fastq files (mate 2)')
+    parser.add_argument('-r1', metavar='READS-1', nargs='*',
+                        help='List of NGS fastq files (mate 1)')
+    parser.add_argument('-r2', metavar='READS-2', nargs='*',
+                        help='List of NGS fastq files (mate 2)')
 
     args = parser.parse_args()
 

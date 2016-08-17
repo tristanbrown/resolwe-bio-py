@@ -47,10 +47,11 @@ class TestData(unittest.TestCase):
             'output.fastq_archive': {'value': {'file': "archive.gz"}, 'type': 'basic:file:'},
             'input.fastq_url': {'value': {'file': "blah"}, 'type': 'basic:url:'},
             'input.blah': {'value': "blah.gz", 'type': 'basic:file:'}
-            }
+        }
         bad_data_annotation = {
-            'output.list': {'value': [{'no_file_field_here': "element.gz"}], 'type': 'list:basic:file:'},
-            }
+            'output.list': {'value': [{'no_file_field_here': "element.gz"}],
+                            'type': 'list:basic:file:'},
+        }
         data_mock.configure_mock(annotation=data_annotation)
 
         file_list = Data.files(data_mock)
@@ -77,7 +78,8 @@ class TestData(unittest.TestCase):
         data_mock.configure_mock(**{'files.return_value': ['file1.txt', 'file2.fq.gz']})
 
         Data.download(data_mock)
-        data_mock.resolwe._download_files.assert_called_once_with([u'123/file1.txt', u'123/file2.fq.gz'], None)
+        data_mock.resolwe._download_files.assert_called_once_with(
+            [u'123/file1.txt', u'123/file2.fq.gz'], None)
 
         data_mock.reset_mock()
         Data.download(data_mock, download_dir="/some/path/")

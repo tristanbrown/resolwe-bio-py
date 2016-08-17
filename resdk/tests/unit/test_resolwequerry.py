@@ -61,7 +61,8 @@ class TestResolweQuerry(unittest.TestCase):
         resq_mock.endpoint = 'presample'
         data = ResolweQuerry.get(resq_mock, "abc")
         self.assertEqual(data, "Some response")
-        resq_mock.resource.assert_called_with(slug='abc', resolwe=resq_mock.resolwe, presample=True)
+        resq_mock.resource.assert_called_with(slug='abc',
+                                              resolwe=resq_mock.resolwe, presample=True)
 
         # User provides wrong slug.
         message = r'Slug: .* does not exist or you dont have access permission.'

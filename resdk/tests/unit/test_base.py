@@ -28,9 +28,11 @@ class TestBaseResource(unittest.TestCase):
         with six.assertRaisesRegex(self, ValueError, message):
             BaseResource.__init__(base_mock, id=1, model_data={'a': 1}, resolwe=self.resolwe_mock)
         with six.assertRaisesRegex(self, ValueError, message):
-            BaseResource.__init__(base_mock, slug="a", model_data={'a': 1}, resolwe=self.resolwe_mock)
+            BaseResource.__init__(base_mock, slug="a", model_data={'a': 1},
+                                  resolwe=self.resolwe_mock)
         with six.assertRaisesRegex(self, ValueError, message):
-            BaseResource.__init__(base_mock, id=1, slug="a", model_data={'a': 1}, resolwe=self.resolwe_mock)
+            BaseResource.__init__(base_mock, id=1, slug="a", model_data={'a': 1},
+                                  resolwe=self.resolwe_mock)
         with six.assertRaisesRegex(self, ValueError, message):
             BaseResource.__init__(base_mock, resolwe=self.resolwe_mock)
 
@@ -76,7 +78,8 @@ class TestBaseResource(unittest.TestCase):
         BaseResource.__init__(base_mock, slug="a", resolwe=self.resolwe_mock)
         base_mock._update_fields.assert_called_once_with(123)
 
-        getattr_mock.return_value = MagicMock(**{'get.return_value': [{'version': 1}, {'version': 2}]})
+        getattr_mock.return_value = MagicMock(**{'get.return_value': [{'version': 1},
+                                                                      {'version': 2}]})
         BaseResource.__init__(base_mock, slug="a", resolwe=self.resolwe_mock)
         self.assertEqual(base_mock._update_fields.call_count, 2)
 
@@ -102,7 +105,8 @@ class TestOtherStuff(unittest.TestCase):
     def test_update_fields(self, base_mock, setattr_mock):
         fields = {'a': 1, 'b': 2}
         BaseResource._update_fields(base_mock, fields)
-        setattr_mock.assert_has_calls([call(base_mock, 'a', 1), call(base_mock, 'b', 2)], any_order=True)
+        setattr_mock.assert_has_calls([call(base_mock, 'a', 1), call(base_mock, 'b', 2)],
+                                      any_order=True)
 
     @patch('resdk.resources.base.BaseResource', spec=True)
     def test_update(self, base_mock):

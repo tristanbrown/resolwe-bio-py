@@ -1,4 +1,4 @@
-"""Data"""
+"""Data resource."""
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import logging
@@ -12,7 +12,6 @@ from .base import BaseResource
 
 
 class Data(BaseResource):
-
     """Resolwe Data resource.
 
     One and only one of the identifiers (slug, id or model_data)
@@ -33,7 +32,7 @@ class Data(BaseResource):
 
     def __init__(self, slug=None, id=None,  # pylint: disable=redefined-builtin
                  model_data=None, resolwe=None):
-
+        """Initialize attributes."""
         #: specification of inputs
         self.process_input_schema = None
 
@@ -64,8 +63,8 @@ class Data(BaseResource):
         #: checksum field calculated on inputs
         self.checksum = None
 
-        #: process status - Possible values:
-        #: Uploading(UP), Resolving(RE), Waiting(WT), Processing(PR), Done(OK), Error(ER), Dirty (DR)
+        #: process status - Possible values: Uploading(UP), Resolving(RE),
+        #: Waiting(WT), Processing(PR), Done(OK), Error(ER), Dirty (DR)
         self.status = None
 
         #: process progress in percentage
@@ -150,9 +149,7 @@ class Data(BaseResource):
         download_list = []
 
         def put_in_download_list(elm, fname):
-            """
-            If ``file_name`` is not None append only files with equal name.
-            """
+            """Append only files with equal name."""
             if 'file' in elm:
                 if file_name is None or file_name == elm['file']:
                     download_list.append(elm['file'])
@@ -160,7 +157,8 @@ class Data(BaseResource):
                 raise KeyError("Item {} does not contain 'file' key.".format(fname))
 
         for ann_field_name, ann in self.annotation.items():
-            if ann_field_name.startswith('output') and (field_name is None or field_name == ann_field_name):
+            if (ann_field_name.startswith('output') and
+                    (field_name is None or field_name == ann_field_name)):
                 if ann['type'].startswith('basic:file:') and ann['value'] is not None:
                     put_in_download_list(ann['value'], ann_field_name)
                 elif ann['type'].startswith('list:basic:file:') and ann['value'] is not None:
@@ -198,7 +196,7 @@ class Data(BaseResource):
 
     def print_annotation(self):
         """Provide annotation data."""
-        # TODO: Think of neat way to present all annotation. how this would be most neatly presented...
+        # TODO: Think of a good way to present all annotation
         raise NotImplementedError()
 
     def stdout(self):

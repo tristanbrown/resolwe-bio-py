@@ -36,20 +36,54 @@ class TestUtils(unittest.TestCase):
         # result object is iterator - we use lists to pull all elements
 
         expected = [
-            ({'type': 'basic:string:', 'name': 'id', 'label': 'ID'},
-             {'k': 123, 'id': 'abc'}),
-            ({'type': 'basic:string:', 'name': 'bases', 'label': 'Number of bases'},
-             {'options': {'k': 123, 'id': 'abc'}, 'bases': '75', 'fastq': {'file': 'example.fastq.gz'}}),
-            ({'type': 'basic:file:', 'name': 'fastq', 'label': 'Reads file'},
-             {'options': {'k': 123, 'id': 'abc'}, 'bases': '75', 'fastq': {'file': 'example.fastq.gz'}}),
-            ({'type': 'basic:integer:', 'name': 'k', 'label': 'k-mer size'},
-             {'k': 123, 'id': 'abc'})]
+            ({
+                'type': 'basic:string:',
+                'name': 'id',
+                'label': 'ID'
+            }, {
+                'k': 123,
+                'id': 'abc'
+            }), ({
+                'type': 'basic:string:',
+                'name': 'bases',
+                'label': 'Number of bases'
+            }, {
+                'options': {
+                    'k': 123,
+                    'id': 'abc'
+                },
+                'bases': '75',
+                'fastq': {
+                    'file': 'example.fastq.gz'
+                }
+            }), ({
+                'type': 'basic:file:',
+                'name': 'fastq',
+                'label': 'Reads file'
+            }, {
+                'options': {
+                    'k': 123,
+                    'id': 'abc'
+                },
+                'bases': '75',
+                'fastq': {
+                    'file': 'example.fastq.gz'
+                }
+            }), ({
+                'type': 'basic:integer:',
+                'name': 'k',
+                'label': 'k-mer size'
+            }, {
+                'k': 123,
+                'id': 'abc'
+            })
+        ]
 
         six.assertCountEqual(self, result, expected)
 
     def test_iterate_fields_modif(self):
         """
-        Ensure that changing of ``values`` inside iteration loop also changes the ``OUTPUT`` values.
+        Ensure that changing ``values`` inside iteration loop also changes ``OUTPUT`` values.
         """
         for schema, values in utils.iterate_fields(OUTPUT, PROCESS_OUTPUT_SCHEMA):
             field_name = schema['name']
@@ -73,28 +107,32 @@ class TestUtils(unittest.TestCase):
 
         expected1 = [
             ({'name': 'fastq', 'label': 'Reads file', 'type': 'basic:file:'},
-             {'fastq': {'file': 'example.fastq.gz'}, 'options': {'k': 123, 'id': 'abc'}, 'bases': '75'},
-             'my_path.fastq'),
+             {'fastq': {'file': 'example.fastq.gz'}, 'options': {'k': 123, 'id': 'abc'},
+              'bases': '75'}, 'my_path.fastq'),
 
             ({'name': 'bases', 'label': 'Number of bases', 'type': 'basic:string:'},
-             {'fastq': {'file': 'example.fastq.gz'}, 'options': {'k': 123, 'id': 'abc'}, 'bases': '75'},
-             'my_path.bases'),
+             {'fastq': {'file': 'example.fastq.gz'}, 'options': {'k': 123, 'id': 'abc'},
+              'bases': '75'}, 'my_path.bases'),
 
-            ({'name': 'id', 'label': 'ID', 'type': 'basic:string:'}, {'k': 123, 'id': 'abc'}, 'my_path.options.id'),
+            ({'name': 'id', 'label': 'ID', 'type': 'basic:string:'}, {'k': 123, 'id': 'abc'},
+             'my_path.options.id'),
 
             ({'name': 'k', 'label': 'k-mer size', 'type': 'basic:integer:'},
              {'k': 123, 'id': 'abc'}, 'my_path.options.k')]
 
         expected2 = [
             ({'type': 'basic:file:', 'name': 'fastq', 'label': 'Reads file'},
-             {'fastq': {'file': 'example.fastq.gz'}, 'bases': '75', 'options': {'k': 123, 'id': 'abc'}}),
+             {'fastq': {'file': 'example.fastq.gz'}, 'bases': '75',
+              'options': {'k': 123, 'id': 'abc'}}),
 
             ({'type': 'basic:string:', 'name': 'bases', 'label': 'Number of bases'},
-             {'fastq': {'file': 'example.fastq.gz'}, 'bases': '75', 'options': {'k': 123, 'id': 'abc'}}),
+             {'fastq': {'file': 'example.fastq.gz'}, 'bases': '75',
+              'options': {'k': 123, 'id': 'abc'}}),
 
             ({'type': 'basic:string:', 'name': 'id', 'label': 'ID'}, {'k': 123, 'id': 'abc'}),
 
-            ({'type': 'basic:integer:', 'name': 'k', 'label': 'k-mer size'}, {'k': 123, 'id': 'abc'})]
+            ({'type': 'basic:integer:', 'name': 'k', 'label': 'k-mer size'},
+             {'k': 123, 'id': 'abc'})]
 
         self.assertEqual(result1, expected1)
         self.assertEqual(result2, expected2)

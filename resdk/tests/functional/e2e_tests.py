@@ -1,8 +1,5 @@
-"""
-Some simple functional tests.
-"""
+"""Some simple functional tests."""
 # pylint: disable=missing-docstring
-
 import os
 import time
 import unittest
@@ -21,12 +18,13 @@ URL = 'http://127.0.0.1:8000/'
 
 def wait_for_update(resource, maxtime=10, step=1):
     """Wait for asynchronous data object processing to complete."""
-    for _ in range(int(maxtime/step)):
+    for _ in range(int(maxtime / step)):
         resource.update()
         if resource.status == "OK":
             return
         time.sleep(step)
-    raise Exception("To long waiting and no update for {} with id {}".format(resource.__class__.__name__, resource.id))
+    msg = 'Update timeout for {} with id {}'.format(resource.__class__.__name__, resource.id)
+    raise Exception(msg)
 
 
 class TestResolwe(unittest.TestCase):
@@ -72,7 +70,8 @@ class TestResolwe(unittest.TestCase):
 
         self.assertEqual(self.result.status, 'OK')
         self.assertEqual(self.result.process_progress, 100)
-        self.assertEqual(set(self.result.output.keys()), set(['fastq', 'fastqc_url', 'fastqc_archive']))
+        self.assertEqual(set(self.result.output.keys()), set(['fastq', 'fastqc_url',
+                                                              'fastqc_archive']))
         for key in self.result.output.keys():
             self.assertIsNotNone(self.result.output[key])
 
@@ -107,11 +106,12 @@ class TestResolwe(unittest.TestCase):
 
         # Ensure inputs are set as expected:
         six.assertRegex(
-            self, self.result.input['src'][0]['file_temp'], '\w{40}')  # pylint: disable=anomalous-backslash-in-string
+            self, self.result.input['src'][0]['file_temp'], r'\w{40}')
         self.assertEqual(self.result.input['src'][0]['file'], os.path.basename(self.reads))
 
         # Ensure output was produced:
-        self.assertEqual(set(self.result.output.keys()), set(['fastq', 'fastqc_url', 'fastqc_archive']))
+        self.assertEqual(set(self.result.output.keys()), set(['fastq', 'fastqc_url',
+                                                              'fastqc_archive']))
         for key in self.result.output.keys():
             self.assertIsNotNone(self.result.output[key])
 

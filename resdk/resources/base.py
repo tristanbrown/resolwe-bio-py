@@ -1,6 +1,4 @@
-"""
-Constants and abstract classes.
-"""
+"""Constants and abstract classes."""
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import logging
@@ -10,7 +8,6 @@ import slumber
 
 
 class BaseResource(object):
-
     """Abstract resource.
 
     One and only one of the identifiers (slug, id or model_data)
@@ -31,7 +28,7 @@ class BaseResource(object):
 
     def __init__(self, slug=None, id=None,  # pylint: disable=redefined-builtin
                  model_data=None, resolwe=None):
-        # Verify that one and only one of slug, id, model_data is given
+        """Verify that one and only one of slug, id, model_data is given."""
         identifiers = iter((slug, id, model_data))
         if not any(identifiers) or any(identifiers):
             raise ValueError("One and only one of slug, id or model_data must be given")
@@ -46,7 +43,7 @@ class BaseResource(object):
             if not isinstance(model_data, dict):
                 raise ValueError("model_data should be a dict.")
 
-#: a descriptive name of the resource
+        #: a descriptive name of the resource
         self.name = None
         #: unique identifier
         self.id = id  # pylint: disable=invalid-name
@@ -105,4 +102,6 @@ class BaseResource(object):
         self._update_fields(self.api(self.id).get())
 
     def __repr__(self):
-        return u"{} <id: {}, slug: '{}', name: '{}'>".format(self.__class__.__name__, self.id, self.slug, self.name)
+        """Format resource name."""
+        return "{} <id: {}, slug: '{}', name: '{}'>".format(self.__class__.__name__,
+                                                            self.id, self.slug, self.name)

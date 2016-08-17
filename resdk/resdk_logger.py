@@ -1,4 +1,5 @@
-"""
+""".. Ignore pydocstyle D400.
+
 .. _resdk_resdk_logger:
 
 =======
@@ -182,7 +183,7 @@ def log_to_file(is_on=None, level=None, path=None):
 
 
 def start_logging(logging_level=logging.INFO):
-    """Start logging resdk with the default configuration
+    """Start logging resdk with the default configuration.
 
     :param logging_level: logging threshold level - integer in [0-50]
     :type logging_level: int

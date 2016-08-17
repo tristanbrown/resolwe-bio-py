@@ -1,1 +1,1 @@
-"Python file for testing purpuse."
+"""Python file for testing purpuse."""

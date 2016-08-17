@@ -1,4 +1,4 @@
-"""Collection"""
+"""Collection resources."""
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import six
@@ -8,7 +8,6 @@ from .data import Data
 
 
 class BaseCollection(BaseResource):
-
     """Abstract collection resource.
 
     One and only one of the identifiers (slug, id or model_data)
@@ -27,7 +26,7 @@ class BaseCollection(BaseResource):
 
     def __init__(self, slug=None, id=None,  # pylint: disable=redefined-builtin
                  model_data=None, resolwe=None):
-
+        """Initialize attributes."""
         #: id's of data objects in the resource
         self.data = None
 
@@ -54,15 +53,16 @@ class BaseCollection(BaseResource):
         :rtype: List
 
         """
-        return sorted(  # pylint: disable=no-member
-            set(self.resolwe.api.data(id_).get()['process_type'] for id_ in self.data))  # pylint: disable=no-member
+        process_types = set(self.resolwe.api.data(id_).get()['process_type'] for id_ in self.data)
+        return sorted(process_types)
 
     def files(self, file_name=None, field_name=None):
         """Return list of files in resource."""
         file_list = []
         for id_ in self.data:
             data = Data(id=id_, resolwe=self.resolwe)
-            file_list.extend(fname for fname in data.files(file_name=file_name, field_name=field_name))
+            file_list.extend(fname for fname in data.files(file_name=file_name,
+                                                           field_name=field_name))
 
         return file_list
 
@@ -97,7 +97,7 @@ class BaseCollection(BaseResource):
             data = Data(id=id_, resolwe=self.resolwe)
 
             def format_file_type(ofield):
-                """Ensure that `ofield` starts with `output`"""
+                """Ensure that `ofield` starts with `output`."""
                 if ofield is not None and not ofield.startswith('output'):
                     return '.'.join(['output'] + ofield.split('.'))
                 else:
@@ -115,7 +115,6 @@ class BaseCollection(BaseResource):
 
 
 class Collection(BaseCollection):
-
     """Resolwe Collection resource.
 
     One and only one of the identifiers (slug, id or model_data)
@@ -136,6 +135,7 @@ class Collection(BaseCollection):
 
     def __init__(self, slug=None, id=None,  # pylint: disable=redefined-builtin
                  model_data=None, resolwe=None):
+        """Initialize attributes."""
         BaseCollection.__init__(self, slug, id, model_data, resolwe)
 
     def print_annotation(self):
