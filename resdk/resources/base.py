@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import logging
+import operator
 
 import six
 import slumber
@@ -62,7 +63,7 @@ class BaseResource(object):
         #: permissions - (view/download/add/edit/share/owner for user/group/public)
         self.permissions = None
 
-        self.api = getattr(resolwe.api, self.endpoint)
+        self.api = operator.attrgetter(self.endpoint)(resolwe.api)
         self.resolwe = resolwe
 
         if id:
@@ -72,7 +73,7 @@ class BaseResource(object):
                 raise ValueError("ID '{}' does not exist or you do not "
                                  "have access permission.".format(id))
         elif slug:
-            resources = self.api.get(slug=slug)
+            resources = self.api.get(slug=slug)  # pylint: disable=no-member
 
             if len(resources) > 1:
                 # Return the latest version

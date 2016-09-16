@@ -18,6 +18,7 @@ import uuid
 import ntpath
 import logging
 import subprocess
+import operator
 
 import yaml
 import requests
@@ -27,6 +28,7 @@ import slumber
 from six.moves.urllib.parse import urljoin  # pylint: disable=import-error
 
 from .resources import Data, Collection, Sample, Process
+from .resources.kb import Feature
 from .resources.utils import iterate_fields, iterate_schema, endswith_colon
 
 
@@ -63,6 +65,7 @@ class Resolwe(object):
         self.sample = ResolweQuery(self, Sample)
         self.presample = ResolweQuery(self, Sample, endpoint='presample')
         self.process = ResolweQuery(self, Process)
+        self.feature = ResolweQuery(self, Feature)
 
         self.logger = logging.getLogger(__name__)
 
@@ -494,7 +497,7 @@ class ResolweQuery(object):
         self.resolwe = resolwe
         self.resource = Resource
         self.endpoint = endpoint if endpoint else Resource.endpoint
-        self.api = getattr(resolwe.api, self.endpoint)
+        self.api = operator.attrgetter(self.endpoint)(resolwe.api)
         self.logger = logging.getLogger(__name__)
 
     def get(self, uid):
@@ -510,6 +513,13 @@ class ResolweQuery(object):
         if self.endpoint == 'presample':
             resource_inputs['presample'] = True
         return self.resource(resolwe=self.resolwe, **resource_inputs)
+
+    def post(self, data):
+        """Post data to this endpoint.
+
+        :param data: Data dictionary to post
+        """
+        return self.api.post(data)  # pylint: disable=no-member
 
     def filter(self, **kwargs):
         """Return a list of Data objects that match kwargs.
@@ -555,6 +565,7 @@ class ResolweQuery(object):
         resource_inputs = {'resolwe': self.resolwe}
         if self.endpoint == 'presample':
             resource_inputs['presample'] = True
+        # pylint: disable=no-member
         return [self.resource(model_data=x, **resource_inputs) for x in self.api.get(**kwargs)]
 
     def search(self):

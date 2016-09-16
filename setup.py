@@ -74,6 +74,7 @@ setup(
         'console_scripts': [
             'resolwe-sequp = resdk.scripts:sequp',
             'resolwe-upload-reads = resdk.scripts:upload_reads',
+            'resolwe-update-kb = resdk.scripts:update_knowledge_base',
         ],
     },
 

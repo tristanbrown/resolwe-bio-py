@@ -15,12 +15,11 @@ from resdk.resolwe import ResolweQuery
 
 class TestResolweQuery(unittest.TestCase):
 
-    @patch('resdk.resolwe.getattr')
     @patch('resdk.resolwe.Resolwe')
     @patch('resdk.resources.sample.Sample')
     @patch('resdk.resolwe.ResolweQuery', spec=True)
-    def test_init(self, resq_mock, resolwe_mock, resource_mock, getattr_mock):
-        getattr_mock.return_value = "blah"
+    def test_init(self, resq_mock, resolwe_mock, resource_mock):
+        resource_mock.endpoint = "blah"
         ResolweQuery.__init__(resq_mock, resolwe_mock, resource_mock)
 
     @patch('resdk.resolwe.ResolweQuery', spec=True)

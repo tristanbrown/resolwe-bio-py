@@ -1,14 +1,17 @@
 """Command line scripts."""
+# pylint: disable=logging-format-interpolation
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import argparse
 import csv
 import fnmatch
+import logging
 import os
-import sys
 import time
+import zipfile
 
 import appdirs
+import slumber
 
 from . import __about__ as about
 from . import resdk_logger
@@ -45,6 +48,61 @@ EXPERIMENT_TYPE = {
     'CHIA-PET': 'ChIA-PET',
     'OTHER': 'OTHER',
 }
+
+SUBTYPE_MAP = {
+    'processed_pseudogene': 'pseudo',
+    'unprocessed_pseudogene': 'pseudo',
+    'polymorphic_pseudogene': 'pseudo',
+    'transcribed_unprocessed_pseudogene': 'pseudo',
+    'unitary_pseudogene': 'pseudo',
+    'transcribed_processed_pseudogene': 'pseudo',
+    'transcribed_unitary_pseudogene': 'pseudo',
+    'TR_J_pseudogene': 'pseudo',
+    'IG_pseudogene': 'pseudo',
+    'IG_D_pseudogene': 'pseudo',
+    'IG_C_pseudogene': 'pseudo',
+    'TR_V_pseudogene': 'pseudo',
+    'IG_V_pseudogene': 'pseudo',
+    'pseudogene': 'pseudo',
+    'pseudo': 'pseudo',
+    'asRNA': 'asRNA',
+    'antisense': 'asRNA',
+    'protein_coding': 'protein-coding',
+    'protein-coding': 'protein-coding',
+    'IG_V_gene': 'protein-coding',
+    'IG_LV_gene': 'protein-coding',
+    'TR_C_gene': 'protein-coding',
+    'TR_V_gene': 'protein-coding',
+    'TR_J_gene': 'protein-coding',
+    'IG_J_gene': 'protein-coding',
+    'TR_D_gene': 'protein-coding',
+    'IG_C_gene': 'protein-coding',
+    'IG_D_gene': 'protein-coding',
+    'miRNA': 'ncRNA',
+    'lincRNA': 'ncRNA',
+    'processed_transcript': 'ncRNA',
+    'sense_intronic': 'ncRNA',
+    'sense_overlapping': 'ncRNA',
+    'bidirectional_promoter_lncRNA': 'ncRNA',
+    'ribozyme': 'ncRNA',
+    'Mt_tRNA': 'ncRNA',
+    'Mt_rRNA': 'ncRNA',
+    'misc_RNA': 'ncRNA',
+    'macro_lncRNA': 'ncRNA',
+    '3prime_overlapping_ncRNA': 'ncRNA',
+    'sRNA': 'ncRNA',
+    'snRNA': 'snRNA',
+    'scaRNA': 'snoRNA',
+    'snoRNA': 'snoRNA',
+    'rRNA': 'rRNA',
+    'ncRNA': 'ncRNA',
+    'tRNA': 'tRNA',
+    'other': 'other',
+    'unknown': 'unknown'
+}
+
+# Scripts logger.
+logger = logging.getLogger(__name__)
 
 
 def sequp():
@@ -92,10 +150,10 @@ def sequp():
     genialis_seq_dir = args.directory or os.getenv('GENIALIS_SEQ_DIR') or os.path.expanduser('~')
     genialis_seq_dir = os.path.normpath(genialis_seq_dir)
 
-    print('Address:', genialis_url)
-    print('User:', genialis_email)
-    print('Pass:', genialis_pass)
-    print('Directory:', genialis_seq_dir)
+    logger.info('Address: {}'.format(genialis_url))
+    logger.info('User: {}'.format(genialis_email))
+    logger.info('Pass: ******')
+    logger.info('Directory: {}'.format(genialis_seq_dir))
 
     if args.force and os.path.isfile(config_file):
         os.remove(config_file)
@@ -200,7 +258,7 @@ def sequp():
                             seq_paths = []
 
             except csv.Error:
-                print("File type not supported", file=sys.stderr)
+                logger.error("File type not supported")
                 exit(1)
         return anns
 
@@ -276,7 +334,7 @@ def sequp():
                 presample.update_descriptor(presample.descriptor)
 
             else:
-                print("Error uploading {}".format(sample_n), file=sys.stderr)
+                logger.error("Error uploading {}".format(sample_n))
 
     # Set the modification timestamp
     modif_times = [os.path.getmtime(f) for f in uploaded_files]
@@ -350,3 +408,76 @@ done
         else:
             print("\nERROR: Incorrect file path(s).\n")
             exit(1)
+
+
+def update_knowledge_base():
+    """Update the knowledge base from an external file."""
+    description = """Updates the remote knowledge base from an external file."""
+
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
+                                     description=description)
+
+    parser.add_argument('-a', '--address', default='https://torta.bcm.genialis.com',
+                        help='Resolwe server address')
+    parser.add_argument('-e', '--email', default='admin', help='User name')
+    parser.add_argument('-p', '--password', default='admin', help='User password')
+    parser.add_argument('-v', '--verbose', action='store_true', help='Enable verbose reporting')
+    parser.add_argument('features', help='ZIP file containing feature descriptions')
+
+    args = parser.parse_args()
+
+    if args.verbose:
+        resdk_logger.start_logging()
+
+    resolwe = Resolwe(args.email, args.password, args.address)
+
+    errors = 0
+    updated = 0
+    with zipfile.ZipFile(args.features) as archive:
+        for entry in archive.infolist():
+            if not entry.filename.endswith('.tab'):
+                continue
+
+            logger.info('Importing features from "{}"...'.format(entry.filename))
+
+            reader = csv.DictReader(archive.open(entry), delimiter=str('\t'))
+            for row in reader:
+                aliases = row['Aliases'].strip()
+                if not aliases or aliases == '-':
+                    aliases = []
+                else:
+                    aliases = aliases.split(',')
+
+                try:
+                    for retry in range(3):  # pylint: disable=unused-variable
+                        try:
+                            resolwe.feature.post({
+                                'source': row['Source'],
+                                'feature_id': row['ID'],
+                                'species': row['Species'],
+                                'type': row['Type'],
+                                'sub_type': SUBTYPE_MAP.get(row['Gene type'], 'other'),
+                                'name': row['Name'],
+                                'full_name': row['Full name'],
+                                'description': row['Description'],
+                                'aliases': aliases
+                            })
+                            break
+                        except slumber.exceptions.HttpServerError as error:
+                            # Retry on server errors.
+                            continue
+
+                    updated += 1
+                except slumber.exceptions.HttpClientError as error:
+                    logger.warning("Failed to update feature '{}:{}':\n{}\n{}".format(
+                        row['Source'],
+                        row['ID'],
+                        row,
+                        error.response.content  # pylint: disable=no-member
+                    ))
+                    errors += 1
+
+    if errors:
+        logger.warning("Encountered {} errors during import.".format(errors))
+
+    logger.info("Updated {} features.".format(updated))
