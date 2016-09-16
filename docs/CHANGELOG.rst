@@ -22,6 +22,7 @@ Changed
 Fixed
 -----
 * Fix resolwe-upload-reads script
+* Rename ResolweQuerry to ResolweQuery
 
 
 ==================
@@ -101,7 +102,7 @@ Changed
 Added
 -----
 * Endpoints ``data``, ``sample`` and ``collections`` in ``Resolwe`` class
-* ``ResolweQuerry`` class with ``get`` and ``filter`` methods
+* ``ResolweQuery`` class with ``get`` and ``filter`` methods
 * ``Sample`` class with ``files`` and ``download`` methods
 * Tox configuration for running tests
 * Travis configuration for automated testing
@@ -110,7 +111,7 @@ Changed
 -------
 * Rename resolwe_api to resdk
 * Add ``data``, ``sample``, ``collections`` to ``Resolwe`` class and create
-  ``ResolweQuerry`` class
+  ``ResolweQuery`` class
 * Move ``data.py``, ``collections.py`` ... to ``resources`` folder
 * Remove ``collection``, ``collection_data`` and ``data`` methods from
   ``Resolwe`` and from tests.

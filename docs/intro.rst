@@ -168,7 +168,7 @@ to access the resources:
     resdk.Resolwe.<interface>.get(uid)
     resdk.Resolwe.<interface>.filter(**fields)
 
-The :any:`get()<ResolweQuerry.filter>` method searches by a unique
+The :any:`get()<ResolweQuery.filter>` method searches by a unique
 identifier: ``id`` or ``slug``. It returns a single object of type
 ``<interface>``.
 
@@ -176,7 +176,7 @@ identifier: ``id`` or ``slug``. It returns a single object of type
 .. literalinclude:: files/example_intro.py
    :lines: 3-7
 
-The :any:`filter(**fields)<ResolweQuerry.filter>` method returns a list
+The :any:`filter(**fields)<ResolweQuery.filter>` method returns a list
 of objects of type ``<interface>``:
 
 .. literalinclude:: files/example_intro.py

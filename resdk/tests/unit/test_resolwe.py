@@ -24,7 +24,7 @@ BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 class TestResolwe(unittest.TestCase):
 
     @patch('resdk.resolwe.logging')
-    @patch('resdk.resolwe.ResolweQuerry')
+    @patch('resdk.resolwe.ResolweQuery')
     @patch('resdk.resolwe.slumber')
     @patch('resdk.resolwe.ResAuth')
     @patch('resdk.resolwe.Resolwe', spec=Resolwe)
@@ -32,7 +32,7 @@ class TestResolwe(unittest.TestCase):
         Resolwe.__init__(resolwe_mock, 'a', 'b', 'http://some/url')
         self.assertEqual(resauth_mock.call_count, 1)
         self.assertEqual(slumber_mock.API.call_count, 1)
-        # There are four instances of ResolweQuerry in init: data, process, sample and collection:
+        # There are four instances of ResolweQuery in init: data, process, sample and collection:
         self.assertEqual(resolwe_querry_mock.call_count, 5)
         self.assertEqual(log_mock.getLogger.call_count, 1)
 

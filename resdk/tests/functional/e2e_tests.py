@@ -153,7 +153,7 @@ class TestResolwe(unittest.TestCase):
         self.assertEqual(self.result.output['sum'], 42)
 
 
-class TestResolweQuerry(unittest.TestCase):
+class TestResolweQuery(unittest.TestCase):
 
     def setUp(self):
         self.res = resdk.Resolwe(EMAIL, PASSW, URL)

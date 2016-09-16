@@ -7,7 +7,7 @@ Resolwe
 .. autoclass:: resdk.Resolwe
    :members:
 
-.. autoclass:: resdk.ResolweQuerry
+.. autoclass:: resdk.ResolweQuery
    :members:
 
 """
@@ -58,11 +58,11 @@ class Resolwe(object):
         self.auth = ResAuth(email, password, url)
         self.api = slumber.API(urljoin(url, '/api/'), self.auth, append_slash=False)
 
-        self.data = ResolweQuerry(self, Data)
-        self.collection = ResolweQuerry(self, Collection)
-        self.sample = ResolweQuerry(self, Sample)
-        self.presample = ResolweQuerry(self, Sample, endpoint='presample')
-        self.process = ResolweQuerry(self, Process)
+        self.data = ResolweQuery(self, Data)
+        self.collection = ResolweQuery(self, Collection)
+        self.sample = ResolweQuery(self, Sample)
+        self.presample = ResolweQuery(self, Sample, endpoint='presample')
+        self.process = ResolweQuery(self, Process)
 
         self.logger = logging.getLogger(__name__)
 
@@ -474,12 +474,12 @@ class ResAuth(requests.auth.AuthBase):
         return request
 
 
-class ResolweQuerry(object):
+class ResolweQuery(object):
     """Query resource endpoints.
 
     A Resolwe instance (for example "res") has several endpoints:
     res.data, res.collections, res.sample and res.process. Each
-    andpooint is an instance of the ResolweQuerry class. ResolweQuerry
+    andpooint is an instance of the ResolweQuery class. ResolweQuery
     supports querries on corresponding objects, for example:
 
     re.data.get(42) # return Data object with ID 42.
