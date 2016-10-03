@@ -12,8 +12,9 @@ Unreleased
 Added
 -----
 * Check PEP 8 and PEP 257
-* Support delete() method
 * Feature resource and resolwe-update-kb script
+* Remove resources with the delete() method
+* Create and update resources with the save() method
 
 Changed
 -------

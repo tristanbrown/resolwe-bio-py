@@ -23,11 +23,16 @@ class Sample(BaseCollection):
 
     endpoint = 'sample'
 
+    WRITABLE_FIELDS = ('collections', 'presample') + BaseCollection.WRITABLE_FIELDS
+
     def __init__(self, slug=None, id=None,  # pylint: disable=redefined-builtin
                  model_data=None, resolwe=None, presample=False):
         """Initialize attributes."""
         self.endpoint = 'presample' if presample else 'sample'
+
         BaseCollection.__init__(self, slug, id, model_data, resolwe)
+
+        self.presample = presample
 
     def print_annotation(self):
         """Provide annotation data."""

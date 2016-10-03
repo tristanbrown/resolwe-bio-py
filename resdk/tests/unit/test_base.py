@@ -21,7 +21,7 @@ class TestBaseResource(unittest.TestCase):
 
     @patch('resdk.resources.base.BaseResource', spec=True)
     def test_not_only_one_input(self, base_mock):
-        message = "One and only one of slug, id or model_data must be given"
+        message = "Only one of slug, id or model_data allowed"
         with six.assertRaisesRegex(self, ValueError, message):
             BaseResource.__init__(base_mock, id=1, slug="a", resolwe=self.resolwe_mock)
         with six.assertRaisesRegex(self, ValueError, message):
@@ -32,8 +32,6 @@ class TestBaseResource(unittest.TestCase):
         with six.assertRaisesRegex(self, ValueError, message):
             BaseResource.__init__(base_mock, id=1, slug="a", model_data={'a': 1},
                                   resolwe=self.resolwe_mock)
-        with six.assertRaisesRegex(self, ValueError, message):
-            BaseResource.__init__(base_mock, resolwe=self.resolwe_mock)
 
     @patch('resdk.resources.base.BaseResource', spec=True)
     def test_wrong_type_input(self, base_mock):
@@ -95,15 +93,25 @@ class TestBaseResource(unittest.TestCase):
         BaseResource.__init__(base_mock, id=1, resolwe=self.resolwe_mock)
         self.assertEqual(log_mock.getLogger.call_count, 1)
 
+    @patch('resdk.resources.base.getattr')
+    def test_fields(self, getattr_mock):
+        base_resource = BaseResource(resolwe=self.resolwe_mock)
+        base_resource.WRITABLE_FIELDS = ('writable', )
+        base_resource.UPDATE_PROTECTED_FIELDS = ('update_protected', )
+        base_resource.READ_ONLY_FIELDS = ('read_only', )
+        self.assertEqual(base_resource.fields(), ('writable', 'update_protected', 'read_only'))
 
-class TestOtherStuff(unittest.TestCase):
+
+class TestBaseMethods(unittest.TestCase):
 
     @patch('resdk.resources.base.setattr')
     @patch('resdk.resources.base.BaseResource', spec=True)
     def test_update_fields(self, base_mock, setattr_mock):
-        fields = {'a': 1, 'b': 2}
+        fields = {'id': 1, 'slug': 'testobj'}
+        base_mock.fields.return_value = ('id', 'slug')
         BaseResource._update_fields(base_mock, fields)
-        setattr_mock.assert_has_calls([call(base_mock, 'a', 1), call(base_mock, 'b', 2)],
+        setattr_mock.assert_has_calls([call(base_mock, 'id', 1),
+                                       call(base_mock, 'slug', 'testobj')],
                                       any_order=True)
 
     @patch('resdk.resources.base.BaseResource', spec=True)
@@ -113,10 +121,36 @@ class TestOtherStuff(unittest.TestCase):
         self.assertEqual(base_mock._update_fields.call_count, 1)
 
     @patch('resdk.resources.base.BaseResource', spec=True)
+    def test_save_post(self, base_mock):
+        base_mock.configure_mock(id=None, slug='test')
+        base_mock.WRITABLE_FIELDS = ('slug', )
+        base_mock.api = MagicMock(**{'post.return_value': {'id': 1, 'slug': 'test'}})
+        BaseResource.save(base_mock)
+        self.assertEqual(base_mock._update_fields.call_count, 1)
+
+    @patch('resdk.resources.base.BaseResource', spec=True)
+    def test_save_post_client_error(self, base_mock):
+        base_mock.configure_mock(id=None, slug='test')
+        base_mock.api = MagicMock(**{'post.side_effect': slumber.exceptions.HttpClientError(
+            message='', content='', response='')})
+
+        with self.assertRaises(slumber.exceptions.HttpClientError):
+            BaseResource.save(base_mock)
+        self.assertEqual(base_mock._update_fields.call_count, 0)
+
+    @patch('resdk.resources.base.BaseResource', spec=True)
+    def test_save_patch(self, base_mock):
+        base_mock.configure_mock(id=1, slug='test', _original_values={'slug': 'test-old'})
+        base_mock.WRITABLE_FIELDS = ('slug', )
+        base_mock.api = MagicMock(**{'patch.return_value': {'id': 1, 'slug': 'test'}})
+        BaseResource.save(base_mock)
+        self.assertEqual(base_mock._update_fields.call_count, 1)
+
+    @patch('resdk.resources.base.BaseResource', spec=True)
     def test_repr(self, base_mock):
-        base_mock.configure_mock(id=1, slug="a", name="b")
+        base_mock.configure_mock(id=1, slug='a', name='b')
         out = BaseResource.__repr__(base_mock)
-        self.assertEqual(out, "BaseResource <id: 1, slug: 'a', name: 'b'>")
+        self.assertEqual(out, 'BaseResource <id: 1, slug: \'a\', name: \'b\'>')
 
 
 if __name__ == '__main__':

@@ -299,6 +299,98 @@ class TestData(unittest.TestCase):
         self.assertTrue(stdout_string.count('re-save') > 1)
 
 
+class TestResourceSave(unittest.TestCase):
+
+    def setUp(self):
+        self.res = resdk.Resolwe(EMAIL, PASSW, URL)
+        self.remove = []
+
+    def tearDown(self):
+        for obj in self.remove:
+            if obj.id:
+                obj.delete()
+
+    def _new_resource(self, resource_class, defaults={}):
+        obj = resource_class(resolwe=self.res)
+        self.remove.append(obj)
+
+        for attribute, value in defaults.items():
+            setattr(obj, attribute, value)
+
+        obj.save()
+
+        response = obj.api(obj.id).get()
+        unsupported = set(obj.fields()).symmetric_difference(response.keys())
+        self.assertEqual(len(unsupported), 0,
+                         msg="Some fields are not supported: {}".format(', '.join(unsupported)))
+
+        obj.slug = 'my-test'
+        obj.save()
+
+        response = obj.api(obj.id).get()
+        self.assertEqual(response['slug'], obj.slug)
+
+    def test_new_data(self):
+        self._new_resource(Data, {'process': 'test-sleep-progress'})
+
+    def test_new_collection(self):
+        self._new_resource(Collection, {'name': 'my-collection'})
+
+    def test_new_process(self):
+        last_process = self.res.api.process.get(slug='my-process', ordering='-version', limit=1)
+        last_process = last_process[0] if len(last_process) == 1 else {}
+        last_version = last_process.get('version', 0)
+
+        process = Process(resolwe=self.res)
+        process.name = 'my-process'
+        process.slug = 'my-process'
+        process.type = 'data:my:process:'
+        process.version = last_version + 1
+        process.save()
+
+        response = process.api(process.id).get()
+        unsupported = set(process.fields()).symmetric_difference(response.keys())
+        self.assertEqual(len(unsupported), 0,
+                         msg="Some fields are not supported: {}".format(', '.join(unsupported)))
+
+    def test_new_sample(self):
+        sample = Sample(resolwe=self.res)
+        self.remove.append(sample)
+
+        sample.name = 'my-sample'
+        sample.save()
+
+        response = sample.api(sample.id).get()
+        unsupported = set(sample.fields()).symmetric_difference(response.keys())
+
+        self.assertEqual(len(unsupported), 1,  # presample field is not supported in Sample
+                         msg="Some fields are not supported: {}".format(', '.join(unsupported)))
+
+        sample.slug = 'my-test'
+        sample.save()
+
+        response = sample.api(sample.id).get()
+        self.assertEqual(response['slug'], sample.slug)
+
+    def test_new_presample(self):
+        presample = Sample(resolwe=self.res, presample=True)
+        self.remove.append(presample)
+
+        presample.name = 'my-presample'
+        presample.save()
+
+        response = presample.api(presample.id).get()
+        unsupported = set(presample.fields()).symmetric_difference(response.keys())
+        self.assertEqual(len(unsupported), 0,
+                         msg="Some fields are not supported: {}".format(', '.join(unsupported)))
+
+        presample.slug = 'my-test'
+        presample.save()
+
+        response = presample.api(presample.id).get()
+        self.assertEqual(response['slug'], presample.slug)
+
+
 class TestBaseCollection(unittest.TestCase):
 
     def setUp(self):

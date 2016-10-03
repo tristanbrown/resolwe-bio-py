@@ -24,28 +24,27 @@ class BaseCollection(BaseResource):
 
     """
 
+    # XXX: Make data a read only field and support add_data and remove_data
+    WRITABLE_FIELDS = ('data', 'description', 'settings', 'descriptor_schema',
+                       'descriptor') + BaseResource.WRITABLE_FIELDS
+
     def __init__(self, slug=None, id=None,  # pylint: disable=redefined-builtin
                  model_data=None, resolwe=None):
         """Initialize attributes."""
+        BaseResource.__init__(self, slug, id, model_data, resolwe)
+
         #: id's of data objects in the resource
         self.data = None
-
         #: a description
         self.description = None
-
         #: settings
         self.settings = None
-
         #: descriptor
         self.descriptor = None
-
         #: descriptor schema
         self.descriptor_schema = None
-
         #: collections
         self.collections = None
-
-        BaseResource.__init__(self, slug, id, model_data, resolwe)
 
     def data_types(self):
         """Return a list of data types (process_type).

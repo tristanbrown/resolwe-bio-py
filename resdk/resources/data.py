@@ -30,65 +30,55 @@ class Data(BaseResource):
 
     endpoint = 'data'
 
+    WRITABLE_FIELDS = ('descriptor_schema', 'descriptor') + BaseResource.WRITABLE_FIELDS
+    UPDATE_PROTECTED_FIELDS = ('input', 'process') + BaseResource.UPDATE_PROTECTED_FIELDS
+    READ_ONLY_FIELDS = ('process_input_schema', 'process_output_schema', 'output', 'started',
+                        'finished', 'checksum', 'status', 'process_progress', 'process_rc',
+                        'process_info', 'process_warning', 'process_error', 'process_type',
+                        'process_name') + BaseResource.READ_ONLY_FIELDS
+
     def __init__(self, slug=None, id=None,  # pylint: disable=redefined-builtin
                  model_data=None, resolwe=None):
         """Initialize attributes."""
+        BaseResource.__init__(self, slug, id, model_data, resolwe)
+
         #: specification of inputs
         self.process_input_schema = None
-
         #: actual input values
         self.input = None
-
         #: specification of outputs
         self.process_output_schema = None
-
         #: actual output values
         self.output = None
-
         #: the id of used descriptor schema
         self.descriptor_schema = None
-
         #: annotation data, with the form defined in descriptor_schema
         self.descriptor = None
-
         #: The ID of the process used in this data object
         self.process = None
-
         #: start time of the process in data object
         self.started = None
-
         #: finish time of the process in data object
         self.finished = None
-
         #: checksum field calculated on inputs
         self.checksum = None
-
         #: process status - Possible values: Uploading(UP), Resolving(RE),
         #: Waiting(WT), Processing(PR), Done(OK), Error(ER), Dirty (DR)
         self.status = None
-
         #: process progress in percentage
         self.process_progress = None
-
         #: Process algorithm return code
         self.process_rc = None
-
         #: info log message (list of strings)
         self.process_info = None
-
         #: warning log message (list of strings)
         self.process_warning = None
-
         #: error log message (list of strings)
         self.process_error = None
-
         #: what kind of output does process produce
         self.process_type = None
-
         #: process name
         self.process_name = None
-
-        BaseResource.__init__(self, slug, id, model_data, resolwe)
 
         self.logger = logging.getLogger(__name__)
 
@@ -109,7 +99,7 @@ class Data(BaseResource):
         self.annotation.update(
             self._flatten_field(fields['output'], fields['process_output_schema'], 'output'))
 
-        # TODO Descriptor schema!
+        # TODO: Descriptor schema!
 
     def _flatten_field(self, field, schema, path):
         """Reduce dicts of dicts to dot separated keys.
