@@ -249,7 +249,7 @@ def sequp():
 
                     if 'FASTQ_PATH' in row:
                         for seqfile in row['FASTQ_PATH'].split(','):
-                            seq_path = os.path.join(genialis_seq_dir, seqfile)
+                            seq_path = os.path.normpath(os.path.join(genialis_seq_dir, seqfile))
                             seq_paths.append(seq_path)
 
                         if all(os.path.isfile(sf) for sf in seq_paths):
@@ -286,13 +286,17 @@ def sequp():
             if read_schema:
                 descriptor_schema = read_schema['slug']
                 barcode_removed = annotations[sample_n].get('BARCODE_REMOVED', 'N').strip().upper()
+                exp_type = EXPERIMENT_TYPE.get(annotations[sample_n]['SEQ_TYPE'].upper(), '')
                 descriptor = {
-                    'barcode': annotations[sample_n].get('BARCODE', None),
-                    'barcode_removed': True if barcode_removed == 'Y' else False,
-                    'instrument_type': annotations[sample_n].get('INSTRUMENT', None),
-                    'seq_date': annotations[sample_n].get('SEQ_DATE', None),
+                    'reads_info': {
+                        'barcode': annotations[sample_n].get('BARCODE', None),
+                        'barcode_removed': True if barcode_removed == 'Y' else False,
+                        'instrument_type': annotations[sample_n].get('INSTRUMENT', None),
+                        'seq_date': annotations[sample_n].get('SEQ_DATE', None)
+                    }
                 }
-
+                if exp_type:
+                    descriptor['experiment_type'] = exp_type
             # Paired-end reads
             if (annotations[sample_n]['PAIRED_END'] == 'Y' and
                     annotations[sample_n]['FASTQ_PATH_PAIR']):
@@ -320,16 +324,12 @@ def sequp():
 
                 presample = resolwe.presample.filter(data=data.id)[0]
 
-                if 'geo' not in presample.descriptor:
-                    presample.descriptor['geo'] = {}
+                if 'sample' not in presample.descriptor:
+                    presample.descriptor['sample'] = {}
 
                 organism = ORGANISMS.get(annotations[sample_n]['ORGANISM'].upper(), '')
                 if organism:
-                    presample.descriptor['geo']['organism'] = organism
-
-                exp_type = EXPERIMENT_TYPE.get(annotations[sample_n]['SEQ_TYPE'].upper(), '')
-                if exp_type:
-                    presample.descriptor['geo']['experiment_type'] = exp_type
+                    presample.descriptor['sample']['organism'] = organism
 
                 presample.update_descriptor(presample.descriptor)
 

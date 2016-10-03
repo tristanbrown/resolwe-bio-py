@@ -21,6 +21,10 @@ Changed
 * Data objects in ``data`` field on collection resource are
   automatically hydrated
 
+Fixed
+-----
+* Fix the descriptor to match the updated sample and reads descriptor schemas
+
 
 ==================
 1.3.7 - 2016-10-05
