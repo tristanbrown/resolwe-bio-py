@@ -39,7 +39,10 @@ setup(
 
     packages=find_packages(),
     package_data={
-        'resdk': ['tests/files/*'],
+        'resdk': [
+            'tests/files/*',
+            'tests/functional/*.py',
+        ],
     },
 
     zip_safe=False,
