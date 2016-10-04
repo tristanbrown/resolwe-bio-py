@@ -482,7 +482,7 @@ class TestResAuth(unittest.TestCase):
         ResAuth.__init__(self.auth_mock, email='a', password='p', url='www.abc.com')
 
     def test_call(self):
-        res_auth = MagicMock(spec=ResAuth, sessionid="", csrftoken="")
+        res_auth = MagicMock(spec=ResAuth, sessionid="", csrftoken="", url="")
         ResAuth.__call__(res_auth, MagicMock(headers={}))
 
 

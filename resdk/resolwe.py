@@ -463,6 +463,7 @@ class ResAuth(requests.auth.AuthBase):
 
         self.sessionid = response.cookies['sessionid']
         self.csrftoken = response.cookies['csrftoken']
+        self.url = url
         # self.subscribe_id = str(uuid.uuid4())
 
     def __call__(self, request):
@@ -470,6 +471,7 @@ class ResAuth(requests.auth.AuthBase):
         request.headers['Cookie'] = 'csrftoken={}; sessionid={}'.format(self.csrftoken,
                                                                         self.sessionid)
         request.headers['X-CSRFToken'] = self.csrftoken
+        request.headers['referer'] = self.url
 
         # Not needed until we support HTTP Push with the API
         # if r.path_url != '/upload/':

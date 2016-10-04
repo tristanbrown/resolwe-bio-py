@@ -25,6 +25,7 @@ Fixed
 -----
 * Fix resolwe-upload-reads script
 * Rename ResolweQuerry to ResolweQuery
+* Add missing HTTP referer header
 
 
 ==================
