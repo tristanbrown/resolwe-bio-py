@@ -15,6 +15,7 @@ Added
 * Feature resource and resolwe-update-kb script
 * Remove resources with the delete() method
 * Create and update resources with the save() method
+* Validate read only and update protected fields
 
 Changed
 -------

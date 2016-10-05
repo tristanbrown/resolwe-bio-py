@@ -1,6 +1,7 @@
 """Constants and abstract classes."""
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import copy
 import logging
 import operator
 
@@ -14,12 +15,9 @@ class BaseResource(object):
     One and only one of the identifiers (slug, id or model_data)
     should be given.
 
-    :param slug: Resource slug
-    :type slug: str
-    :param id: Resource ID
-    :type id: int
-    :param model_data: Resource model data
-    :type model_data: dict
+    :param str slug: Resource slug
+    :param int id: Resource ID
+    :param dict model_data: Resource model data
     :param resolwe: Resolwe instance
     :type resolwe: Resolwe object
 
@@ -97,13 +95,12 @@ class BaseResource(object):
         return self.WRITABLE_FIELDS + self.UPDATE_PROTECTED_FIELDS + self.READ_ONLY_FIELDS
 
     def _update_fields(self, payload):
-        """Update resource fields.
+        """Update fields of the local resource based on the server values.
 
-        :param payload: Resource fields
-        :type payload: dict
+        :param dict payload: Resource field values
 
         """
-        self._original_values = payload
+        self._original_values = copy.deepcopy(payload)
         for field_name in self.fields():
             setattr(self, field_name, payload.get(field_name, None))
 
@@ -114,11 +111,25 @@ class BaseResource(object):
 
     def save(self):
         """Save resource to the server."""
+        def field_changed(field_name):
+            """Check if local field value is different from the server."""
+            return getattr(self, field_name) != self._original_values.get(field_name)
+
+        def assert_fields_changed(field_names):
+            """Check if local field value is different from the server."""
+            changed_fields = [field_name for field_name in field_names if
+                              field_changed(field_name)]
+
+            if changed_fields:
+                msg = "Not allowed to change read only fields {}".format(', '.join(changed_fields))
+                raise ValueError(msg)
+
         if self.id:  # update resource
+            assert_fields_changed(self.READ_ONLY_FIELDS + self.UPDATE_PROTECTED_FIELDS)
+
             payload = {}
             for field_name in self.WRITABLE_FIELDS:
-                # find changes
-                if getattr(self, field_name) != self._original_values.get(field_name):
+                if field_changed(field_name):
                     payload[field_name] = getattr(self, field_name)
 
             if payload:
@@ -127,6 +138,8 @@ class BaseResource(object):
 
         else:  # create resource
             try:
+                assert_fields_changed(self.READ_ONLY_FIELDS)
+
                 field_names = self.WRITABLE_FIELDS + self.UPDATE_PROTECTED_FIELDS
                 payload = {field_name: getattr(self, field_name) for field_name in field_names
                            if getattr(self, field_name) is not None}
@@ -142,6 +155,18 @@ class BaseResource(object):
     def delete(self):
         """Delete the resource object from the server."""
         self.api(self.id).delete()
+
+    def __setattr__(self, name, value):
+        """Detect changes of read only fields.
+
+        This method detects changes of scalar fields and references. A
+        more comprehensive check is called before save.
+
+        """
+        if name in self.READ_ONLY_FIELDS and value != self._original_values.get(name, None):
+            raise ValueError("Can not change read only field {}".format(name))
+
+        super(BaseResource, self).__setattr__(name, value)
 
     def __repr__(self):
         """Format resource name."""
