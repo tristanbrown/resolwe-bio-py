@@ -49,6 +49,9 @@ class TestBaseResource(unittest.TestCase):
 
         base_resource.WRITABLE_FIELDS = ('writable_scalar', )
         base_resource.READ_ONLY_FIELDS = ('read_only_scalar', )
+        base_resource._original_values = {'writable_scalar': None, 'read_only_scalar': None}
+        base_resource.writable_scalar = None
+        base_resource.read_only_scalar = None
 
         message = 'Can not change read only field read_only_scalar'
         with six.assertRaisesRegex(self, ValueError, message):

@@ -30,9 +30,9 @@ class Sample(BaseCollection):
         """Initialize attributes."""
         self.endpoint = 'presample' if presample else 'sample'
 
-        BaseCollection.__init__(self, slug, id, model_data, resolwe)
-
         self.presample = presample
+
+        BaseCollection.__init__(self, slug, id, model_data, resolwe)
 
     def print_annotation(self):
         """Provide annotation data."""

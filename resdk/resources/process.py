@@ -31,8 +31,6 @@ class Process(BaseResource):
     def __init__(self, slug=None, id=None,  # pylint: disable=redefined-builtin
                  model_data=None, resolwe=None):
         """Initialize attributes."""
-        BaseResource.__init__(self, slug, id, model_data, resolwe)
-
         self.data_name = None
         """
         the default name of data object using this process. When data object
@@ -69,6 +67,8 @@ class Process(BaseResource):
         self.output_schema = None
         #: the heart of process - here the algorithm is defined.
         self.run = None
+
+        BaseResource.__init__(self, slug, id, model_data, resolwe)
 
     def print_inputs(self):
         """Pretty print input_schema."""

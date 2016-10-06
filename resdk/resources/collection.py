@@ -31,8 +31,6 @@ class BaseCollection(BaseResource):
     def __init__(self, slug=None, id=None,  # pylint: disable=redefined-builtin
                  model_data=None, resolwe=None):
         """Initialize attributes."""
-        BaseResource.__init__(self, slug, id, model_data, resolwe)
-
         #: id's of data objects in the resource
         self.data = None
         #: a description
@@ -45,6 +43,8 @@ class BaseCollection(BaseResource):
         self.descriptor_schema = None
         #: collections
         self.collections = None
+
+        BaseResource.__init__(self, slug, id, model_data, resolwe)
 
     def data_types(self):
         """Return a list of data types (process_type).

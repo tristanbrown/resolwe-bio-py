@@ -47,8 +47,13 @@ class BaseResource(object):
 
         self._original_values = {}
 
+        def initialize_field(field_name, value):
+            """Initialize field and ignore those initialized in subclass."""
+            if not hasattr(self, field_name):  # check if field was initialized in subclass
+                setattr(self, field_name, value)
+
         for field_name in self.fields():
-            setattr(self, field_name, None)
+            initialize_field(field_name, None)
 
         #: a descriptive name of the resource
         self.name = None
@@ -163,7 +168,10 @@ class BaseResource(object):
         more comprehensive check is called before save.
 
         """
-        if name in self.READ_ONLY_FIELDS and value != self._original_values.get(name, None):
+        if (hasattr(self, '_original_values') and
+                name in self._original_values and
+                name in self.READ_ONLY_FIELDS and
+                value != self._original_values[name]):
             raise ValueError("Can not change read only field {}".format(name))
 
         super(BaseResource, self).__setattr__(name, value)

@@ -40,8 +40,6 @@ class Data(BaseResource):
     def __init__(self, slug=None, id=None,  # pylint: disable=redefined-builtin
                  model_data=None, resolwe=None):
         """Initialize attributes."""
-        BaseResource.__init__(self, slug, id, model_data, resolwe)
-
         #: specification of inputs
         self.process_input_schema = None
         #: actual input values
@@ -79,6 +77,8 @@ class Data(BaseResource):
         self.process_type = None
         #: process name
         self.process_name = None
+
+        BaseResource.__init__(self, slug, id, model_data, resolwe)
 
         self.logger = logging.getLogger(__name__)
 
