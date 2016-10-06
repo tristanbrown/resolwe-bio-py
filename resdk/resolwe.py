@@ -342,6 +342,7 @@ class Resolwe(object):
         response = None
         chunk_number = 0
         session_id = str(uuid.uuid4())
+        file_uid = str(uuid.uuid4())
         file_size = os.path.getsize(file_path)
         base_name = os.path.basename(file_path)
 
@@ -373,7 +374,8 @@ class Resolwe(object):
                             '_chunkNumber': chunk_number,
                             '_currentChunkSize': len(chunk)},
                         headers={
-                            'Session-Id': session_id}
+                            'Session-Id': session_id,
+                            'X-File-Uid': file_uid}
                     )
 
                     if response.status_code in [200, 201]:
