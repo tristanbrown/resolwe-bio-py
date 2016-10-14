@@ -17,6 +17,9 @@ sftp-config.json
 *.swp
 *~
 
+# Ignore log files
+/resdk/logfile.txt
+
 # Ignore binaries.
 *.py[cod]
 *.so
