@@ -246,15 +246,30 @@ class TestRun(unittest.TestCase):
 
     def setUp(self):
         self.process_json = [
-            {'slug':
-                'some:prc:slug:',  # pylint: disable=bad-continuation
-             'input_schema':
-                [{"label": "NGS reads (FASTQ)",  # pylint: disable=bad-continuation
+            {'slug': 'some:prc:slug:',
+             'input_schema': [
+                 {"label": "NGS reads (FASTQ)",
                   "type": "basic:file:",
+                  "required": "false",
                   "name": "src"},
-                 {"label": "list of NGS reads",  # pylint: disable=bad-continuation
+                 {"label": "list of NGS reads",
                   "type": "list:basic:file:",
-                  "name": "src_list"}]}]
+                  "required": "false",
+                  "name": "src_list"}
+             ]}
+        ]
+
+    @patch('resdk.resolwe.Resolwe', spec=True)
+    def test_wrapp_list(self, resolwe_mock):
+        resolwe_mock.api = MagicMock(**{'process.get.return_value': self.process_json,
+                                        'data.post.return_value': {}})
+
+        Resolwe.run(resolwe_mock, input={"src_list": ["/path/to/file"]})
+        resolwe_mock._process_file_field.assert_called_once_with('/path/to/file')
+
+        resolwe_mock.reset_mock()
+        Resolwe.run(resolwe_mock, input={"src_list": "/path/to/file"})
+        resolwe_mock._process_file_field.assert_called_once_with('/path/to/file')
 
     @patch('resdk.resolwe.Resolwe', spec=True)
     def test_bad_descriptor_input(self, resolwe_mock):

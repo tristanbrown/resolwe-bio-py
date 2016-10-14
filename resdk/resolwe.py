@@ -293,16 +293,23 @@ class Resolwe(object):
         else:
             raise ValueError("Unexpected behaviour at get process with slug {}".format(slug))
 
-        # Upload files in basic:file fields
+        # Pre-process inputs
         try:
             for schema, fields in iterate_fields(input, process['input_schema']):
                 field_name = schema['name']
                 field_type = schema['type']
                 field_value = fields[field_name]
 
+                # Wrapp `list:` fields into list if they are not already
+                if field_type.startswith('list:') and not isinstance(field_value, list):
+                    fields[field_name] = [field_value]
+                    field_value = fields[field_name]  # update value for the rest of the loop
+
+                # Upload files in `basic:file` fields
                 if field_type == 'basic:file:':
                     fields[field_name] = self._process_file_field(field_value)
 
+                # Upload files in list:basic:file` fields
                 elif field_type == 'list:basic:file:':
                     file_list = []
                     for obj in fields[field_name]:
