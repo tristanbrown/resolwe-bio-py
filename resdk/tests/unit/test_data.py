@@ -87,6 +87,19 @@ class TestData(unittest.TestCase):
             [u'123/file1.txt', u'123/file2.fq.gz'], '/some/path/')
 
     @patch('resdk.resources.data.Data', spec=True)
+    def test_add_output(self, data_mock):
+        data_mock.configure_mock(
+            annotation={'output.fastq': {'type': 'basic:file:', 'value': {'file': 'reads.fq'}},
+                        'output.fasta': {'type': 'basic:file:', 'value': {'file': 'genome.fa'}}}
+        )
+
+        files_list = Data.files(data_mock, field_name="output.fastq")
+        self.assertEqual(files_list, ['reads.fq'])
+
+        files_list = Data.files(data_mock, field_name="fastq")
+        self.assertEqual(files_list, ['reads.fq'])
+
+    @patch('resdk.resources.data.Data', spec=True)
     def test_print_annotation(self, data_mock):
         with six.assertRaisesRegex(self, NotImplementedError, ""):
             Data.print_annotation(data_mock)

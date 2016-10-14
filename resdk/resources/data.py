@@ -146,6 +146,9 @@ class Data(BaseResource):
             else:
                 raise KeyError("Item {} does not contain 'file' key.".format(fname))
 
+        if field_name and not field_name.startswith('output.'):
+            field_name = 'output.{}'.format(field_name)
+
         for ann_field_name, ann in self.annotation.items():
             if (ann_field_name.startswith('output') and
                     (field_name is None or field_name == ann_field_name)):

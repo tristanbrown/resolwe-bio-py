@@ -5,6 +5,16 @@ Change Log
 All notable changes to this project are documented in this file.
 
 
+==========
+Unreleased
+==========
+
+Changed
+-------
+* Auto-add 'output' prefix to ``field_name`` parameter for
+  downloading files
+
+
 ==================
 1.3.7 - 2016-10-05
 ==================
