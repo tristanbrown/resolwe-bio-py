@@ -28,11 +28,14 @@ class BaseCollection(BaseResource):
     WRITABLE_FIELDS = ('data', 'description', 'settings', 'descriptor_schema',
                        'descriptor') + BaseResource.WRITABLE_FIELDS
 
+    #: ids of data objects (if not hydrated), data objects (if hydrated)
+    _data = None
+    #: indicates if ``_data`` list is already hydrated
+    _data_hydrated = False
+
     def __init__(self, slug=None, id=None,  # pylint: disable=redefined-builtin
                  model_data=None, resolwe=None):
         """Initialize attributes."""
-        #: id's of data objects in the resource
-        self.data = None
         #: a description
         self.description = None
         #: settings
@@ -45,6 +48,21 @@ class BaseCollection(BaseResource):
         self.collections = None
 
         BaseResource.__init__(self, slug, id, model_data, resolwe)
+
+    @property
+    def data(self):
+        """Lazy load ``data`` objects belonging to the collection."""
+        if not self._data_hydrated:
+            self._data = self.resolwe.data.filter(id__in=','.join(map(str, self._data)))
+            self._data_hydrated = True
+
+        return self._data
+
+    @data.setter
+    def data(self, value):
+        """Store data ids and set hydration flag to ``False``."""
+        self._data = value
+        self._data_hydrated = False
 
     def data_types(self):
         """Return a list of data types (process_type).

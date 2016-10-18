@@ -27,6 +27,24 @@ class TestBaseCollection(unittest.TestCase):
         collection_mock.configure_mock(endpoint="fake_endpoint")
         BaseCollection.__init__(collection_mock, id=1, resolwe=MagicMock())
 
+    def test_data(self):
+        collection = Collection(id=1, resolwe=MagicMock())
+
+        # test setting data attribute
+        collection.data = [1, 2, 3]
+        self.assertEqual(collection._data, [1, 2, 3])
+        self.assertEqual(collection._data_hydrated, False)
+
+        # test getting data attribute
+        collection.resolwe.data.filter = MagicMock(return_value=['data_1', 'data_2', 'data_3'])
+        self.assertEqual(collection.data, ['data_1', 'data_2', 'data_3'])
+        self.assertEqual(collection._data_hydrated, True)
+
+        # test caching data attribute
+        self.assertEqual(collection.data, ['data_1', 'data_2', 'data_3'])
+        self.assertEqual(collection._data_hydrated, True)
+        self.assertEqual(collection.resolwe.data.filter.call_count, 1)
+
     @patch('resdk.resources.collection.BaseCollection', spec=True)
     def test_data_types(self, collection_mock):
         get_mock = MagicMock(**{'get.return_value': DATA_SAMPLE[0]})

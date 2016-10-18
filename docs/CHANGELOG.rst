@@ -18,6 +18,8 @@ Changed
 * Auto-add 'output' prefix to ``field_name`` parameter for
   downloading files
 * Auto-wrapp ``list:*`` fields into list if they are not already
+* Data objects in ``data`` field on collection resource are
+  automatically hydrated
 
 
 ==================
