@@ -60,6 +60,14 @@ class TestData(unittest.TestCase):
         data.resolwe.presample.filter = MagicMock(return_value=['presample'])
         self.assertEqual(data.presample, 'presample')
 
+        # don't override existing presample
+        data.resolwe.presample.filter = MagicMock(return_value=['presample 2'])
+        self.assertEqual(data.presample, 'presample')
+
+        # remove presample when gone
+        data.resolwe.presample.filter = MagicMock(return_value=[])
+        self.assertEqual(data.presample, None)
+
     @patch('resdk.resources.data.Data', spec=True)
     def test_files(self, data_mock):
         data_annotation = {
