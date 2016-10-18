@@ -39,6 +39,27 @@ class TestData(unittest.TestCase):
         expected = {u'p.src': {u'type': 'x', u'name': 'src', u'value': None, u'label': 'y'}}
         self.assertEqual(flat, expected)
 
+    def test_sample(self):
+        data = Data(id=1, resolwe=MagicMock())
+
+        data.resolwe.sample.filter = MagicMock(return_value=[])
+        self.assertEqual(data.sample, None)
+
+        data.resolwe.sample.filter = MagicMock(return_value=['sample'])
+        self.assertEqual(data.sample, 'sample')
+        # test caching
+        self.assertEqual(data.sample, 'sample')
+        self.assertEqual(data.resolwe.sample.filter.call_count, 1)
+
+    def test_presample(self):
+        data = Data(id=1, resolwe=MagicMock())
+
+        data.resolwe.presample.filter = MagicMock(return_value=[])
+        self.assertEqual(data.presample, None)
+
+        data.resolwe.presample.filter = MagicMock(return_value=['presample'])
+        self.assertEqual(data.presample, 'presample')
+
     @patch('resdk.resources.data.Data', spec=True)
     def test_files(self, data_mock):
         data_annotation = {

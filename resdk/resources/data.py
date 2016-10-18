@@ -30,6 +30,9 @@ class Data(BaseResource):
 
     endpoint = 'data'
 
+    #: (lazy loaded) ``Sample`` to which ``Data`` object belongs
+    _sample = None
+
     WRITABLE_FIELDS = ('descriptor_schema', 'descriptor') + BaseResource.WRITABLE_FIELDS
     UPDATE_PROTECTED_FIELDS = ('input', 'process') + BaseResource.UPDATE_PROTECTED_FIELDS
     READ_ONLY_FIELDS = ('process_input_schema', 'process_output_schema', 'output', 'started',
@@ -123,6 +126,26 @@ class Data(BaseResource):
             flat[path] = {'name': name, 'value': value, 'type': typ, 'label': label}
 
         return flat
+
+    @property
+    def sample(self):
+        """Get ``sample`` that object belongs to."""
+        # ``None`` means that request hasn't been made yet or that there
+        # is no ``sample`` for this object.
+        # In both cases we have to make the request as ``sample`` can be
+        # created (from ``presample``) anytime.
+        if self._sample is None:
+            self._sample = self.resolwe.sample.filter(data=self.id)
+            self._sample = None if len(self._sample) == 0 else self._sample[0]
+        return self._sample
+
+    @property
+    def presample(self):
+        """Get ``presample`` that object belongs to."""
+        # ``presample`` can not be cached as it can be converted to
+        # ``sample``.
+        presample = self.resolwe.presample.filter(data=self.id)
+        return None if len(presample) == 0 else presample[0]
 
     def files(self, file_name=None, field_name=None):
         """Get list of downloadable fields.

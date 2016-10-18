@@ -9,6 +9,10 @@ All notable changes to this project are documented in this file.
 Unreleased
 ==========
 
+Added
+-----
+* ``sample`` and ``presample`` properties to ``data`` resource
+
 Changed
 -------
 * Auto-add 'output' prefix to ``field_name`` parameter for
