@@ -53,7 +53,7 @@ class BaseCollection(BaseResource):
     def data(self):
         """Lazy load ``data`` objects belonging to the collection."""
         if not self._data_hydrated:
-            self._data = self.resolwe.data.filter(id__in=','.join(map(str, self._data)))
+            self._data = self.resolwe.data.filter(id__in=','.join(map(str, self._data or [])))
             self._data_hydrated = True
 
         return self._data
