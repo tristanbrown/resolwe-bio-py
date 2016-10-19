@@ -5,6 +5,7 @@ import six
 
 from .base import BaseResource
 from .data import Data
+from .utils import get_resource_id, resource_list
 
 
 class BaseCollection(BaseResource):
@@ -24,9 +25,9 @@ class BaseCollection(BaseResource):
 
     """
 
-    # XXX: Make data a read only field and support add_data and remove_data
-    WRITABLE_FIELDS = ('data', 'description', 'settings', 'descriptor_schema',
+    WRITABLE_FIELDS = ('description', 'settings', 'descriptor_schema',
                        'descriptor') + BaseResource.WRITABLE_FIELDS
+    READ_ONLY_FIELDS = ('data', ) + BaseResource.READ_ONLY_FIELDS
 
     #: ids of data objects (if not hydrated), data objects (if hydrated)
     _data = None
@@ -53,7 +54,10 @@ class BaseCollection(BaseResource):
     def data(self):
         """Lazy load ``data`` objects belonging to the collection."""
         if not self._data_hydrated:
-            self._data = self.resolwe.data.filter(id__in=','.join(map(str, self._data or [])))
+            data = self.resolwe.data.filter(id__in=','.join(map(str, self._data or [])))
+            # Transform list to ``resource_list``, so the comparison with the
+            # original value will work
+            self._data = resource_list(data)
             self._data_hydrated = True
 
         return self._data
@@ -63,6 +67,16 @@ class BaseCollection(BaseResource):
         """Store data ids and set hydration flag to ``False``."""
         self._data = value
         self._data_hydrated = False
+
+    def add_data(self, *data):
+        """Add ``data`` objects to the collection."""
+        data = [get_resource_id(d) for d in data]
+        self.api(self.id).add_data.post({'ids': data})
+
+    def remove_data(self, *data):
+        """Remove ``data`` objects from the collection."""
+        data = [get_resource_id(d) for d in data]
+        self.api(self.id).remove_data.post({'ids': data})
 
     def data_types(self):
         """Return a list of data types (process_type).

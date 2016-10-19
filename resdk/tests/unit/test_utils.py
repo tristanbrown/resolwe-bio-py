@@ -7,9 +7,12 @@ import unittest
 
 import six
 
-from mock import patch, call
+from mock import patch, call, MagicMock
 
 from resdk.resources import utils
+from resdk.resources.utils import resource_list
+from resdk.resources.data import Data
+
 
 PROCESS_OUTPUT_SCHEMA = [
     {'name': "fastq", 'type': "basic:file:", 'label': "Reads file"},
@@ -160,6 +163,27 @@ class TestUtils(unittest.TestCase):
         utils.endswith_colon(schema, 'process_type')
 
         self.assertEqual(schema, {'process_type': u'data:reads:fastq:single:'})
+
+    def test_get_resource_id(self):
+        data = Data(id=1, resolwe=MagicMock())
+        data.id = 1  # this is overriden when initialized
+        self.assertEqual(utils.get_resource_id(data), 1)
+
+        self.assertEqual(utils.get_resource_id(2), 2)
+
+    def test_resource_list(self):
+        data_1 = Data(id=1, resolwe=MagicMock())
+        data_1.id = 1  # this is overriden when initialized
+        data_2 = Data(id=2, resolwe=MagicMock())
+        data_2.id = 2  # this is overriden when initialized
+
+        self.assertTrue(resource_list([]) == None)  # noqa pylint: disable=singleton-comparison
+        self.assertTrue(resource_list([]) == [])
+        self.assertTrue(resource_list([data_1, data_2]) == [1, 2])
+        self.assertFalse(resource_list([data_1, data_2]) == [1, 3])
+        self.assertTrue(resource_list([data_1, data_2]) != [1, 3])
+        self.assertTrue(resource_list([1, 2]) == [1, 2])
+        self.assertTrue(resource_list([1, 2]) != [1, 2, 3])
 
 
 if __name__ == '__main__':

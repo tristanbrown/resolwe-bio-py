@@ -149,7 +149,7 @@ class Data(BaseResource):
         presample = self.resolwe.presample.filter(data=self.id)
         if len(presample) == 0:
             self._presample = None
-        # don't override existing sample object
+        # don't overwrite existing sample object
         elif self._presample is None:
             self._presample = presample[0]
         return self._presample

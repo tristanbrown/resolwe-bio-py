@@ -12,6 +12,8 @@ Unreleased
 Added
 -----
 * ``sample`` and ``presample`` properties to ``data`` resource
+* ``add_data`` and ``remove_data`` methods on collection and sample
+  resource for adding data objects to them
 
 Changed
 -------
@@ -20,6 +22,8 @@ Changed
 * Auto-wrapp ``list:*`` fields into list if they are not already
 * Data objects in ``data`` field on collection resource are
   automatically hydrated
+* ``data`` attribute on collection/sample resource is now read
+  only
 
 Fixed
 -----

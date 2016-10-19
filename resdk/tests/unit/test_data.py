@@ -60,7 +60,7 @@ class TestData(unittest.TestCase):
         data.resolwe.presample.filter = MagicMock(return_value=['presample'])
         self.assertEqual(data.presample, 'presample')
 
-        # don't override existing presample
+        # don't overwrite existing presample
         data.resolwe.presample.filter = MagicMock(return_value=['presample 2'])
         self.assertEqual(data.presample, 'presample')
 

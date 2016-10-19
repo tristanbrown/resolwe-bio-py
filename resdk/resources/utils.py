@@ -1,6 +1,8 @@
 """Resource utility functions."""
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from .base import BaseResource
+
 
 def iterate_fields(fields, schema):
     """Recursively iterate over all DictField sub-fields.
@@ -94,3 +96,35 @@ def endswith_colon(schema, field):
     """
     if field in schema and not schema[field].endswith(':'):
         schema[field] += ':'
+
+
+def get_resource_id(resource):
+    """Return id attribute of the object if it is resorce, othervise return given value."""
+    return resource.id if isinstance(resource, BaseResource) else resource
+
+
+class resource_list(list):  # pylint: disable=invalid-name
+    """Subclass of ``list`` used for resdk resources.
+
+    This list is aware of resource objects it holds and knows how to compare
+    them with a list of just object ids.
+
+    """
+
+    def __ne__(self, other):
+        """Chech if given two objects are NOT equal."""
+        if other is None:
+            other = []
+
+        if len(self) != len(other):
+            return True
+
+        for obj1, obj2 in zip(self, other):
+            if get_resource_id(obj1) != get_resource_id(obj2):
+                return True
+
+        return False
+
+    def __eq__(self, other):
+        """Chech if given two objects are equal."""
+        return not self.__ne__(other)
