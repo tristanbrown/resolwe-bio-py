@@ -14,6 +14,7 @@ import slumber
 import yaml
 
 
+from resdk.exceptions import ValidationError
 from resdk.resolwe import Resolwe, ResAuth
 from resdk.resources import Collection, Data
 from resdk import resolwe
@@ -274,25 +275,39 @@ class TestRun(unittest.TestCase):
              ]}
         ]
 
+    @patch('resdk.resolwe.Data')
     @patch('resdk.resolwe.Resolwe', spec=True)
-    def test_wrapp_list(self, resolwe_mock):
-        resolwe_mock.api = MagicMock(**{'process.get.return_value': self.process_json,
-                                        'data.post.return_value': {}})
+    def test_run_process(self, resolwe_mock, data_mock):
+        resolwe_mock.api = MagicMock(**{'process.get.return_value': self.process_json})
 
-        Resolwe.run(resolwe_mock, input={"src_list": ["/path/to/file"]})
+        Resolwe.run(resolwe_mock)
+        self.assertEqual(resolwe_mock.api.data.post.call_count, 1)
+
+    @patch('resdk.resolwe.Data')
+    @patch('resdk.resolwe.Resolwe', spec=True)
+    def test_get_or_run(self, resolwe_mock, data_mock):
+        resolwe_mock.api = MagicMock(**{'process.get.return_value': self.process_json})
+
+        Resolwe.get_or_run(resolwe_mock)
+        self.assertEqual(resolwe_mock.api.data.get_or_create.post.call_count, 1)
+
+    @patch('resdk.resolwe.Resolwe', spec=True)
+    def test_wrap_list(self, resolwe_mock):
+        process = self.process_json[0]
+
+        Resolwe._process_inputs(resolwe_mock, {"src_list": ["/path/to/file"]}, process)
         resolwe_mock._process_file_field.assert_called_once_with('/path/to/file')
 
         resolwe_mock.reset_mock()
-        Resolwe.run(resolwe_mock, input={"src_list": "/path/to/file"})
+        Resolwe._process_inputs(resolwe_mock, {"src_list": "/path/to/file"}, process)
         resolwe_mock._process_file_field.assert_called_once_with('/path/to/file')
 
     @patch('resdk.resolwe.Resolwe', spec=True)
     def test_keep_input(self, resolwe_mock):
-        resolwe_mock.api = MagicMock(**{'process.get.return_value': self.process_json,
-                                        'data.post.return_value': {}})
+        process = self.process_json[0]
 
         input_dict = {"src_list": ["/path/to/file"]}
-        Resolwe.run(resolwe_mock, input=input_dict)
+        Resolwe._process_inputs(resolwe_mock, input_dict, process)
         self.assertEqual(input_dict, {"src_list": ["/path/to/file"]})
 
     @patch('resdk.resolwe.Resolwe', spec=True)
@@ -305,11 +320,17 @@ class TestRun(unittest.TestCase):
             Resolwe.run(resolwe_mock, descriptor_schema="a")
 
     @patch('resdk.resolwe.Resolwe', spec=True)
+    def test_get_process(self, resolwe_mock):
+        resolwe_mock.api = MagicMock(**{'process.get.return_value': self.process_json})
+        process = Resolwe._get_process(resolwe_mock)
+        self.assertEqual(process['slug'], 'some:prc:slug:')
+
+    @patch('resdk.resolwe.Resolwe', spec=True)
     def test_process_length_0(self, resolwe_mock):
         resolwe_mock.api = MagicMock(**{'process.get.return_value': []})
         message = "Could not get process for given slug."
         with six.assertRaisesRegex(self, ValueError, message):
-            Resolwe.run(resolwe_mock)
+            Resolwe._get_process(resolwe_mock)
 
     @patch('resdk.resolwe.Resolwe', spec=True)
     def test_process_length_gt1(self, resolwe_mock):
@@ -317,18 +338,19 @@ class TestRun(unittest.TestCase):
         resolwe_mock.api = MagicMock(**{'process.get.return_value': process_out})
         message = "Unexpected behaviour at get process with slug .*"
         with six.assertRaisesRegex(self, ValueError, message):
-            Resolwe.run(resolwe_mock)
+            Resolwe._get_process(resolwe_mock)
 
     @patch('resdk.resolwe.os')
     @patch('resdk.resolwe.Resolwe', spec=True)
     def test_bad_inputs(self, resolwe_mock, os_mock):
         # Good file, upload fails becouse of bad input keyword
         os_mock.path.isfile.return_value = True
-        resolwe_mock.api = MagicMock(**{'process.get.return_value': self.process_json})
+        process = self.process_json[0]
+
         resolwe_mock._upload_file = MagicMock(return_value=None)
         message = r'Field .* not in process .* input schema.'
-        with six.assertRaisesRegex(self, KeyError, message):
-            Resolwe.run(resolwe_mock, input={"bad_key": "/good/path/to/file"})
+        with six.assertRaisesRegex(self, ValidationError, message):
+            Resolwe._process_inputs(resolwe_mock, {"bad_key": "/good/path/to/file"}, process)
 
     @patch('resdk.resolwe.Data')
     @patch('resdk.resolwe.Resolwe', spec=True)
@@ -348,23 +370,20 @@ class TestRun(unittest.TestCase):
 
     @patch('resdk.resolwe.Resolwe', spec=True)
     def test_dehydrate_data(self, resolwe_mock):
-        resolwe_mock.api = MagicMock(**{'process.get.return_value': self.process_json,
-                                        'data.post.return_value': {}})
-
         data_obj = Data(id=1, resolwe=MagicMock())
         data_obj.id = 1  # this is overriden when initialized
+        process = self.process_json[0]
 
-        Resolwe.run(resolwe_mock, input={"genome": data_obj})
-        resolwe_mock.api.data.post.assert_called_once_with(
-            {'process': 'some:prc:slug:', 'input': {'genome': 1}})
+        result = Resolwe._process_inputs(resolwe_mock, {"genome": data_obj}, process)
+        self.assertEqual(result, {'genome': 1})
 
-        resolwe_mock.reset_mock()
-        Resolwe.run(resolwe_mock, input={"reads": [data_obj]})
-        resolwe_mock.api.data.post.assert_called_once_with(
-            {'process': 'some:prc:slug:', 'input': {'reads': [1]}})
+        result = Resolwe._process_inputs(resolwe_mock, {"reads": [data_obj]}, process)
+        self.assertEqual(result, {'reads': [1]})
 
     @patch('resdk.resolwe.Resolwe', spec=True)
     def test_dehydrate_collections(self, resolwe_mock):
+        resolwe_mock.configure_mock(**{'_get_process.return_value': {'slug': 'some:prc:slug:'},
+                                       '_process_inputs.return_value': {}})
         resolwe_mock.api = MagicMock(**{'process.get.return_value': self.process_json,
                                         'data.post.return_value': {}})
 

@@ -29,6 +29,7 @@ from requests.exceptions import ConnectionError  # pylint: disable=redefined-bui
 import slumber
 from six.moves.urllib.parse import urljoin  # pylint: disable=import-error
 
+from .exceptions import ValidationError
 from .resources import get_collection_id, get_data_id, Data, Collection, Sample, Process
 from .resources.kb import Feature
 from .resources.utils import iterate_fields, iterate_schema, endswith_colon
@@ -253,6 +254,69 @@ class Resolwe(object):
             'file_temp': file_temp,
         }
 
+    def _get_process(self, slug=None):
+        """Return process with given slug.
+
+        Raise error if process doesn't exist or more than one is returned.
+        """
+        process = self.api.process.get(slug=slug, ordering='-version', limit=1)
+
+        if len(process) == 1:
+            process = process[0]
+        elif len(process) == 0:
+            raise ValueError("Could not get process for given slug.")
+        else:
+            raise ValueError("Unexpected behaviour at get process with slug {}".format(slug))
+
+        return process
+
+    def _process_inputs(self, inputs, process):
+        """Process input fields.
+
+        Processing includes:
+        * wraping ``list:*`` to the list if they are not already
+        * dehydrating values of ``data:*`` and ``list:data:*`` fields
+        * uploading files in ``basic:file:`` and ``list:basic:file:``
+          fields
+        """
+        inputs = copy.deepcopy(inputs)  # leave original intact
+
+        try:
+            for schema, fields in iterate_fields(inputs, process['input_schema']):
+                field_name = schema['name']
+                field_type = schema['type']
+                field_value = fields[field_name]
+
+                # XXX: Remove this when supported on server.
+                # Wrap `list:` fields into list if they are not already
+                if field_type.startswith('list:') and not isinstance(field_value, list):
+                    fields[field_name] = [field_value]
+                    field_value = fields[field_name]  # update value for the rest of the loop
+
+                # Dehydrate `data:*` fields
+                if field_type.startswith('data:'):
+                    fields[field_name] = get_data_id(field_value)
+
+                # Dehydrate `list:data:*` fields
+                elif field_type.startswith('list:data:'):
+                    fields[field_name] = [get_data_id(data) for data in field_value]
+
+                # Upload files in `basic:file:` fields
+                elif field_type == 'basic:file:':
+                    fields[field_name] = self._process_file_field(field_value)
+
+                # Upload files in list:basic:file:` fields
+                elif field_type == 'list:basic:file:':
+                    fields[field_name] = [self._process_file_field(obj) for obj in field_value]
+
+        except KeyError as key_error:
+            field_name = key_error.args[0]
+            slug = process['slug']
+            raise ValidationError(
+                "Field '{}' not in process '{}' input schema.".format(field_name, slug))
+
+        return inputs
+
     def run(self, slug=None, input={}, descriptor=None,  # pylint: disable=redefined-builtin
             descriptor_schema=None, collections=[],
             data_name='', src=None, tools=None):
@@ -296,51 +360,8 @@ class Resolwe(object):
         if tools is not None:
             self._upload_tools(tools)
 
-        process = self.api.process.get(slug=slug, ordering='-version', limit=1)
-
-        if len(process) == 1:
-            process = process[0]
-        elif len(process) == 0:
-            raise ValueError("Could not get process for given slug.")
-        else:
-            raise ValueError("Unexpected behaviour at get process with slug {}".format(slug))
-
-        # Pre-process inputs
-        input = copy.deepcopy(input)  # leave original intact
-        try:
-            for schema, fields in iterate_fields(input, process['input_schema']):
-                field_name = schema['name']
-                field_type = schema['type']
-                field_value = fields[field_name]
-
-                # Wrap `list:` fields into list if they are not already
-                if field_type.startswith('list:') and not isinstance(field_value, list):
-                    fields[field_name] = [field_value]
-                    field_value = fields[field_name]  # update value for the rest of the loop
-
-                # Dehydrate `data:*` fields
-                if field_type.startswith('data:'):
-                    fields[field_name] = get_data_id(field_value)
-
-                # Dehydrate `list:data:*` fields
-                if field_type.startswith('list:data:'):
-                    fields[field_name] = []
-                    for data in field_value:
-                        fields[field_name].append(get_data_id(data))
-
-                # Upload files in `basic:file` fields
-                if field_type == 'basic:file:':
-                    fields[field_name] = self._process_file_field(field_value)
-
-                # Upload files in list:basic:file` fields
-                elif field_type == 'list:basic:file:':
-                    fields[field_name] = []
-                    for obj in field_value:
-                        fields[field_name].append(self._process_file_field(obj))
-
-        except KeyError as key_error:
-            raise KeyError("Field '{}' not in process '{}' input schema.".format(key_error.args[0],
-                                                                                 process['slug']))
+        process = self._get_process(slug)
+        inputs = self._process_inputs(input, process)
 
         # Dehydrate `collections` list
         dehydrated_collections = []
@@ -350,7 +371,7 @@ class Resolwe(object):
 
         data = {
             'process': process['slug'],
-            'input': input,
+            'input': inputs,
         }
 
         if data_name:
@@ -364,6 +385,23 @@ class Resolwe(object):
             data['collections'] = collections
 
         model_data = self.api.data.post(data)
+        return Data(model_data=model_data, resolwe=self)
+
+    def get_or_run(self, slug=None, input={}):  # pylint: disable=redefined-builtin
+        """Return existing object if found, otherwise create new one.
+
+        :param str slug: Process slug (human readable unique identifier)
+        :param dict input: Input values
+        """
+        process = self._get_process(slug)
+        inputs = self._process_inputs(input, process)
+
+        data = {
+            'process': process['slug'],
+            'input': inputs,
+        }
+
+        model_data = self.api.data.get_or_create.post(data)
         return Data(model_data=model_data, resolwe=self)
 
     def _upload_file(self, file_path):

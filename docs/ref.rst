@@ -6,4 +6,6 @@ SDK Reference
 
 .. automodule:: resdk.resources
 
+.. automodule:: resdk.exceptions
+
 .. automodule:: resdk.resdk_logger

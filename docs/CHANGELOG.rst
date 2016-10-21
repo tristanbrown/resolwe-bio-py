@@ -9,6 +9,11 @@ All notable changes to this project are documented in this file.
 Unreleased
 ==========
 
+Added
+-----
+* ``get_or_run`` method to ``Resolwe`` class to return matching
+  object if already exists, otherwise create it
+
 Changed
 -------
 * Include all necessary files for running the tests in source distribution
