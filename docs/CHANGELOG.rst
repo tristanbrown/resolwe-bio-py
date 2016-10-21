@@ -14,6 +14,11 @@ Changed
 * Include all necessary files for running the tests in source distribution
 * Exclude tests from built/installed version of the package
 
+Fixed
+-----
+* Fix ``files`` and ``download`` methods in ``collection`` resource to
+  work with hydrated list of Data objects
+
 
 ==================
 1.4.0 - 2016-10-19

@@ -4,7 +4,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import six
 
 from .base import BaseResource
-from .data import Data
 from .utils import get_resource_id, resource_list
 
 
@@ -90,8 +89,7 @@ class BaseCollection(BaseResource):
     def files(self, file_name=None, field_name=None):
         """Return list of files in resource."""
         file_list = []
-        for id_ in self.data:
-            data = Data(id=id_, resolwe=self.resolwe)
+        for data in self.data:
             file_list.extend(fname for fname in data.files(file_name=file_name,
                                                            field_name=field_name))
 
@@ -124,20 +122,10 @@ class BaseCollection(BaseResource):
         if file_type and not isinstance(file_type, six.string_types):
             raise ValueError("Invalid argument value `file_type`.")
 
-        for id_ in self.data:
-            data = Data(id=id_, resolwe=self.resolwe)
+        for data in self.data:
+            data_files = data.files(file_name, file_type)
+            files.extend('{}/{}'.format(data.id, file_name) for file_name in data_files)
 
-            def format_file_type(ofield):
-                """Ensure that `ofield` starts with `output`."""
-                if ofield is not None and not ofield.startswith('output'):
-                    return '.'.join(['output'] + ofield.split('.'))
-                else:
-                    return ofield
-
-            data_files = data.files(file_name, format_file_type(file_type))
-            files.extend(zip(data_files, [id_] * len(data_files)))
-
-        files = ['{}/{}'.format(id_, file_) for file_, id_ in files]
         self.resolwe._download_files(files, download_dir)  # pylint: disable=protected-access
 
     def print_annotation(self):

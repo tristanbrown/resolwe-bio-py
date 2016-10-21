@@ -13,11 +13,11 @@ from resdk.resources.collection import BaseCollection, Collection
 from resdk.resources.sample import Sample
 from resdk.tests.mocks.data import DATA_SAMPLE
 
-DATA0 = MagicMock(**{'files.return_value': []})
+DATA0 = MagicMock(**{'files.return_value': [], 'id': 0})
 
-DATA1 = MagicMock(**{'files.return_value': ['reads.fq', 'arch.gz']})
+DATA1 = MagicMock(**{'files.return_value': ['reads.fq', 'arch.gz'], 'id': 1})
 
-DATA2 = MagicMock(**{'files.return_value': ['outfile.exp']})
+DATA2 = MagicMock(**{'files.return_value': ['outfile.exp'], 'id': 2})
 
 
 class TestBaseCollection(unittest.TestCase):
@@ -54,11 +54,9 @@ class TestBaseCollection(unittest.TestCase):
         types = BaseCollection.data_types(collection_mock)
         self.assertEqual(types, [u'data:reads:fastq:single:'])
 
-    @patch('resdk.resources.collection.Data')
     @patch('resdk.resources.collection.BaseCollection', spec=True)
-    def test_files(self, collection_mock, data_mock):
-        collection_mock.configure_mock(data=[1, 2], resolwe=" ")
-        data_mock.side_effect = [DATA1, DATA2]
+    def test_files(self, collection_mock):
+        collection_mock.configure_mock(data=[DATA1, DATA2], resolwe=" ")
 
         flist = BaseCollection.files(collection_mock)
         self.assertEqual(set(flist), set(['arch.gz', 'reads.fq', 'outfile.exp']))
@@ -71,25 +69,22 @@ class TestBaseCollection(unittest.TestCase):
 
 class TestBaseCollectionDownload(unittest.TestCase):
 
-    @patch('resdk.resources.collection.Data')
     @patch('resdk.resources.collection.BaseCollection', spec=True)
-    def test_file_type(self, collection_mock, data_mock):
-        collection_mock.configure_mock(data=[1, 2], resolwe=MagicMock())
-        data_mock.side_effect = [DATA0, DATA2, DATA1, DATA0]
-
+    def test_file_type(self, collection_mock):
+        collection_mock.configure_mock(data=[DATA0, DATA2], resolwe=MagicMock())
         BaseCollection.download(collection_mock, file_type='output.exp')
         flist = [u'2/outfile.exp']
         collection_mock.resolwe._download_files.assert_called_once_with(flist, None)
 
         # Check if ok to also provide ``output_field`` that does not start with 'output'
-        flist = [u'1/reads.fq', u'1/arch.gz']
         collection_mock.reset_mock()
+        collection_mock.configure_mock(data=[DATA1, DATA0], resolwe=MagicMock())
         BaseCollection.download(collection_mock, file_type='fastq')
+        flist = [u'1/reads.fq', u'1/arch.gz']
         collection_mock.resolwe._download_files.assert_called_once_with(flist, None)
 
-    @patch('resdk.resources.collection.Data')
     @patch('resdk.resources.collection.BaseCollection', spec=True)
-    def test_bad_file_type(self, collection_mock, data_mock):
+    def test_bad_file_type(self, collection_mock):
         message = "Invalid argument value `file_type`."
         with six.assertRaisesRegex(self, ValueError, message):
             BaseCollection.download(collection_mock, file_type=123)

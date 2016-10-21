@@ -181,10 +181,11 @@ class Data(BaseResource):
 
         for ann_field_name, ann in self.annotation.items():
             if (ann_field_name.startswith('output') and
-                    (field_name is None or field_name == ann_field_name)):
-                if ann['type'].startswith('basic:file:') and ann['value'] is not None:
+                    (field_name is None or field_name == ann_field_name) and
+                    ann['value'] is not None):
+                if ann['type'].startswith('basic:file:'):
                     put_in_download_list(ann['value'], ann_field_name)
-                elif ann['type'].startswith('list:basic:file:') and ann['value'] is not None:
+                elif ann['type'].startswith('list:basic:file:'):
                     for element in ann['value']:
                         put_in_download_list(element, ann_field_name)
 
