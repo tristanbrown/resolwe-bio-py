@@ -180,3 +180,8 @@ class BaseResource(object):
         """Format resource name."""
         return "{} <id: {}, slug: '{}', name: '{}'>".format(self.__class__.__name__,
                                                             self.id, self.slug, self.name)
+
+
+def get_resource_id(resource):
+    """Return id attribute of the object if it is resorce, othervise return given value."""
+    return resource.id if isinstance(resource, BaseResource) else resource

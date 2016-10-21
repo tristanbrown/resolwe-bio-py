@@ -1,7 +1,7 @@
 """Resource utility functions."""
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from .base import BaseResource
+from .base import get_resource_id
 
 
 def iterate_fields(fields, schema):
@@ -96,11 +96,6 @@ def endswith_colon(schema, field):
     """
     if field in schema and not schema[field].endswith(':'):
         schema[field] += ':'
-
-
-def get_resource_id(resource):
-    """Return id attribute of the object if it is resorce, othervise return given value."""
-    return resource.id if isinstance(resource, BaseResource) else resource
 
 
 class resource_list(list):  # pylint: disable=invalid-name

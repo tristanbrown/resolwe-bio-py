@@ -10,7 +10,8 @@ import slumber
 
 from mock import patch, MagicMock, call
 
-from resdk.resources.base import BaseResource
+from resdk.resources.base import BaseResource, get_resource_id
+from resdk.resources import Data
 
 
 class TestBaseResource(unittest.TestCase):
@@ -234,6 +235,13 @@ class TestBaseMethods(unittest.TestCase):
         base_mock.configure_mock(id=1, slug='a', name='b')
         out = BaseResource.__repr__(base_mock)
         self.assertEqual(out, 'BaseResource <id: 1, slug: \'a\', name: \'b\'>')
+
+    def test_get_resource_id(self):
+        data = Data(id=1, resolwe=MagicMock())
+        data.id = 1  # this is overriden when initialized
+        self.assertEqual(get_resource_id(data), 1)
+
+        self.assertEqual(get_resource_id(2), 2)
 
 
 if __name__ == '__main__':

@@ -160,3 +160,8 @@ class Collection(BaseCollection):
     def print_annotation(self):
         """Provide annotation data."""
         raise NotImplementedError()
+
+
+def get_collection_id(collection):
+    """Return id attribute of the object if it is collection, othervise return given value."""
+    return collection.id if isinstance(collection, Collection) else collection

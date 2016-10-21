@@ -7,7 +7,7 @@ import unittest
 
 from mock import patch, MagicMock
 
-from resdk.resources.process import Process
+from resdk.resources.process import Process, get_process_id
 
 
 class TestBaseCollection(unittest.TestCase):
@@ -23,6 +23,13 @@ class TestBaseCollection(unittest.TestCase):
         process_mock.configure_mock(input_schema="fake_input_schema")
         Process.print_inputs(process_mock)
         print_input_mock.assert_called_once_with('fake_input_schema', 0)
+
+    def test_get_process_id(self):
+        process = Process(id=1, resolwe=MagicMock())
+        process.id = 1  # this is overriden when initialized
+        self.assertEqual(get_process_id(process), 1)
+
+        self.assertEqual(get_process_id(2), 2)
 
 
 if __name__ == '__main__':

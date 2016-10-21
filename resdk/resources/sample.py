@@ -49,3 +49,8 @@ class Sample(BaseCollection):
             self.logger.info('Moved Sample %s from presmaples to samples', self.id)
         else:
             raise NotImplementedError("Method supports objects in presample endpoint only.")
+
+
+def get_sample_id(sample):
+    """Return id attribute of the object if it is sample, othervise return given value."""
+    return sample.id if isinstance(sample, Sample) else sample

@@ -33,9 +33,10 @@ Utility functions
 
 """
 
-from .collection import Collection
-from .data import Data
-from .sample import Sample
-from .process import Process
+from .collection import Collection, get_collection_id
+from .data import Data, get_data_id
+from .sample import Sample, get_sample_id
+from .process import Process, get_process_id
 
-__all__ = ('Collection', 'Data', 'Sample', 'Process')
+__all__ = ('get_collection_id', 'get_data_id', 'get_sample_id', 'get_process_id',
+           'Collection', 'Data', 'Sample', 'Process')

@@ -73,3 +73,8 @@ class Process(BaseResource):
     def print_inputs(self):
         """Pretty print input_schema."""
         _print_input_line(self.input_schema, 0)  # pylint: disable=no-member
+
+
+def get_process_id(process):
+    """Return id attribute of the object if it is process, othervise return given value."""
+    return process.id if isinstance(process, Process) else process

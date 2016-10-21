@@ -242,3 +242,8 @@ class Data(BaseResource):
                 output += chunk
 
         return output.decode("utf-8")
+
+
+def get_data_id(data):
+    """Return id attribute of the object if it is data, othervise return given value."""
+    return data.id if isinstance(data, Data) else data

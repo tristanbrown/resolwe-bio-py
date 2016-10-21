@@ -9,7 +9,7 @@ import six
 
 from mock import patch, MagicMock
 
-from resdk.resources.data import Data
+from resdk.resources.data import Data, get_data_id
 from resdk.tests.mocks.data import DATA_SAMPLE
 
 
@@ -158,6 +158,13 @@ class TestData(unittest.TestCase):
         out = Data.stdout(data_mock)
 
         self.assertEqual(response.raise_for_status.call_count, 1)
+
+    def test_get_data_id(self):
+        data = Data(id=1, resolwe=MagicMock())
+        data.id = 1  # this is overriden when initialized
+        self.assertEqual(get_data_id(data), 1)
+
+        self.assertEqual(get_data_id(2), 2)
 
 
 if __name__ == '__main__':

@@ -164,13 +164,6 @@ class TestUtils(unittest.TestCase):
 
         self.assertEqual(schema, {'process_type': u'data:reads:fastq:single:'})
 
-    def test_get_resource_id(self):
-        data = Data(id=1, resolwe=MagicMock())
-        data.id = 1  # this is overriden when initialized
-        self.assertEqual(utils.get_resource_id(data), 1)
-
-        self.assertEqual(utils.get_resource_id(2), 2)
-
     def test_resource_list(self):
         data_1 = Data(id=1, resolwe=MagicMock())
         data_1.id = 1  # this is overriden when initialized

@@ -27,7 +27,7 @@ from requests.exceptions import ConnectionError  # pylint: disable=redefined-bui
 import slumber
 from six.moves.urllib.parse import urljoin  # pylint: disable=import-error
 
-from .resources import Data, Collection, Sample, Process
+from .resources import get_collection_id, get_data_id, Data, Collection, Sample, Process
 from .resources.kb import Feature
 from .resources.utils import iterate_fields, iterate_schema, endswith_colon
 
@@ -300,10 +300,20 @@ class Resolwe(object):
                 field_type = schema['type']
                 field_value = fields[field_name]
 
-                # Wrapp `list:` fields into list if they are not already
+                # Wrap `list:` fields into list if they are not already
                 if field_type.startswith('list:') and not isinstance(field_value, list):
                     fields[field_name] = [field_value]
                     field_value = fields[field_name]  # update value for the rest of the loop
+
+                # Dehydrate `data:*` fields
+                if field_type.startswith('data:'):
+                    fields[field_name] = get_data_id(field_value)
+
+                # Dehydrate `list:data:*` fields
+                if field_type.startswith('list:data:'):
+                    fields[field_name] = []
+                    for data in field_value:
+                        fields[field_name].append(get_data_id(data))
 
                 # Upload files in `basic:file` fields
                 if field_type == 'basic:file:':
@@ -311,14 +321,19 @@ class Resolwe(object):
 
                 # Upload files in list:basic:file` fields
                 elif field_type == 'list:basic:file:':
-                    file_list = []
-                    for obj in fields[field_name]:
-                        file_list.append(self._process_file_field(obj))
-                    fields[field_name] = file_list
+                    fields[field_name] = []
+                    for obj in field_value:
+                        fields[field_name].append(self._process_file_field(obj))
 
         except KeyError as key_error:
             raise KeyError("Field '{}' not in process '{}' input schema.".format(key_error.args[0],
                                                                                  process['slug']))
+
+        # Dehydrate `collections` list
+        dehydrated_collections = []
+        for collection in collections:
+            dehydrated_collections.append(get_collection_id(collection))
+        collections = dehydrated_collections
 
         data = {
             'process': process['slug'],

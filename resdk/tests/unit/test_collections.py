@@ -9,8 +9,8 @@ import six
 
 from mock import patch, MagicMock
 
-from resdk.resources.collection import BaseCollection, Collection
-from resdk.resources.sample import Sample
+from resdk.resources.collection import BaseCollection, Collection, get_collection_id
+from resdk.resources.sample import Sample, get_sample_id
 from resdk.tests.mocks.data import DATA_SAMPLE
 
 DATA0 = MagicMock(**{'files.return_value': [], 'id': 0})
@@ -102,6 +102,13 @@ class TestCollection(unittest.TestCase):
         with self.assertRaises(NotImplementedError):
             Collection.print_annotation(collection_mock)
 
+    def test_get_collection_id(self):
+        collection = Collection(id=1, resolwe=MagicMock())
+        collection.id = 1  # this is overriden when initialized
+        self.assertEqual(get_collection_id(collection), 1)
+
+        self.assertEqual(get_collection_id(2), 2)
+
 
 class TestSample(unittest.TestCase):
 
@@ -131,6 +138,13 @@ class TestSample(unittest.TestCase):
                                    api=MagicMock(), logger=MagicMock())
         Sample.confirm_is_annotated(sample_mock)
         sample_mock.api(42).patch.assert_called_once_with({'presample': False})
+
+    def test_get_sample_id(self):
+        sample = Sample(id=1, resolwe=MagicMock())
+        sample.id = 1  # this is overriden when initialized
+        self.assertEqual(get_sample_id(sample), 1)
+
+        self.assertEqual(get_sample_id(2), 2)
 
 
 if __name__ == '__main__':

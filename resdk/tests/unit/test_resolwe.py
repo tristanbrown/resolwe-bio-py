@@ -15,6 +15,7 @@ import yaml
 
 
 from resdk.resolwe import Resolwe, ResAuth
+from resdk.resources import Collection, Data
 from resdk import resolwe
 
 
@@ -255,7 +256,15 @@ class TestRun(unittest.TestCase):
                  {"label": "list of NGS reads",
                   "type": "list:basic:file:",
                   "required": "false",
-                  "name": "src_list"}
+                  "name": "src_list"},
+                 {"label": "Genome object",
+                  "type": "data:genome:fasta:",
+                  "required": "false",
+                  "name": "genome"},
+                 {"label": "List of reads objects",
+                  "type": "list:data:reads:fastg:",
+                  "required": "false",
+                  "name": "reads"},
              ]}
         ]
 
@@ -321,6 +330,35 @@ class TestRun(unittest.TestCase):
         Resolwe.run(resolwe_mock,
                     input={"src": "/path/to/file1",
                            "src_list": ["/path/to/file2", "/path/to/file3"]})
+
+    @patch('resdk.resolwe.Resolwe', spec=True)
+    def test_dehydrate_data(self, resolwe_mock):
+        resolwe_mock.api = MagicMock(**{'process.get.return_value': self.process_json,
+                                        'data.post.return_value': {}})
+
+        data_obj = Data(id=1, resolwe=MagicMock())
+        data_obj.id = 1  # this is overriden when initialized
+
+        Resolwe.run(resolwe_mock, input={"genome": data_obj})
+        resolwe_mock.api.data.post.assert_called_once_with(
+            {'process': 'some:prc:slug:', 'input': {'genome': 1}})
+
+        resolwe_mock.reset_mock()
+        Resolwe.run(resolwe_mock, input={"reads": [data_obj]})
+        resolwe_mock.api.data.post.assert_called_once_with(
+            {'process': 'some:prc:slug:', 'input': {'reads': [1]}})
+
+    @patch('resdk.resolwe.Resolwe', spec=True)
+    def test_dehydrate_collections(self, resolwe_mock):
+        resolwe_mock.api = MagicMock(**{'process.get.return_value': self.process_json,
+                                        'data.post.return_value': {}})
+
+        collection = Collection(id=1, resolwe=MagicMock())
+        collection.id = 1  # this is overriden when initialized
+
+        Resolwe.run(resolwe_mock, collections=[collection])
+        resolwe_mock.api.data.post.assert_called_once_with(
+            {'process': 'some:prc:slug:', 'input': {}, 'collections': [1]})
 
     @patch('resdk.resolwe.Data')
     @patch('resdk.resolwe.os')

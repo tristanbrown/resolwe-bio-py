@@ -18,6 +18,8 @@ Fixed
 -----
 * Fix ``files`` and ``download`` methods in ``collection`` resource to
   work with hydrated list of Data objects
+* ``inputs`` and ``collections`` are automatically dehydrated if whole
+  objects are passed to ``run`` function
 
 
 ==================
