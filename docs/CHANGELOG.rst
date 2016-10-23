@@ -5,6 +5,16 @@ Change Log
 All notable changes to this project are documented in this file.
 
 
+==========
+Unreleased
+==========
+
+Changed
+-------
+* Include all necessary files for running the tests in source distribution
+* Exclude tests from built/installed version of the package
+
+
 ==================
 1.4.0 - 2016-10-19
 ==================

@@ -37,13 +37,7 @@ setup(
 
     license=about['__license__'],
 
-    packages=find_packages(),
-    package_data={
-        'resdk': [
-            'tests/files/*',
-            'tests/functional/*.py',
-        ],
-    },
+    packages=find_packages(exclude=['tests', 'tests.*', '*.tests', '*.tests.*']),
 
     zip_safe=False,
     install_requires=(
