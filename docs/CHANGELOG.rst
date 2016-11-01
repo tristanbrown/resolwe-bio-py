@@ -22,6 +22,8 @@ Fixed
 * ``inputs`` and ``collections`` are automatically dehydrated if whole
   objects are passed to ``run`` function
 * Set chunk size for uploading files to 8MB
+* Original value of ``input`` parameter is kept when running ``run``
+  funtion
 
 
 ==================
