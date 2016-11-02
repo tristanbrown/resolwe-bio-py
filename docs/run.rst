@@ -168,6 +168,21 @@ What just happened?
 * Data object will be included in collections 1 and 2.
 * Data object name was set to "my_favourite_name".
 
+Get or run
+----------
+
+Get or run method, checks if the the process have been already run with the
+same inputs. If it was, it directly returns the outputs, otherwise it runs the
+process. This method saves lots of time if we need to run some processes all
+over again with minor changes in inputs parameters.
+
+.. code-block:: python
+
+   # if we run again assembler-abyss process with same inputs, we will get
+   # directly the outputs created in previous run
+   assembled_reads_1 = res.get_or_run(slug='assembler-abyss', input=inputs)
+
+
 Solving problems
 ================
 

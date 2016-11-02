@@ -25,56 +25,87 @@ class ResolweQuery(object):
     andpooint is an instance of the ResolweQuery class. ResolweQuery
     supports querries on corresponding objects, for example:
 
-    res.data.get(42)  # return Data object with ID 42.
-    res.sample.filter(contributor=1)  # return all samples made by contributor 1
+    .. code-block:: python
+
+        res.data.get(42)  # return Data object with ID 42.
+        res.sample.filter(contributor=1)  # return all samples made by contributor 1
 
     This object is lazy loaded which means that actual is made only
     when needed. This enables composing multiple filters, for example:
 
-    res.data.filter(contributor=1).filter(name='My object')
+    .. code-block:: python
+
+        res.data.filter(contributor=1).filter(name='My object')
 
     is the same as:
 
-    res.data.filter(contributor=1, name='My object')
+    .. code-block:: python
+
+        res.data.filter(contributor=1, name='My object')
 
     This is especially useful, because all endpoints at Resolwe instance
     are such queries and can be filtered further before transfering
     any data.
 
     Filters can be made with the following keywords (and operators)
+
         * Fields (and operators) for **data** endpoint:
-            * slug (=)
+
+            * slug (=, __in=)
             * contributor (=)
-            * status (=)
-            * name (=)
-            * created (=)
-            * modified (=)
+            * status (=, __in=)
+            * name (=, __in=, __startswith, endswith=)
+            * created (=, __gte, __gt=, __lte=, __lt=, __year__gte=,
+              __month__gte=,...)
+            * modified (=, __gte, __gt=, __lte=, __lt=, __year__gte=,
+              __month__gte=,...)
             * input (=)
             * descriptor (=)
-            * started (=)
-            * finished (=)
+            * started (=, __gte, __gt=, __lte=, __lt=, __year__gte=,
+              __month__gte=,...)
+            * finished (=, __gte, __gt=, __lte=, __lt=, __year__gte=,
+              __month__gte=,...)
             * output (=)
             * process (=)
+            * process_name (=, __in=, __startswith=)
             * type (=)
-            * collection (=)
-        * Fields (and operators) for **collecction** and **sample** endpoint:
+            * collection (=, __in=)
+
+        * Fields (and operators) for **collection** and **sample** endpoint:
             * contributor (=)
-            * name (=)
+            * name (=, __in=, __startswith=)
             * description (=)
-            * created (=)
-            * modified (=)
-            * slug (=)
+            * created (=, __gte, __gt=, __lte=, __lt=, __year__gte=,
+              __month__gte=,...)
+            * modified (=, __gte, __gt=, __lte=, __lt=, __year__gte=,
+              __month__gte=,...)
+            * slug (=, __in=)
             * descriptor (=)
-            * data (=)
+            * data (=, __in=)
             * descriptor_schema (=)
-            * id (=)
+            * id (=, __in=)
+
+        * Fields (and operators) for **process** endpoint:
+            * contributor (=)
+            * name (=, __in=, __startswith=)
+            * created (=, __gte, __gt=, __lte=, __lt=, __year__gte=,
+              __month__gte=,...)
+            * modified (=, __gte, __gt=, __lte=, __lt=, __year__gte=,
+              __month__gte=,...)
+            * slug (=, __in=)
+            * id (=, __in=)
 
     Example usage:
-    # Get a list of data objects with status set to OK.
-    re.data.filter(status='OK')
-    # Get a liust of sample objects that contain data object 42 and
-    # were contributed by contibutor with ID 1
-    re.collection.filter(data=42, contributor=1)
+
+    .. code-block:: python
+
+        # Get a list of data objects with status set to OK.
+        res.data.filter(status='OK')
+
+        # Get a list of sample objects that contain data object 42 and
+        # were contributed by contibutor with ID 1
+
+        res.collection.filter(data=42, contributor=1)
 
     """
 

@@ -58,7 +58,7 @@ Resolwe basics---resources
 ==========================
 
 In Resolwe, meta-data is stored in the PostgreSQL database tables:
-Data, Sample, Collection, Study, Process, DescriptorSchema, Storage,
+Data, Sample, Collection, Process, DescriptorSchema, Storage,
 User and Group. We support the data management through the `REST API`_.
 Each table is represented as a REST resource with a corresponding
 endpoint. The Sample table is a special case, represented by two
@@ -108,8 +108,8 @@ Groups of Data objects
 ----------------------
 
 Eventually, you will have many Data objects and want to
-organize them. Resolwe includes several structures to help you group
-Data objects: *Sample*, *Collection* and *Study*.
+organize them. Resolwe includes different structures to help you group
+Data objects: *Sample* and *Collection*.
 
 **Sample** represents a biological entity. It includes user annotations
 (GEO compliant) and Data objects associated with this biological entity.
@@ -124,66 +124,195 @@ In addition to samples and their data, collections may contain
 Data objects that store analysis results (*e.g.,* differential
 expressions). Samples and Data objects may be in multiple collections.
 
-**Study** is an *upgraded* collection with some additional metadata.
-Study relates the provenance or reason samples were generated. Each
-sample can belong to only one study.
-
 .. figure:: images/collections_relation.jpg
    :width: 100 %
 
-   Relations between samples, collections and studies. Samples
+   Relations between samples and collections. Samples
    are groups of Data objects originating from the same biological
    sample—all Data objects in a sample are derived from a single NGS
    reads file. Collections are arbitrary groups of samples
    and Data objects that store analysis results.
 
-Samples, collections and studies have their own annotations, and
-the Data objects they contain have separate annotations. An example
-of the annotation field on a Study is ``organism`` and an example
-of the annotation field on a Sample is a ``barcode``. The annotation
-for sample (also collection and study) represents all Data objects
-attached to it.
-
 .. TODO: Image where clear distinction between Resolwe models /
          endpoints and resdk classes is presented.
+
+Annotations
+===========
+
+Annotations are presented as descriptors, where each descriptor is defined in
+descriptor schemas. Annotations for data objects, samples and collections are
+following different descriptor schemas. For example reads data object can be
+annotated with 'reads' descriptor schema, while sample can be annotated by
+'sample' annotation schema. Each data object that is part of sample is
+also connected to sample annotation, so that the annotation for sample (also
+collection) represents all Data objects attached to it. Examples of descriptors
+and descriptor schemas are described in details in `Resolwe Bioinformatics
+documentation`_.
+
+.. _Resolwe Bioinformatics documentation: http://resolwe-bio.readthedocs.io
+
+Here we show how to annotate the reads data object by defining a descriptor
+information (annotation) that follows annotation fields as defined in the
+'reads' descriptor schema:
+
+.. code-block:: python
+
+    annotation_reads = {
+        'experiment_type': 'RNA-seq',
+        'protocols': {
+            'growth_protocol': 'my growth protocol',
+            'treatment_protocol': 'my treatment protocol',
+            'library_prep': 'lybrary construction protocol',
+        },
+        'reads_info': {
+            'seq_date': '2016-10-13',
+            'instrument_type': 'Illumina',
+            'facility': 'my favorite facility',
+        }
+    }
+
+We can now annotate ``reads`` data object by adding descriptor and descriptor schema:
+
+.. code-block:: python
+
+    #define the chosen descriptor schema,
+    reads.descriptor_schema = 'reads'
+
+    #define the reads descriptor, with
+    reads.descriptor = annotation_reads
+
+    #save the annotation
+    reads.save()
+
+We can also define descriptor and descriptor schema directly when calling
+'res.run' function as described in The run method section.
+
+Managing presamples and samples
+===============================
+
+When a new data object that represents a biological sample (i.e. fastq files,
+bam files) is uploaded to the database, the unannotated sample (presample) is
+automatically created. When a data object that belongs to an existing (pre)sample
+is used as an input to trigger new analysis, the output of the new analysis is
+automatically attached to an existing (pre)sample.
+
+Unannotated samples (presamples) have a presample property set to ``True``. To
+annotate a presample, fill its descriptor and set ``presample`` property to
+``False``. Following is an example of annotation of presample, that was
+automatically created when reads were uploaded.
+
+.. code-block:: python
+
+    annotation_sample = {
+        'sample': {
+            'annotator': 'my name',
+            'organism': 'Homo sapiens',
+            'source': 'isolated DNA',
+            'cell_type': 'houman podocytes',
+            'genotype': 'abcg2-',
+            'molecule': 'total RNA',
+            'optional_char': ['my_characteristic:{}'.format('value')],
+            'description': 'any additional description',
+            },
+        'other': 'any other information',
+    }
+
+    # define presample name
+    reads.presample.name = 'My favorite sample'
+
+    #add descriptor schema to sample
+    reads.presample.descriptor_schema = 'sample'
+
+    # define presample description
+    reads.presample.descriptor = annotation_sample
+
+    # transform presample to sample
+    reads.presample.presample = False
+
+    #save presample as sample with the same name
+    reads.presample.save()
+
+.. note::
+    When presample is marked as annotated, we can access it as ``sample`` property:
+
+    .. code-block:: python
+
+        reads.sample
+
+Additionally, we can also confirm that the sample is annotated, change sample
+name or slug:
+
+.. code-block:: python
+
+    #change sample name and slug
+    reads.sample.name = 'My sample 2'
+    reads.sample.slug = 'my-sample-2'
+    reads.sample.save()
+
+
+Managing collections
+====================
+
+To keep a clear structure of data objects and samples we can create collections.
+Here is an example of how to create new collection and add (and remove) data to
+(from) a collection:
+
+.. code-block:: python
+
+    # import collection from resdk.resources
+    from resdk.resources import Collection
+
+    # create collection
+    test_collection = Collection(resolwe=res)
+
+    # name the collection
+    test_collection.name = 'Test collection'
+
+    #define the collection slug
+    test_collection.slug = 'test-collection'
+
+    #save new collection
+    test_collection.save()
+
+    #add data to collection
+    test_collection.add_data(reads)
+
+    #remove data to collection
+    test_collection.remove_data(reads)
+
+Data object can be added to collections also when running a process, as described
+in following chapter The Run method.
 
 Query resources
 ===============
 
-The :class:`resdk.Resolwe` class provides interfaces to the
-corresponding resource endpoints:
+To get a list of data objects, presamples or samples stored in collection or to
+search for specific type or name of data object we can use a powerful and easy
+to use query system.
+
+The :class:`resdk.Resolwe` class includes queries for the following object types:
 
 * ``process``
 * ``data``
 * ``sample``
 * ``collection``
-* ``study``
 
-Each endpoint has a corresponding class in Resolwe. Interfaces
-support ``get()`` and ``filter()`` methods that enable users
-to access the resources:
+Each object type has a corresponding class in Resolwe. Interfaces support
+``get()`` and ``filter()`` methods that enable users to access the resources:
 
 .. code-block:: python
 
-    resdk.Resolwe.<interface>.get(uid)
-    resdk.Resolwe.<interface>.filter(**fields)
+    resdk.Resolwe.<object_type>.filter(**fields)
+    resdk.Resolwe.<object_type>.get(uid)
 
-The :any:`get()<ResolweQuery.filter>` method searches by a unique
-identifier: ``id`` or ``slug``. It returns a single object of type
-``<interface>``.
-
-
-.. literalinclude:: files/example_intro.py
-   :lines: 3-7
-
-The :any:`filter(**fields)<ResolweQuery.filter>` method returns a list
-of objects of type ``<interface>``:
+The :any:`filter(**fields)<ResolweQuery.filter>` method returns a list of
+objects of of object type:
 
 .. literalinclude:: files/example_intro.py
    :lines: 9-13
 
-But the real power of the ``filter()`` method is in combining multiple
-filter parameters:
+But the real power of the ``filter()`` method is in combining multiple filter
+parameters:
 
 .. literalinclude:: files/example_intro.py
    :lines: 15-16
@@ -193,25 +322,84 @@ In a single line we have obtained all data objects that:
 * were successfully created (no errors)
 * were using the process with name "Aligner (Bowtie 1.0.0)"
 
-Additionally we ordered results by creation time and limited the
-number of returned results to three.
+Additionally we ordered results by creation time and limited the number of
+returned results to three.
 
-Access annotation and download files
+The :any:`get()<ResolweQuery.get>` method searches by the same parameters as
+``filter`` and returns a single object of type ``<interface>``. But if only one
+parameter is given, it will be interpreted as s unique identifier ``id`` or
+``slug``, depending on if it is number or string.
+
+.. literalinclude:: files/example_intro.py
+   :lines: 3-7
+
+For mostly used filtering options we created following shortcuts, which give us
+a list of `data`, `samples` or `collections`:
+
+* ``<collection>.data``
+* ``<collection>.samples``
+* ``<sample>.data``
+* ``<sample>.collections``
+* ``<data>.collections``
+* ``<data>.sample``
+* ``<data>.presample``
+
+Following are some examples of filtering of collections, samples and data
+objects:
+
+.. code-block:: python
+
+    # select collection with name 'Test collection'
+    test_collection = res.collection.get(name='Test collection')
+
+    # list of samples in 'Test collection'
+    sample_list = test_collection.samples
+
+    # list of data in my collection
+    test_collection.data
+
+    # list of data in samples that starts with 'case' that is part of 'Test collection'
+    sample_list.filter(name__startswith='case')
+
+    # get list of two data objects with following names: 'reads-1', 'reads-2':
+    res.data.filter(name__in=['reads-1', 'reads-2'])
+
+    # get list of data that were modified in year 2015 or later
+    res.data.filter(modified__year__gte=2015)
+
+    # select 'case_1' from 'my collection'
+    case_1 = sample_list.get(name='case_1')
+
+    # select 'case_1' bam file
+    bam = case_1.data.get(type='data:alignment:bam:')
+
+    # in which collections is sample 'case_1'
+    list_collections = case_1.collections
+
+    # in which collections is data 'bam'
+    list_collections = bam.collections
+
+
+More powerful query options are described in `SDK Reference`_
+
+.. _SDK Reference: http://resdk.readthedocs.io/en/latest/ref.html
+
+
+Access meta-data and download files
 ------------------------------------
 
-We have learned how to query the resources with ``get`` and ``filter``.
-Now we will look at how to access the information in these resources.
-All the resources share some common attributes like ``name``, ``id``,
-``slug``, ``created`` and ``permissions``. You can access them like any
-other Python class attributes.
+We have learned how to query the resources with ``get``, ``filter`` or by using
+shortcuts. Now we will look at how to access the information in these resources.
+All the resources share some common attributes like ``name``, ``id``, ``slug``,
+``created`` and ``permissions``. You can access them like any other Python class
+attributes.
 
 .. literalinclude:: files/example_intro.py
    :lines: 18-31
 
-Besides these attributes, each resource class has some specific
-attributes and methods. For example, resource classes ``Data``,
-``Sample``, ``Collection`` and ``Study`` have methods ``files()``
-and ``download()``.
+Besides these attributes, each resource class has some specific attributes and
+methods. For example, resource classes ``Data``, ``Sample`` and ``Collection``
+have methods ``files()`` and ``download()``.
 
 The ``files()`` method returns a list of all files on the resource:
 
@@ -219,9 +407,9 @@ The ``files()`` method returns a list of all files on the resource:
     :lines: 33-43
 
 Method ``download()`` downloads the resource files. Optional parameters
-``file_name`` and ``field_name`` have the same effect as in the
-``files`` method. There is additional parameter ``download_dir`` -
-that allows you to specify the download directory:
+``file_name`` and ``field_name`` have the same effect as in the ``files``
+method. There is additional parameter ``download_dir`` - that allows you to
+specify the download directory:
 
 .. literalinclude:: files/example_intro.py
    :lines: 45-49
@@ -238,9 +426,8 @@ corresponding attributes and methods in the :doc:`Reference<ref>`.
    is the parent of all resource classes in :obj:`resdk`.
    :obj:`BaseCollection<resdk.resources.collection.BaseCollection>`
    is the parent of all collection-like classes:
-   :obj:`Sample<resdk.resources.Sample>`,
-   :obj:`Collection<resdk.resources.Collection>` and
-   :obj:`Study<resdk.resources.Study>`.
+   :obj:`Sample<resdk.resources.Sample>` and
+   :obj:`Collection<resdk.resources.Collection>`
 
-You have learned about the resources and how to access data. Continue
-with the :ref:`run`.
+You have learned about the resources and how to access data. Continue with the
+:ref:`run`.

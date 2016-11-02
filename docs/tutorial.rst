@@ -42,7 +42,74 @@ to the Resolwe server:
 .. literalinclude:: files/example_index.py
    :lines: 1-7
 
-Upload a BAM file with the `upload-bam`_ process (you can
+Upload fastq files
+------------------
+
+Various bioinformatic processes are available to properly analyse genetic
+data. Many of these pipelines are prepared to use with Resolwe
+SDK and listed in the `Process catalog`_ of the `Resolwe Bioinformatics documentation`_.
+
+.. _Process catalog: http://resolwe-bio.readthedocs.io/en/latest/catalog.html
+.. _Resolwe Bioinformatics documentation: http://resolwe-bio.readthedocs.io
+
+To begin this Tutorial with upload of fastq single ends reads with `upload-fastq-single`_ processor or fastq
+paired ends reads with `upload-fastq-paired`_ processor.
+
+.. _upload-fastq-single: http://resolwe-bio.readthedocs.io/en/latest/catalog-definitions.html#process-upload-fastq-single
+.. _upload-fastq-paired: http://resolwe-bio.readthedocs.io/en/latest/catalog-definitions.html#process-upload-fastq-paired
+
+.. code-block:: python
+
+    # Upload a fastq single reads
+    reads = res.run('upload-fastq-single', input={'src': '/path/to/reads.fastq'})
+
+    # Upload a fastq paired reads
+    reads_paired = res.run('upload-fastq-paired', input={'src1': ['/path/to/reads.fastq_1'], 'src2': ['/path/to/reads.fastq_2']})
+
+What just happened? Firstly we defined which process we would like to run, with its
+slug ``upload-fastq-single`` or ``upload-fastq-paired``. Secondly we have assigned
+a fastq file path to the process' input field ``src``.
+Each process has a defined set of input and output fields. Inputs should be
+given at execution.
+
+Uploading a fastq file creates an object that can be referenced by ID or slug.
+This objects can have annotations that are used in searches.
+You can annotate the reads, using reads descriptor schema which is described in
+the Annotations chapter.
+
+Reads alignment or BAM file upload
+----------------------------------
+
+Often the next step that bioinformatician will do is align raw reads to genome.
+Many aligners are already included into resolwe-bio as described in the
+`Process catalog`_.
+
+For toturial we will use Subread to align our uploaded reads to the genome.
+But first we need to upload  genome.
+
+.. code-block:: python
+
+    genome = res.run('upload-genome', input={'src': 'path/to/genome.fasta.gz'})
+
+Now we can align reads to genome with Subread processor, which input and output fields
+are described in `Subread process catalog`_. We need to define input files, then the process runs its
+algorithm that transforms inputs into outputs.
+
+.. _Subread process catalog: http://resolwe-bio.readthedocs.io/en/latest/catalog-definitions.html#process-alignment-subread
+
+.. code-block:: python
+
+    bam_aligned = res.run('alignment-subread',
+    input={'genome': genome,
+           'reads': reads}
+
+Lets take a closer look to the code above. We defined the alignment process, by its slug ``'alignment-subread'``.
+For inputs we defined data objects ``reads`` and ``genome``. ``Reads`` object was created with 'upload-fastq-single'
+or 'upload-fastq-paired' processor, while ``genome`` data object was created with `upload-genome` process.
+The `alignment-subread` processor will automatically took the right files from data object, specified in inputs and
+create output data objects: ``bam`` alignment file, ``bai`` index, unmapped reads and stats file.
+
+Second option to get the BAM file is to upload a BAM file with the `upload-bam`_ process (for tutorial you can
 `download a test BAM file from here`_):
 
 .. _upload-bam: https://github.com/genialis/resolwe-bio/blob/master/resolwe_bio/processes/import_data/bam.yml
@@ -53,20 +120,11 @@ Upload a BAM file with the `upload-bam`_ process (you can
     # Upload a BAM file
     bam = res.run('upload-bam', input={'src': '/path/to/file/test.bam'})
 
-What just happened? We have assigned a BAM file path to the process'
-input field ``src``. Each process has a defined set of input and
-output fields. Inputs should be given at execution. Then the
-process runs its algorithm that transforms inputs into outputs. In the
-above case, the BAM file is uploaded, indexed with ``samtools``, and
-saved into output fields ``bam`` and ``bai``. Many other processes
-are available, they are listed in the `Process catalog`_ of the
-`Resolwe Bioinformatics documentation`_.
 
-.. _Process catalog: http://resolwe-bio.readthedocs.io/en/latest/catalog.html
-.. _Resolwe Bioinformatics documentation: http://resolwe-bio.readthedocs.io
+In the above case, the BAM file is uploaded, indexed with ``samtools``, and
+saved into output fields ``bam`` and ``bai``.
 
-Uploading a BAM creates an object that can be referenced by ID or slug.
-This objects can have annotations that are used in searches.
+As reads files also uploading a BAM creates an object that can be referenced by ID or slug.
 
 .. code-block:: python
 
@@ -142,6 +200,10 @@ You can download them to your computer simply as:
    # Download all files of the object
    bam.download()
 
+
+Compute a BigWig coverage track
+-------------------------------
+
 The BAM object on the server can now be used in further processing
 steps by any other process that use a compatible input type
 (`e.g.,` ``data:alignment:bam:upload``). For instance we can compute
@@ -168,6 +230,9 @@ then download the coverage track.
    # Download the coverage track
    bigwig.download()
 
+Writing a new process
+---------------------
+
 You can write your own analysis processes that run on the server.
 Let's write a process that takes a BAM object and reports which
 chromosome has the largest number of aligned reads.
@@ -176,6 +241,8 @@ chromosome has the largest number of aligned reads.
 
     - slug: max-reads            # User readable unique identifier
       name: Max reads            # Process name
+      requirements:
+        expression-engine: jinja
       data_name: Chromosome      # The name of data objects created by the process
       version: 1.0.0             # Process version
       type: data:bam:stats       # The type of the process and data objects created by it
@@ -192,7 +259,8 @@ chromosome has the largest number of aligned reads.
           type: basic:string
       run:                       # The algorithm in bash using Django template tags
         runtime: polyglot
-        bash: |
+        language: bash
+        program: |
           # Compute sequence alignment statistics
           samtools idxstats {{bam.bam.file}} > stats.txt
 
