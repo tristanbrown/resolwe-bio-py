@@ -13,6 +13,7 @@ Changed
 -------
 * Include all necessary files for running the tests in source distribution
 * Exclude tests from built/installed version of the package
+* File field passed to ``run`` function can be url address
 
 Fixed
 -----

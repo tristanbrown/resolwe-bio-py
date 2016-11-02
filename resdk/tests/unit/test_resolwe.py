@@ -242,6 +242,12 @@ class TestProcessFileField(unittest.TestCase):
 
         resolwe_mock._upload_file.assert_called_once_with("/good/path/to/file.txt")
 
+    @patch('resdk.resolwe.Resolwe', spec=True)
+    def test_url(self, resolwe_mock):
+        output = Resolwe._process_file_field(resolwe_mock, "http://www.example.com/reads.fq.gz")
+        self.assertEqual(
+            output, {'file': "reads.fq.gz", 'file_temp': "http://www.example.com/reads.fq.gz"})
+
 
 class TestRun(unittest.TestCase):
 

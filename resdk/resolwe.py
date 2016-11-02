@@ -14,6 +14,7 @@ Resolwe
 from __future__ import absolute_import, division, print_function
 
 import os
+import re
 import uuid
 import ntpath
 import logging
@@ -219,14 +220,24 @@ class Resolwe(object):
                 self.logger.warning("STATUS: %s", sub_process.returncode)
 
     def _process_file_field(self, path):
-        """
-        Upload file on ``path`` and return it's basename and temporary location.
+        """Process file field and return it in resolwe-specific format.
 
-        :param path: path to file
+        Upload referenced file if it is stored locally and return
+        original filename and it's temporary location.
+
+        :param path: path to file (local or url)
         :type path: str/path
 
         :rtype: dict
         """
+        url_regex = r'^(https?|ftp)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]$'
+        if re.match(url_regex, path):
+            file_name = path.split('/')[-1].split('#')[0].split('?')[0]
+            return {
+                'file': file_name,
+                'file_temp': path
+            }
+
         if not os.path.isfile(path):
             raise ValueError("File {} not found.".format(path))
 
