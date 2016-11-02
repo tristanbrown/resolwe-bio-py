@@ -34,7 +34,7 @@ from .resources.utils import iterate_fields, iterate_schema, endswith_colon
 
 
 VERSION_NUMBER_BITS = (8, 10, 14)
-CHUNK_SIZE = 90000000
+CHUNK_SIZE = 8000000  # 8MB
 DEFAULT_EMAIL = 'anonymous@genialis.com'
 DEFAULT_PASSWD = 'anonymous'
 DEFAULT_URL = 'https://dictyexpress.research.bcm.edu'
