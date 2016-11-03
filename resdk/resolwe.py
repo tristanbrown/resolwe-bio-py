@@ -37,9 +37,7 @@ from .resources.utils import iterate_fields, iterate_schema, endswith_colon
 
 VERSION_NUMBER_BITS = (8, 10, 14)
 CHUNK_SIZE = 8000000  # 8MB
-DEFAULT_EMAIL = 'anonymous@genialis.com'
-DEFAULT_PASSWD = 'anonymous'
-DEFAULT_URL = 'https://dictyexpress.research.bcm.edu'
+DEFAULT_URL = 'http://localhost:8000'
 # Tools directory on the Resolwe server, for example:
 # username@torta.bcmt.bcm.edu://genialis/tools
 TOOLS_REMOTE_HOST = os.environ.get('TOOLS_REMOTE_HOST', None)
@@ -57,10 +55,10 @@ class Resolwe(object):
 
     """
 
-    def __init__(self, email=DEFAULT_EMAIL, password=DEFAULT_PASSWD, url=DEFAULT_URL):
+    def __init__(self, username=None, password=None, url=DEFAULT_URL):
         """Initialize attributes."""
         self.url = url
-        self.auth = ResAuth(email, password, url)
+        self.auth = ResAuth(username, password, url)
         self.api = slumber.API(urljoin(url, '/api/'), self.auth, append_slash=False)
 
         self.data = ResolweQuery(self, Data)
@@ -71,6 +69,12 @@ class Resolwe(object):
         self.feature = ResolweQuery(self, Feature)
 
         self.logger = logging.getLogger(__name__)
+
+    def __repr__(self):
+        """Return string representation of the current object."""
+        if self.auth.username:
+            return "Resolwe <url: {}, username: {}>".format(self.url, self.auth.username)
+        return "Resolwe <url: {}>".format(self.url)
 
     def _version_string_to_int(self, version):
         """Transform dot separated version string to int."""
@@ -508,20 +512,28 @@ class Resolwe(object):
 class ResAuth(requests.auth.AuthBase):
     """HTTP Resolwe Authentication for Request object.
 
-    :param email: user's email
-    :type email: str
-    :param password: user's password
-    :type password: str
-    :param url: Resolwe server instance
-    :type url: str
+    :param str username: user's username
+    :param str password: user's password
+    :param str url: Resolwe server address
 
     """
 
-    def __init__(self, email=DEFAULT_EMAIL, password=DEFAULT_PASSWD, url=DEFAULT_URL):
+    #: Session ID used in HTTP requests
+    sessionid = None
+    #: CSRF token used in HTTP requests
+    csrftoken = None
+
+    def __init__(self, username=None, password=None, url=DEFAULT_URL):
         """Authenticate user on Resolwe server."""
         self.logger = logging.getLogger(__name__)
 
-        payload = {'username': email, 'password': password}
+        self.username = username
+        self.url = url
+
+        if not username and not password:
+            return
+
+        payload = {'username': username, 'password': password}
 
         try:
             response = requests.post(urljoin(url, '/rest-auth/login/'), data=payload)
@@ -543,9 +555,11 @@ class ResAuth(requests.auth.AuthBase):
 
     def __call__(self, request):
         """Set request headers."""
-        request.headers['Cookie'] = 'csrftoken={}; sessionid={}'.format(self.csrftoken,
-                                                                        self.sessionid)
-        request.headers['X-CSRFToken'] = self.csrftoken
+        if self.sessionid and self.csrftoken:
+            request.headers['Cookie'] = 'csrftoken={}; sessionid={}'.format(
+                self.csrftoken, self.sessionid)
+            request.headers['X-CSRFToken'] = self.csrftoken
+
         request.headers['referer'] = self.url
 
         # Not needed until we support HTTP Push with the API

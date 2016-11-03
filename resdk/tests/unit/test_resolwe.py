@@ -39,6 +39,17 @@ class TestResolwe(unittest.TestCase):
         self.assertEqual(resolwe_querry_mock.call_count, 6)
         self.assertEqual(log_mock.getLogger.call_count, 1)
 
+    def test_repr(self):
+        resolwe_mock = MagicMock(spec=Resolwe, url='www.abc.com')
+
+        resolwe_mock.auth = MagicMock(username='user')
+        rep = Resolwe.__repr__(resolwe_mock)
+        self.assertEqual(rep, 'Resolwe <url: www.abc.com, username: user>')
+
+        resolwe_mock.auth = MagicMock(username=None)
+        rep = Resolwe.__repr__(resolwe_mock)
+        self.assertEqual(rep, 'Resolwe <url: www.abc.com>')
+
 
 class TestVersionConverters(unittest.TestCase):
     """
@@ -534,6 +545,7 @@ class TestResAuth(unittest.TestCase):
 
     @patch('resdk.resolwe.ResAuth', spec=True)
     def setUp(self, auth_mock):  # pylint: disable=arguments-differ
+        auth_mock.configure_mock(sessionid=None, csrftoken=None)
         self.auth_mock = auth_mock
 
     @patch('resdk.resolwe.requests')
@@ -542,7 +554,7 @@ class TestResAuth(unittest.TestCase):
 
         with six.assertRaisesRegex(self, ValueError,
                                    'Server not accessible on www.abc.com. Wrong url?'):
-            ResAuth.__init__(self.auth_mock, email='a', password='p', url='www.abc.com')
+            ResAuth.__init__(self.auth_mock, username='usr', password='pwd', url='www.abc.com')
 
     @patch('resdk.resolwe.requests')
     def test_bad_credentials(self, requests_mock):
@@ -550,27 +562,47 @@ class TestResAuth(unittest.TestCase):
 
         message = r'Response HTTP status code .* Invalid credentials?'
         with six.assertRaisesRegex(self, ValueError, message):
-            ResAuth.__init__(self.auth_mock, email='a', password='p', url='www.abc.com')
+            ResAuth.__init__(self.auth_mock, username='usr', password='pwd', url='www.abc.com')
 
     @patch('resdk.resolwe.requests')
     def test_no_csrf_token(self, requests_mock):
-        magic_mock1 = MagicMock(status_code=200, cookies={'sessionid': 42})
-        requests_mock.post = MagicMock(return_value=magic_mock1)
+        post_mock = MagicMock(status_code=200, cookies={'sessionid': 42})
+        requests_mock.post = MagicMock(return_value=post_mock)
 
         message = 'Missing sessionid or csrftoken. Invalid credentials?'
         with six.assertRaisesRegex(self, Exception, message):
-            ResAuth.__init__(self.auth_mock, email='a', password='p', url='www.abc.com')
+            ResAuth.__init__(self.auth_mock, username='usr', password='pwd', url='www.abc.com')
 
     @patch('resdk.resolwe.requests')
     def test_all_ok(self, requests_mock):
-        magic_mock1 = MagicMock(status_code=200, cookies={'sessionid': 42, 'csrftoken': 42})
-        requests_mock.post = MagicMock(return_value=magic_mock1)
+        post_mock = MagicMock(status_code=200, cookies={'sessionid': 42, 'csrftoken': 43})
+        requests_mock.post = MagicMock(return_value=post_mock)
 
-        ResAuth.__init__(self.auth_mock, email='a', password='p', url='www.abc.com')
+        ResAuth.__init__(self.auth_mock, username='usr', password='pwd', url='www.abc.com')
+        self.assertEqual(self.auth_mock.sessionid, 42)
+        self.assertEqual(self.auth_mock.csrftoken, 43)
+
+    @patch('resdk.resolwe.requests')
+    def test_public_user(self, requests_mock):
+        post_mock = MagicMock(status_code=200)
+        requests_mock.post = MagicMock(return_value=post_mock)
+
+        ResAuth.__init__(self.auth_mock, url='www.abc.com')
+        self.assertEqual(self.auth_mock.sessionid, None)
+        self.assertEqual(self.auth_mock.csrftoken, None)
 
     def test_call(self):
-        res_auth = MagicMock(spec=ResAuth, sessionid="", csrftoken="", url="")
-        ResAuth.__call__(res_auth, MagicMock(headers={}))
+        res_auth = MagicMock(spec=ResAuth, sessionid=None, csrftoken=None, url="www.abc.com")
+        resp = ResAuth.__call__(res_auth, MagicMock(headers={}))
+        self.assertDictEqual(resp.headers, {'referer': 'www.abc.com'})
+
+        res_auth = MagicMock(spec=ResAuth, sessionid='my-id', csrftoken='my-token', url="abc.com")
+        resp = ResAuth.__call__(res_auth, MagicMock(headers={}))
+        self.assertDictEqual(resp.headers, {
+            'X-CSRFToken': 'my-token',
+            'referer': 'abc.com',
+            'Cookie': 'csrftoken=my-token; sessionid=my-id'
+        })
 
 
 if __name__ == '__main__':
