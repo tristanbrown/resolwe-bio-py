@@ -7,9 +7,6 @@ Resolwe
 .. autoclass:: resdk.Resolwe
    :members:
 
-.. autoclass:: resdk.ResolweQuery
-   :members:
-
 """
 from __future__ import absolute_import, division, print_function
 
@@ -20,7 +17,6 @@ import uuid
 import ntpath
 import logging
 import subprocess
-import operator
 
 import yaml
 import requests
@@ -34,6 +30,7 @@ from .resources import Data, Collection, Sample, Process
 from .resources.kb import Feature
 from .resources.utils import (
     iterate_fields, iterate_schema, endswith_colon, get_collection_id, get_data_id)
+from .query import ResolweQuery
 
 
 VERSION_NUMBER_BITS = (8, 10, 14)
@@ -161,8 +158,7 @@ class Resolwe(object):
             process['persistence'] = persistence_map[process['persistence']]
 
         try:
-            server_process = self.process.filter(slug=process['slug'],
-                                                 ordering='-version', limit=1)
+            server_process = self.process.filter(slug=process['slug'], ordering='-version')[:1]
 
             if len(server_process) == 1:
                 server_process = server_process[0]
@@ -567,99 +563,3 @@ class ResAuth(requests.auth.AuthBase):
         # if r.path_url != '/upload/':
         #     r.headers['X-SubscribeID'] = self.subscribe_id
         return request
-
-
-class ResolweQuery(object):
-    """Query resource endpoints.
-
-    A Resolwe instance (for example "res") has several endpoints:
-    res.data, res.collections, res.sample and res.process. Each
-    andpooint is an instance of the ResolweQuery class. ResolweQuery
-    supports querries on corresponding objects, for example:
-
-    re.data.get(42) # return Data object with ID 42.
-    re.sample.filter(contributor=1) # return all samples made by contributor 1
-
-    Detailed description of methods can be found in method docstrings.
-
-    """
-
-    def __init__(self, resolwe, Resource, endpoint=None):
-        """Initialize attributes."""
-        self.resolwe = resolwe
-        self.resource = Resource
-        self.endpoint = endpoint if endpoint else Resource.endpoint
-        self.api = operator.attrgetter(self.endpoint)(resolwe.api)
-        self.logger = logging.getLogger(__name__)
-
-    def get(self, uid):
-        """Get object for given ID or slug.
-
-        :param uid: unique identifier - ID or slug
-        :type uid: int for ID or string for slug
-
-        :rtype: object of type self.resource
-
-        """
-        resource_inputs = {'id': uid} if str(uid).isdigit() else {'slug': uid}
-        if self.endpoint == 'presample':
-            resource_inputs['presample'] = True
-        return self.resource(resolwe=self.resolwe, **resource_inputs)
-
-    def post(self, data):
-        """Post data to this endpoint.
-
-        :param data: Data dictionary to post
-        """
-        return self.api.post(data)  # pylint: disable=no-member
-
-    def filter(self, **kwargs):
-        """Return a list of Data objects that match kwargs.
-
-        Querries can be made with the following keywords (and operators)
-            * Fields (and operators) for **data** endpoint:
-                * slug (=)
-                * contributor (=)
-                * status (=)
-                * name (=)
-                * created (=)
-                * modified (=)
-                * input (=)
-                * descriptor (=)
-                * started (=)
-                * finished (=)
-                * output (=)
-                * process (=)
-                * type (=)
-                * collection (=)
-            * Fields (and operators) for **collecction** and **sample** endpoint:
-                * contributor (=)
-                * name (=)
-                * description (=)
-                * created (=)
-                * modified (=)
-                * slug (=)
-                * descriptor (=)
-                * data (=)
-                * descriptor_schema (=)
-                * id (=)
-
-        Example usage:
-        # Get a list of data objects with status set to OK.
-        re.data.filter(status='OK')
-        # Get a liust of sample objects that contain data object 42 and
-        # were contributed by contibutor with ID 1
-        re.collection.filter(data=42, contributor=1)
-
-        Note: The filtering options might change (improve) with time.
-
-        """
-        resource_inputs = {'resolwe': self.resolwe}
-        if self.endpoint == 'presample':
-            resource_inputs['presample'] = True
-        # pylint: disable=no-member
-        return [self.resource(model_data=x, **resource_inputs) for x in self.api.get(**kwargs)]
-
-    def search(self):
-        """Full text search."""
-        raise NotImplementedError()

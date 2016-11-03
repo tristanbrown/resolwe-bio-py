@@ -134,16 +134,6 @@ class TestRegister(unittest.TestCase):
         self.assertEqual(self.resolwe_mock.api.process.post.call_count, 1)
         self.assertEqual(self.resolwe_mock._version_int_to_string.call_count, 0)
 
-    def test_returns_two_processes(self):
-        """
-        If process process.filter will return a list of more than one
-        process, this is a sign of some unexpected behaviour."""
-        self.resolwe_mock.process.filter.return_value = [{}, {}]
-
-        message = r"Unexpected behaviour at get process with slug .*"
-        with six.assertRaisesRegex(self, ValueError, message):
-            Resolwe._register(self.resolwe_mock, self.yaml_file, "alignment-bowtie")
-
     def test_raises_client_error(self):
         # Check raises error if slumber.exceptions.HttpClientError happens
         self.resolwe_mock.process.filter.return_value = []
@@ -395,6 +385,7 @@ class TestRun(unittest.TestCase):
     def test_dehydrate_collections(self, resolwe_mock):
         resolwe_mock.configure_mock(**{'_get_process.return_value': {'slug': 'some:prc:slug:'},
                                        '_process_inputs.return_value': {}})
+        resolwe_mock.collection = MagicMock()
         resolwe_mock.api = MagicMock(**{'process.get.return_value': self.process_json,
                                         'data.post.return_value': {}})
 

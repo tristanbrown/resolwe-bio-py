@@ -38,23 +38,26 @@ class BaseCollection(BaseResource):
         self.descriptor = None
         #: descriptor schema
         self.descriptor_schema = None
+        #: list of data objects - SET THIS IN SUBCLASS
+        self.data = []
 
         super(BaseCollection, self).__init__(slug, id, model_data, resolwe)
 
-    @property
-    def data(self):
-        """Get data objects that belong to the collection."""
+    def _clear_data_cache(self):
+        """Clear data cache."""
         raise NotImplementedError('This should be implemented in subclass')
 
     def add_data(self, *data):
         """Add ``data`` objects to the collection."""
         data = [get_data_id(d) for d in data]
         self.api(self.id).add_data.post({'ids': data})
+        self._clear_data_cache()
 
     def remove_data(self, *data):
         """Remove ``data`` objects from the collection."""
         data = [get_data_id(d) for d in data]
         self.api(self.id).remove_data.post({'ids': data})
+        self._clear_data_cache()
 
     def data_types(self):
         """Return a list of data types (process_type).
@@ -131,30 +134,25 @@ class Collection(BaseCollection):
 
     endpoint = 'collection'
 
-    #: (lazy loaded) list of data object that belong to collection
-    _data = None
-    #: (lazy loaded) list of samples that belong to collection
-    _samples = None
-
     def __init__(self, slug=None, id=None,  # pylint: disable=redefined-builtin
                  model_data=None, resolwe=None):
         """Initialize attributes."""
         BaseCollection.__init__(self, slug, id, model_data, resolwe)
 
+        #: (lazy loaded) list of data object that belong to collection
+        self.data = self.resolwe.data.filter(collection=self.id)
+        #: (lazy loaded) list of samples that belong to collection
+        self.samples = self.resolwe.sample.filter(collections=self.id)
+
     def update(self):
         """Clear cache and update resource fields from the server."""
-        self._data = None
-        self._samples = None
+        self.data.clear_cache()  # pylint: disable=no-member
+        self.samples.clear_cache()
 
         super(Collection, self).update()
 
-    @property
-    def data(self):
-        """Lazy load ``data`` objects belonging to the collection."""
-        if not self._data:
-            self._data = self.resolwe.data.filter(collection=self.id)
-
-        return self._data
+    def _clear_data_cache(self):
+        self.data.clear_cache()  # pylint: disable=no-member
 
     def add_samples(self, *samples):
         """Add `samples` objects to the collection."""
@@ -163,6 +161,8 @@ class Collection(BaseCollection):
         for sample in samples:
             self.resolwe.api.sample(sample).add_to_collection.post({'ids': [self.id]})
 
+        self.samples.clear_cache()
+
     def remove_samples(self, *samples):
         """Remove ``sample`` objects from the collection."""
         samples = [get_sample_id(s) for s in samples]
@@ -170,12 +170,7 @@ class Collection(BaseCollection):
         for sample in samples:
             self.resolwe.api.sample(sample).remove_from_collection.post({'ids': [self.id]})
 
-    @property
-    def samples(self):
-        """Get ``samples`` that belong to the collection."""
-        if not self._samples:
-            self._samples = self.resolwe.sample.filter(collections=self.id)
-        return self._samples
+        self.samples.clear_cache()
 
     def print_annotation(self):
         """Provide annotation data."""

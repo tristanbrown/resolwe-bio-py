@@ -35,6 +35,7 @@ Fixed
 * Original value of ``input`` parameter is kept when running ``run``
   funtion
 * Clear cache when updating resources
+* Queryes become lazy and composable
 
 
 ==================

@@ -25,11 +25,6 @@ class Sample(BaseCollection):
 
     WRITABLE_FIELDS = ('presample', ) + BaseCollection.WRITABLE_FIELDS
 
-    #: ids of collections objects (if not hydrated), collections objects (if hydrated)
-    _collections = None
-    #: (lazy loaded) list of data object that belong to sample
-    _data = None
-
     def __init__(self, slug=None, id=None,  # pylint: disable=redefined-builtin
                  model_data=None, resolwe=None, presample=False):
         """Initialize attributes."""
@@ -39,28 +34,20 @@ class Sample(BaseCollection):
 
         super(Sample, self).__init__(slug, id, model_data, resolwe)
 
+        #: (lazy loaded) list of collections  to which object belongs
+        self.collections = self.resolwe.collection.filter(sample=self.id)
+        #: (lazy loaded) list of data object that belong to sample
+        self.data = self.resolwe.data.filter(sample=self.id)
+
     def update(self):
         """Clear cache and update resource fields from the server."""
-        self._collections = None
-        self._data = None
+        self.collections.clear_cache()
+        self.data.clear_cache()  # pylint: disable=no-member
 
         super(Sample, self).update()
 
-    @property
-    def collections(self):
-        """Lazy load `collection` objects to which sample belongs."""
-        if not self._collections:
-            self._collections = self.resolwe.collection.filter(sample=self.id)
-
-        return self._collections
-
-    @property
-    def data(self):
-        """Lazy load ``data`` objects belonging to the collection."""
-        if not self._data:
-            self._data = self.resolwe.data.filter(sample=self.id)
-
-        return self._data
+    def _clear_data_cache(self):
+        self.data.clear_cache()  # pylint: disable=no-member
 
     def print_annotation(self):
         """Provide annotation data."""

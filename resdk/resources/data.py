@@ -34,8 +34,6 @@ class Data(BaseResource):
     _sample = None
     #: (lazy loaded) unannotated ``Sample`` to which ``Data`` object belongs
     _presample = None
-    #: (lazy loaded) list of collections to which data object belongs
-    _collections = None
 
     WRITABLE_FIELDS = ('descriptor_schema', 'descriptor') + BaseResource.WRITABLE_FIELDS
     UPDATE_PROTECTED_FIELDS = ('input', 'process') + BaseResource.UPDATE_PROTECTED_FIELDS
@@ -87,13 +85,16 @@ class Data(BaseResource):
 
         super(Data, self).__init__(slug, id, model_data, resolwe)
 
+        #: (lazy loaded) list of collections to which data object belongs
+        self.collections = self.resolwe.collection.filter(data=self.id)
+
         self.logger = logging.getLogger(__name__)
 
     def update(self):
         """Clear cache and update resource fields from the server."""
         self._sample = None
         self._presample = None
-        self._collections = None
+        self.collections.clear_cache()
 
         super(Data, self).update()
 
@@ -163,13 +164,6 @@ class Data(BaseResource):
         elif self._presample is None:
             self._presample = presample[0]
         return self._presample
-
-    @property
-    def collections(self):
-        """Get list of ``collections`` to which object belongs to."""
-        if self._collections is None:
-            self._collections = self.resolwe.collection.filter(data=self.id)
-        return self._collections
 
     def files(self, file_name=None, field_name=None):
         """Get list of downloadable fields.

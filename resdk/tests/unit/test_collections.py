@@ -75,72 +75,52 @@ class TestCollection(unittest.TestCase):
             Collection.print_annotation(collection_mock)
 
     def test_data(self):
-        collection = Collection(id=1, resolwe=MagicMock())
+        resolwe_mock = MagicMock(**{'data.filter.return_value': ['data_1', 'data_2', 'data_3']})
+        collection = Collection(id=1, resolwe=resolwe_mock)
 
-        # test getting data attribute
-        collection.resolwe.data.filter = MagicMock(return_value=['data_1', 'data_2', 'data_3'])
         self.assertEqual(collection.data, ['data_1', 'data_2', 'data_3'])
-
-        # test caching data attribute
-        self.assertEqual(collection.data, ['data_1', 'data_2', 'data_3'])
-        self.assertEqual(collection.resolwe.data.filter.call_count, 1)
 
         # cache is cleared at update
-        collection._data = ['data']
+        collection.data = MagicMock()
         collection.update()
-        self.assertEqual(collection._data, None)
+        self.assertEqual(collection.data.clear_cache.call_count, 1)
 
     def test_samples(self):
-        collection = Collection(id=1, resolwe=MagicMock())
+        resolwe_mock = MagicMock(**{'sample.filter.return_value': ['sample1', 'sample2']})
+        collection = Collection(id=1, resolwe=resolwe_mock)
 
-        collection.resolwe.sample.filter = MagicMock(return_value=['sample1', 'sample2'])
         self.assertEqual(collection.samples, ['sample1', 'sample2'])
 
         # cache is cleared at update
-        collection._samples = ['sample1', 'sample2']
+        collection.samples = MagicMock()
         collection.update()
-        self.assertEqual(collection._samples, None)
-
-        # cache is cleared at update
-        collection._samples = ['sample']
-        collection.update()
-        self.assertEqual(collection._samples, None)
+        self.assertEqual(collection.samples.clear_cache.call_count, 1)
 
 
 class TestSample(unittest.TestCase):
 
     def test_data(self):
-        sample = Sample(id=1, resolwe=MagicMock())
+        resolwe_mock = MagicMock(**{'data.filter.return_value': ['data_1', 'data_2', 'data_3']})
+        sample = Sample(id=1, resolwe=resolwe_mock)
 
-        # test getting data attribute
-        sample.resolwe.data.filter = MagicMock(return_value=['data_1', 'data_2', 'data_3'])
         self.assertEqual(sample.data, ['data_1', 'data_2', 'data_3'])
-
-        # test caching data attribute
-        self.assertEqual(sample.data, ['data_1', 'data_2', 'data_3'])
-        self.assertEqual(sample.resolwe.data.filter.call_count, 1)
 
         # cache is cleared at update
-        sample._data = ['data']
+        sample.data = MagicMock()
         sample.update()
-        self.assertEqual(sample._data, None)
+        self.assertEqual(sample.data.clear_cache.call_count, 1)
 
     def test_collections(self):
-        sample = Sample(id=1, resolwe=MagicMock())
+        resolwe_mock = MagicMock(
+            **{'collection.filter.return_value': ['collection_1', 'collection_2']})
+        sample = Sample(id=1, resolwe=resolwe_mock)
 
-        # test getting data attribute
-        sample.resolwe.collection.filter = MagicMock(
-            return_value=['collection_1', 'collection_2', 'collection_3'])
-        self.assertEqual(sample.collections, ['collection_1', 'collection_2', 'collection_3'])
-
-        # test caching data attribute
-        self.assertEqual(sample.collections, ['collection_1', 'collection_2', 'collection_3'])
-        self.assertEqual(sample.resolwe.collection.filter.call_count, 1)
+        self.assertEqual(sample.collections, ['collection_1', 'collection_2'])
 
         # cache is cleared at update
-        sample._collections = ['collection']
+        sample.collections = MagicMock()
         sample.update()
-        self.assertEqual(sample._collections, None)
+        self.assertEqual(sample.collections.clear_cache.call_count, 1)
 
     @patch('resdk.resources.sample.Sample', spec=True)
     def test_sample_print_annotation(self, sample_mock):
