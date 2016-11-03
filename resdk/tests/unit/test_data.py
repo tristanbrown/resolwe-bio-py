@@ -9,18 +9,11 @@ import six
 
 from mock import patch, MagicMock
 
-from resdk.resources.data import Data, get_data_id
+from resdk.resources.data import Data
 from resdk.tests.mocks.data import DATA_SAMPLE
 
 
 class TestData(unittest.TestCase):
-
-    @patch('resdk.resources.data.logging')
-    @patch('resdk.resources.data.Data', spec=True)
-    def test_init(self, data_mock, log_mock):
-        data_mock.configure_mock(endpoint="a string")
-        Data.__init__(data_mock, id=1, resolwe=MagicMock())
-        log_mock.getLogger.assert_called_once_with('resdk.resources.data')
 
     @patch('resdk.resources.data.Data', spec=True)
     def test_update_fields(self, data_mock):
@@ -51,6 +44,11 @@ class TestData(unittest.TestCase):
         self.assertEqual(data.sample, 'sample')
         self.assertEqual(data.resolwe.sample.filter.call_count, 1)
 
+        # cache is cleared at update
+        data._sample = 'sample'
+        data.update()
+        self.assertEqual(data._sample, None)
+
     def test_presample(self):
         data = Data(id=1, resolwe=MagicMock())
 
@@ -67,6 +65,27 @@ class TestData(unittest.TestCase):
         # remove presample when gone
         data.resolwe.presample.filter = MagicMock(return_value=[])
         self.assertEqual(data.presample, None)
+
+        # cache is cleared at update
+        data._presample = 'presample'
+        data.update()
+        self.assertEqual(data._presample, None)
+
+    def test_collections(self):
+        data = Data(id=1, resolwe=MagicMock())
+
+        # test getting collections attribute
+        data.resolwe.collection.filter = MagicMock(return_value=['collection'])
+        self.assertEqual(data.collections, ['collection'])
+
+        # test caching collections attribute
+        self.assertEqual(data.collections, ['collection'])
+        self.assertEqual(data.resolwe.collection.filter.call_count, 1)
+
+        # cache is cleared at update
+        data._collections = ['collection']
+        data.update()
+        self.assertEqual(data._collections, None)
 
     @patch('resdk.resources.data.Data', spec=True)
     def test_files(self, data_mock):
@@ -158,13 +177,6 @@ class TestData(unittest.TestCase):
         out = Data.stdout(data_mock)
 
         self.assertEqual(response.raise_for_status.call_count, 1)
-
-    def test_get_data_id(self):
-        data = Data(id=1, resolwe=MagicMock())
-        data.id = 1  # this is overriden when initialized
-        self.assertEqual(get_data_id(data), 1)
-
-        self.assertEqual(get_data_id(2), 2)
 
 
 if __name__ == '__main__':

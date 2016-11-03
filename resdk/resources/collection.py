@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import six
 
 from .base import BaseResource
-from .utils import get_resource_id, resource_list
+from .utils import get_data_id, get_sample_id
 
 
 class BaseCollection(BaseResource):
@@ -26,12 +26,6 @@ class BaseCollection(BaseResource):
 
     WRITABLE_FIELDS = ('description', 'settings', 'descriptor_schema',
                        'descriptor') + BaseResource.WRITABLE_FIELDS
-    READ_ONLY_FIELDS = ('data', ) + BaseResource.READ_ONLY_FIELDS
-
-    #: ids of data objects (if not hydrated), data objects (if hydrated)
-    _data = None
-    #: indicates if ``_data`` list is already hydrated
-    _data_hydrated = False
 
     def __init__(self, slug=None, id=None,  # pylint: disable=redefined-builtin
                  model_data=None, resolwe=None):
@@ -44,37 +38,22 @@ class BaseCollection(BaseResource):
         self.descriptor = None
         #: descriptor schema
         self.descriptor_schema = None
-        #: collections
-        self.collections = None
 
-        BaseResource.__init__(self, slug, id, model_data, resolwe)
+        super(BaseCollection, self).__init__(slug, id, model_data, resolwe)
 
     @property
     def data(self):
-        """Lazy load ``data`` objects belonging to the collection."""
-        if not self._data_hydrated:
-            data = self.resolwe.data.filter(id__in=','.join(map(str, self._data or [])))
-            # Transform list to ``resource_list``, so the comparison with the
-            # original value will work
-            self._data = resource_list(data)
-            self._data_hydrated = True
-
-        return self._data
-
-    @data.setter
-    def data(self, value):
-        """Store data ids and set hydration flag to ``False``."""
-        self._data = value
-        self._data_hydrated = False
+        """Get data objects that belong to the collection."""
+        raise NotImplementedError('This should be implemented in subclass')
 
     def add_data(self, *data):
         """Add ``data`` objects to the collection."""
-        data = [get_resource_id(d) for d in data]
+        data = [get_data_id(d) for d in data]
         self.api(self.id).add_data.post({'ids': data})
 
     def remove_data(self, *data):
         """Remove ``data`` objects from the collection."""
-        data = [get_resource_id(d) for d in data]
+        data = [get_data_id(d) for d in data]
         self.api(self.id).remove_data.post({'ids': data})
 
     def data_types(self):
@@ -152,16 +131,52 @@ class Collection(BaseCollection):
 
     endpoint = 'collection'
 
+    #: (lazy loaded) list of data object that belong to collection
+    _data = None
+    #: (lazy loaded) list of samples that belong to collection
+    _samples = None
+
     def __init__(self, slug=None, id=None,  # pylint: disable=redefined-builtin
                  model_data=None, resolwe=None):
         """Initialize attributes."""
         BaseCollection.__init__(self, slug, id, model_data, resolwe)
 
+    def update(self):
+        """Clear cache and update resource fields from the server."""
+        self._data = None
+        self._samples = None
+
+        super(Collection, self).update()
+
+    @property
+    def data(self):
+        """Lazy load ``data`` objects belonging to the collection."""
+        if not self._data:
+            self._data = self.resolwe.data.filter(collection=self.id)
+
+        return self._data
+
+    def add_samples(self, *samples):
+        """Add `samples` objects to the collection."""
+        samples = [get_sample_id(s) for s in samples]
+        # XXX: Make in one request when supported on API
+        for sample in samples:
+            self.resolwe.api.sample(sample).add_to_collection.post({'ids': [self.id]})
+
+    def remove_samples(self, *samples):
+        """Remove ``sample`` objects from the collection."""
+        samples = [get_sample_id(s) for s in samples]
+        # XXX: Make in one request when supported on API
+        for sample in samples:
+            self.resolwe.api.sample(sample).remove_from_collection.post({'ids': [self.id]})
+
+    @property
+    def samples(self):
+        """Get ``samples`` that belong to the collection."""
+        if not self._samples:
+            self._samples = self.resolwe.sample.filter(collections=self.id)
+        return self._samples
+
     def print_annotation(self):
         """Provide annotation data."""
         raise NotImplementedError()
-
-
-def get_collection_id(collection):
-    """Return id attribute of the object if it is collection, othervise return given value."""
-    return collection.id if isinstance(collection, Collection) else collection

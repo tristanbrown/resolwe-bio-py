@@ -1,8 +1,6 @@
 """Resource utility functions."""
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from .base import get_resource_id
-
 
 def iterate_fields(fields, schema):
     """Recursively iterate over all DictField sub-fields.
@@ -98,28 +96,21 @@ def endswith_colon(schema, field):
         schema[field] += ':'
 
 
-class resource_list(list):  # pylint: disable=invalid-name
-    """Subclass of ``list`` used for resdk resources.
+def get_collection_id(collection):
+    """Return id attribute of the object if it is collection, othervise return given value."""
+    return collection.id if type(collection).__name__ == 'Collection' else collection
 
-    This list is aware of resource objects it holds and knows how to compare
-    them with a list of just object ids.
 
-    """
+def get_data_id(data):
+    """Return id attribute of the object if it is data, othervise return given value."""
+    return data.id if type(data).__name__ == 'Data' else data
 
-    def __ne__(self, other):
-        """Chech if given two objects are NOT equal."""
-        if other is None:
-            other = []
 
-        if len(self) != len(other):
-            return True
+def get_process_id(process):
+    """Return id attribute of the object if it is process, othervise return given value."""
+    return process.id if type(process).__name__ == 'Process' else process
 
-        for obj1, obj2 in zip(self, other):
-            if get_resource_id(obj1) != get_resource_id(obj2):
-                return True
 
-        return False
-
-    def __eq__(self, other):
-        """Chech if given two objects are equal."""
-        return not self.__ne__(other)
+def get_sample_id(sample):
+    """Return id attribute of the object if it is sample, othervise return given value."""
+    return sample.id if type(sample).__name__ == 'Sample' else sample

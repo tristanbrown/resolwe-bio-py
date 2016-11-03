@@ -30,9 +30,10 @@ import slumber
 from six.moves.urllib.parse import urljoin  # pylint: disable=import-error
 
 from .exceptions import ValidationError
-from .resources import get_collection_id, get_data_id, Data, Collection, Sample, Process
+from .resources import Data, Collection, Sample, Process
 from .resources.kb import Feature
-from .resources.utils import iterate_fields, iterate_schema, endswith_colon
+from .resources.utils import (
+    iterate_fields, iterate_schema, endswith_colon, get_collection_id, get_data_id)
 
 
 VERSION_NUMBER_BITS = (8, 10, 14)

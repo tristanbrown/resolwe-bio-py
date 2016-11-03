@@ -7,11 +7,12 @@ import unittest
 
 import six
 
-from mock import patch, call, MagicMock
+from mock import MagicMock, patch, call
 
-from resdk.resources import utils
-from resdk.resources.utils import resource_list
-from resdk.resources.data import Data
+from resdk.resources import Collection, Data, Sample, Process
+from resdk.resources.utils import (
+    _print_input_line, endswith_colon, iterate_fields, iterate_schema, find_field, fill_spaces,
+    get_collection_id, get_data_id, get_sample_id, get_process_id)
 
 
 PROCESS_OUTPUT_SCHEMA = [
@@ -35,7 +36,7 @@ OUTPUT = {
 class TestUtils(unittest.TestCase):
 
     def test_iterate_fields(self):
-        result = list(utils.iterate_fields(OUTPUT, PROCESS_OUTPUT_SCHEMA))
+        result = list(iterate_fields(OUTPUT, PROCESS_OUTPUT_SCHEMA))
         # result object is iterator - we use lists to pull all elements
 
         expected = [
@@ -88,7 +89,7 @@ class TestUtils(unittest.TestCase):
         """
         Ensure that changing ``values`` inside iteration loop also changes ``OUTPUT`` values.
         """
-        for schema, values in utils.iterate_fields(OUTPUT, PROCESS_OUTPUT_SCHEMA):
+        for schema, values in iterate_fields(OUTPUT, PROCESS_OUTPUT_SCHEMA):
             field_name = schema['name']
             if field_name == "bases":
                 values[field_name] = str(int(values[field_name]) + 1)
@@ -98,15 +99,15 @@ class TestUtils(unittest.TestCase):
         OUTPUT['bases'] = "75"
 
     def test_find_field(self):
-        result = utils.find_field(PROCESS_OUTPUT_SCHEMA, 'fastq')
+        result = find_field(PROCESS_OUTPUT_SCHEMA, 'fastq')
 
         expected = {'type': 'basic:file:', 'name': 'fastq', 'label': 'Reads file'}
 
         self.assertEqual(result, expected)
 
     def test_iterate_schema(self):
-        result1 = list(utils.iterate_schema(OUTPUT, PROCESS_OUTPUT_SCHEMA, 'my_path'))
-        result2 = list(utils.iterate_schema(OUTPUT, PROCESS_OUTPUT_SCHEMA))
+        result1 = list(iterate_schema(OUTPUT, PROCESS_OUTPUT_SCHEMA, 'my_path'))
+        result2 = list(iterate_schema(OUTPUT, PROCESS_OUTPUT_SCHEMA))
 
         expected1 = [
             ({'name': 'fastq', 'label': 'Reads file', 'type': 'basic:file:'},
@@ -141,12 +142,12 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(result2, expected2)
 
     def test_fill_spaces(self):
-        result = utils.fill_spaces("one_word", 12)
+        result = fill_spaces("one_word", 12)
         self.assertEqual(result, "one_word    ")
 
     @patch('resdk.resources.utils.print')
     def test_print_input_line(self, print_mock):
-        utils._print_input_line(PROCESS_OUTPUT_SCHEMA, 0)
+        _print_input_line(PROCESS_OUTPUT_SCHEMA, 0)
         calls = [
             call(u'- fastq     [basic:file:]   - Reads file'),
             call(u'- bases     [basic:string:] - Number of bases'),
@@ -160,23 +161,37 @@ class TestUtils(unittest.TestCase):
 
         schema = {'process_type': 'data:reads:fastq:single'}
 
-        utils.endswith_colon(schema, 'process_type')
+        endswith_colon(schema, 'process_type')
 
         self.assertEqual(schema, {'process_type': u'data:reads:fastq:single:'})
 
-    def test_resource_list(self):
-        data_1 = Data(id=1, resolwe=MagicMock())
-        data_1.id = 1  # this is overriden when initialized
-        data_2 = Data(id=2, resolwe=MagicMock())
-        data_2.id = 2  # this is overriden when initialized
+    def test_get_collection_id(self):
+        collection = Collection(id=1, resolwe=MagicMock())
+        collection.id = 1  # this is overriden when initialized
+        self.assertEqual(get_collection_id(collection), 1)
 
-        self.assertTrue(resource_list([]) == None)  # noqa pylint: disable=singleton-comparison
-        self.assertTrue(resource_list([]) == [])
-        self.assertTrue(resource_list([data_1, data_2]) == [1, 2])
-        self.assertFalse(resource_list([data_1, data_2]) == [1, 3])
-        self.assertTrue(resource_list([data_1, data_2]) != [1, 3])
-        self.assertTrue(resource_list([1, 2]) == [1, 2])
-        self.assertTrue(resource_list([1, 2]) != [1, 2, 3])
+        self.assertEqual(get_collection_id(2), 2)
+
+    def test_get_sample_id(self):
+        sample = Sample(id=1, resolwe=MagicMock())
+        sample.id = 1  # this is overriden when initialized
+        self.assertEqual(get_sample_id(sample), 1)
+
+        self.assertEqual(get_sample_id(2), 2)
+
+    def test_get_data_id(self):
+        data = Data(id=1, resolwe=MagicMock())
+        data.id = 1  # this is overriden when initialized
+        self.assertEqual(get_data_id(data), 1)
+
+        self.assertEqual(get_data_id(2), 2)
+
+    def test_get_process_id(self):
+        process = Process(id=1, resolwe=MagicMock())
+        process.id = 1  # this is overriden when initialized
+        self.assertEqual(get_process_id(process), 1)
+
+        self.assertEqual(get_process_id(2), 2)
 
 
 if __name__ == '__main__':

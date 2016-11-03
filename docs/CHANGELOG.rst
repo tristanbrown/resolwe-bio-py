@@ -13,6 +13,10 @@ Added
 -----
 * ``get_or_run`` method to ``Resolwe`` class to return matching
   object if already exists, otherwise create it
+* ``add_samples`` and ``remove_samples`` methods to ``collection``
+  resource
+* ``samples`` attribute to ``collection`` resource
+* ``collections`` attribute to ``data`` and ``sample`` resources
 
 Changed
 -------
@@ -30,6 +34,7 @@ Fixed
 * Set chunk size for uploading files to 8MB
 * Original value of ``input`` parameter is kept when running ``run``
   funtion
+* Clear cache when updating resources
 
 
 ==================

@@ -34,6 +34,8 @@ class Data(BaseResource):
     _sample = None
     #: (lazy loaded) unannotated ``Sample`` to which ``Data`` object belongs
     _presample = None
+    #: (lazy loaded) list of collections to which data object belongs
+    _collections = None
 
     WRITABLE_FIELDS = ('descriptor_schema', 'descriptor') + BaseResource.WRITABLE_FIELDS
     UPDATE_PROTECTED_FIELDS = ('input', 'process') + BaseResource.UPDATE_PROTECTED_FIELDS
@@ -83,9 +85,17 @@ class Data(BaseResource):
         #: process name
         self.process_name = None
 
-        BaseResource.__init__(self, slug, id, model_data, resolwe)
+        super(Data, self).__init__(slug, id, model_data, resolwe)
 
         self.logger = logging.getLogger(__name__)
+
+    def update(self):
+        """Clear cache and update resource fields from the server."""
+        self._sample = None
+        self._presample = None
+        self._collections = None
+
+        super(Data, self).update()
 
     def _update_fields(self, fields):
         """Update the Data object with new data.
@@ -153,6 +163,13 @@ class Data(BaseResource):
         elif self._presample is None:
             self._presample = presample[0]
         return self._presample
+
+    @property
+    def collections(self):
+        """Get list of ``collections`` to which object belongs to."""
+        if self._collections is None:
+            self._collections = self.resolwe.collection.filter(data=self.id)
+        return self._collections
 
     def files(self, file_name=None, field_name=None):
         """Get list of downloadable fields.
@@ -242,8 +259,3 @@ class Data(BaseResource):
                 output += chunk
 
         return output.decode("utf-8")
-
-
-def get_data_id(data):
-    """Return id attribute of the object if it is data, othervise return given value."""
-    return data.id if isinstance(data, Data) else data
