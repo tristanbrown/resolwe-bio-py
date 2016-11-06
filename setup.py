@@ -59,7 +59,7 @@ setup(
         'test': [
             'check-manifest',
             'mock==1.3.0',
-            'pycodestyle>=2.0.0',
+            'pycodestyle>=2.1.0',
             'pydocstyle>=1.0.0',
             'pylint>=1.6.4',
             'pytest-cov',

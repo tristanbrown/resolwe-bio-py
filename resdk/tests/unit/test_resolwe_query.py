@@ -93,5 +93,6 @@ class TestResolweQuery(unittest.TestCase):
         with six.assertRaisesRegex(self, NotImplementedError, ""):
             ResolweQuery.search(resq_mock)
 
+
 if __name__ == '__main__':
     unittest.main()
