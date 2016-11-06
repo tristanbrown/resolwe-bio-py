@@ -25,7 +25,7 @@ from requests.exceptions import ConnectionError  # pylint: disable=redefined-bui
 import slumber
 from six.moves.urllib.parse import urljoin  # pylint: disable=import-error
 
-from .exceptions import ValidationError
+from .exceptions import handle_http_exception, ValidationError
 from .resources import Data, Collection, Sample, Process
 from .resources.kb import Feature
 from .resources.utils import (
@@ -39,6 +39,23 @@ DEFAULT_URL = 'http://localhost:8000'
 # Tools directory on the Resolwe server, for example:
 # username@torta.bcmt.bcm.edu://genialis/tools
 TOOLS_REMOTE_HOST = os.environ.get('TOOLS_REMOTE_HOST', None)
+
+
+class ResolweResource(slumber.Resource):
+    """Wrapper around slumber's Resource with custom exceptions handler."""
+
+    def __getattribute__(self, item):
+        """Return class attribute and wrapp request methods in exception handler."""
+        attr = super(ResolweResource, self).__getattribute__(item)
+        if item in ['get', 'options', 'head', 'post', 'patch', 'put', 'delete']:
+            return handle_http_exception(attr)
+        return attr
+
+
+class ResolweAPI(slumber.API):
+    """Use custom ResolweResource resource class in slumber's API."""
+
+    resource_class = ResolweResource
 
 
 class Resolwe(object):
@@ -57,7 +74,7 @@ class Resolwe(object):
         """Initialize attributes."""
         self.url = url
         self.auth = ResAuth(username, password, url)
-        self.api = slumber.API(urljoin(url, '/api/'), self.auth, append_slash=False)
+        self.api = ResolweAPI(urljoin(url, '/api/'), self.auth, append_slash=False)
 
         self.data = ResolweQuery(self, Data)
         self.collection = ResolweQuery(self, Collection)

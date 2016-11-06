@@ -142,20 +142,14 @@ class BaseResource(object):
                 self._update_fields(response)
 
         else:  # create resource
-            try:
-                assert_fields_changed(self.READ_ONLY_FIELDS)
+            assert_fields_changed(self.READ_ONLY_FIELDS)
 
-                field_names = self.WRITABLE_FIELDS + self.UPDATE_PROTECTED_FIELDS
-                payload = {field_name: getattr(self, field_name) for field_name in field_names
-                           if getattr(self, field_name) is not None}
+            field_names = self.WRITABLE_FIELDS + self.UPDATE_PROTECTED_FIELDS
+            payload = {field_name: getattr(self, field_name) for field_name in field_names
+                       if getattr(self, field_name) is not None}
 
-                response = self.api.post(payload)
-                self._update_fields(response)
-            except slumber.exceptions.HttpClientError as ex:
-                # pylint: disable=no-member
-                raise slumber.exceptions.HttpClientError('{}\n\n{}'.format(ex.message, ex.content),
-                                                         response=ex.response,
-                                                         content=ex.content)
+            response = self.api.post(payload)
+            self._update_fields(response)
 
     def delete(self):
         """Delete the resource object from the server."""

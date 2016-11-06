@@ -11,11 +11,11 @@ import six
 from mock import patch, MagicMock, mock_open
 import requests
 import slumber
+from slumber.exceptions import SlumberHttpBaseException
 import yaml
 
-
-from resdk.exceptions import ValidationError
-from resdk.resolwe import Resolwe, ResAuth
+from resdk.exceptions import ValidationError, ResolweServerError
+from resdk.resolwe import Resolwe, ResAuth, ResolweResource
 from resdk.resources import Collection, Data
 from resdk import resolwe
 
@@ -23,17 +23,75 @@ from resdk import resolwe
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 
+class TestResolweResource(unittest.TestCase):
+    def setUp(self):
+        self.resource = ResolweResource()
+        self.method_mock = MagicMock(
+            side_effect=[42, SlumberHttpBaseException(content='error mesage')])
+
+    def test_get_wrapped(self):
+        self.resource.get = self.method_mock
+        self.assertEqual(self.resource.get(), 42)
+
+        with self.assertRaises(ResolweServerError):
+            self.resource.get()
+
+    def test_options_wrapped(self):
+        self.resource.options = self.method_mock
+        self.assertEqual(self.resource.options(), 42)
+
+        with self.assertRaises(ResolweServerError):
+            self.resource.options()
+
+    def test_head_wrapped(self):
+        self.resource.head = self.method_mock
+        self.assertEqual(self.resource.head(), 42)
+
+        with self.assertRaises(ResolweServerError):
+            self.resource.head()
+
+    def test_post_wrapped(self):
+        self.resource.post = self.method_mock
+        self.assertEqual(self.resource.post(), 42)
+
+        with self.assertRaises(ResolweServerError):
+            self.resource.post()
+
+    def test_patch_wrapped(self):
+        self.resource.patch = self.method_mock
+        self.assertEqual(self.resource.patch(), 42)
+
+        with self.assertRaises(ResolweServerError):
+            self.resource.patch()
+
+    def test_put_wrapped(self):
+        self.resource.put = self.method_mock
+        self.assertEqual(self.resource.put(), 42)
+
+        with self.assertRaises(ResolweServerError):
+            self.resource.put()
+
+    def test_delete_wrapped(self):
+        self.resource.delete = self.method_mock
+        self.assertEqual(self.resource.delete(), 42)
+
+        with self.assertRaises(ResolweServerError):
+            self.resource.delete()
+
+
 class TestResolwe(unittest.TestCase):
 
     @patch('resdk.resolwe.logging')
     @patch('resdk.resolwe.ResolweQuery')
+    @patch('resdk.resolwe.ResolweAPI')
     @patch('resdk.resolwe.slumber')
     @patch('resdk.resolwe.ResAuth')
     @patch('resdk.resolwe.Resolwe', spec=Resolwe)
-    def test_init(self, resolwe_mock, resauth_mock, slumber_mock, resolwe_querry_mock, log_mock):
+    def test_init(self, resolwe_mock, resauth_mock, slumber_mock, resolwe_api_mock,
+                  resolwe_querry_mock, log_mock):
         Resolwe.__init__(resolwe_mock, 'a', 'b', 'http://some/url')
         self.assertEqual(resauth_mock.call_count, 1)
-        self.assertEqual(slumber_mock.API.call_count, 1)
+        self.assertEqual(resolwe_api_mock.call_count, 1)
         # There are six instances of ResolweQuery in init: data, process, sample,
         # presample, collection and feature.
         self.assertEqual(resolwe_querry_mock.call_count, 6)
