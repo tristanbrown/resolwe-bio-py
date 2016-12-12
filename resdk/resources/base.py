@@ -24,6 +24,8 @@ class BaseResource(object):
     """
 
     endpoint = None
+    query_endpoint = None
+    query_method = 'GET'
 
     WRITABLE_FIELDS = ('slug', 'name', 'permissions')
     UPDATE_PROTECTED_FIELDS = ('contributor', )

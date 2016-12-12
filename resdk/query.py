@@ -89,11 +89,19 @@ class ResolweQuery(object):
     api = None
     logger = None
 
-    def __init__(self, resolwe, Resource, endpoint=None):
+    def __init__(self, resolwe, resource, endpoint=None):
         """Initialize attributes."""
         self.resolwe = resolwe
-        self.resource = Resource
-        self.endpoint = endpoint if endpoint else Resource.endpoint
+        self.resource = resource
+
+        # Determine the endpoint to use.
+        if endpoint is not None:
+            self.endpoint = endpoint
+        elif resource.query_endpoint is not None:
+            self.endpoint = resource.query_endpoint
+        else:
+            self.endpoint = resource.endpoint
+
         self.api = operator.attrgetter(self.endpoint)(resolwe.api)
         self.logger = logging.getLogger(__name__)
 
@@ -159,7 +167,13 @@ class ResolweQuery(object):
     def _add_filter(self, filter_):
         """Add filter parameter."""
         for key, value in filter_.items():
-            self._filters[key].append(value)
+            if self.resource.query_method == 'GET':
+                self._filters[key].append(value)
+            elif self.resource.query_method == 'POST':
+                self._filters[key] = value
+            else:
+                raise NotImplementedError(
+                    'Unsupported query_method: {}'.format(self.resource.query_method))
 
     def _compose_filters(self):
         """Convert filters to dict and add pagination filters."""
@@ -186,8 +200,15 @@ class ResolweQuery(object):
             resource_inputs['presample'] = True
 
         filters = self._compose_filters()
-        self._cache = [
-            self._populate_resource(data, **resource_inputs) for data in self.api.get(**filters)]
+        if self.resource.query_method == 'GET':
+            items = self.api.get(**filters)
+        elif self.resource.query_method == 'POST':
+            items = self.api.post(filters)
+        else:
+            raise NotImplementedError(
+                'Unsupported query_method: {}'.format(self.resource.query_method))
+
+        self._cache = [self._populate_resource(data, **resource_inputs) for data in items]
 
     def clear_cache(self):
         """Clear cache."""

@@ -92,9 +92,9 @@ class TestResolwe(unittest.TestCase):
         Resolwe.__init__(resolwe_mock, 'a', 'b', 'http://some/url')
         self.assertEqual(resauth_mock.call_count, 1)
         self.assertEqual(resolwe_api_mock.call_count, 1)
-        # There are six instances of ResolweQuery in init: data, process, sample,
-        # presample, collection and feature.
-        self.assertEqual(resolwe_querry_mock.call_count, 6)
+        # There are seven instances of ResolweQuery in init: data, process, sample,
+        # presample, collection, feature and mapping.
+        self.assertEqual(resolwe_querry_mock.call_count, 7)
         self.assertEqual(log_mock.getLogger.call_count, 1)
 
     def test_repr(self):

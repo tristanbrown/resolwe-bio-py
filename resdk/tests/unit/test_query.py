@@ -15,7 +15,7 @@ class TestResolweQuery(unittest.TestCase):
 
     def test_init(self):
         resolwe = MagicMock()
-        resource = MagicMock(endpoint='resolwe_endpoint')
+        resource = MagicMock(endpoint='resolwe_endpoint', query_endpoint=None, query_method='GET')
 
         query = ResolweQuery(resolwe, resource, 'endpoint')
         self.assertEqual(query.resolwe, resolwe)
@@ -26,6 +26,19 @@ class TestResolweQuery(unittest.TestCase):
         self.assertEqual(query.resolwe, resolwe)
         self.assertEqual(query.resource, resource)
         self.assertEqual(query.endpoint, 'resolwe_endpoint')
+
+        resource = MagicMock(endpoint='resolwe_endpoint', query_endpoint='query_endpoint',
+                             query_method='GET')
+
+        query = ResolweQuery(resolwe, resource, 'endpoint')
+        self.assertEqual(query.resolwe, resolwe)
+        self.assertEqual(query.resource, resource)
+        self.assertEqual(query.endpoint, 'endpoint')
+
+        query = ResolweQuery(resolwe, resource)
+        self.assertEqual(query.resolwe, resolwe)
+        self.assertEqual(query.resource, resource)
+        self.assertEqual(query.endpoint, 'query_endpoint')
 
     def test_getitem_invalid(self):
         query = MagicMock(spec=ResolweQuery)
@@ -111,8 +124,14 @@ class TestResolweQuery(unittest.TestCase):
 
     def test_add_filter(self):
         query = MagicMock(spec=ResolweQuery, _filters=defaultdict(list, {'slug': ['test']}))
+        query.resource.query_method = 'GET'
         ResolweQuery._add_filter(query, {'id': 1})
         self.assertEqual(dict(query._filters), {'slug': ['test'], 'id': [1]})
+
+        query = MagicMock(spec=ResolweQuery, _filters={'slug': 'test'})
+        query.resource.query_method = 'POST'
+        ResolweQuery._add_filter(query, {'id': 1})
+        self.assertEqual(query._filters, {'slug': 'test', 'id': 1})
 
     def test_compose_filters(self):
         query = MagicMock(spec=ResolweQuery)
@@ -130,6 +149,7 @@ class TestResolweQuery(unittest.TestCase):
         query._cache = None
         query.api.get = MagicMock(return_value=['object 1', 'object 2'])
         query._populate_resource = MagicMock(side_effect=['object 1', 'object 2'])
+        query.resource.query_method = 'GET'
 
         ResolweQuery._fetch(query)
         self.assertEqual(query._cache, ['object 1', 'object 2'])
