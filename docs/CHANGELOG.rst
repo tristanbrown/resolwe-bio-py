@@ -6,6 +6,24 @@ All notable changes to this project are documented in this file.
 
 
 ==================
+1.5.1 - 2016-12-20
+==================
+
+Added
+-----
+* Knowledge base feature mapping lookup
+
+Changed
+-------
+* Polish documentation style
+* Improve handling of server errors
+
+Fixed
+-----
+* Remove file logger
+
+
+==================
 1.5.0 - 2016-11-07
 ==================
 
