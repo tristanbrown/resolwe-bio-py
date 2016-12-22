@@ -70,8 +70,18 @@ class Resolwe(object):
 
     """
 
-    def __init__(self, username=None, password=None, url=DEFAULT_URL):
+    def __init__(self, username=None, password=None, url=None):
         """Initialize attributes."""
+        if url is None:
+            # Try to get URL from environmental variable, otherwise fallback to default.
+            url = os.environ.get('RESOLWE_API_HOST', DEFAULT_URL)
+
+        if username is None:
+            username = os.environ.get('RESOLWE_API_USERNAME', None)
+
+        if password is None:
+            password = os.environ.get('RESOLWE_API_PASSWORD', None)
+
         self.url = url
         self.auth = ResAuth(username, password, url)
         self.api = ResolweAPI(urljoin(url, '/api/'), self.auth, append_slash=False)

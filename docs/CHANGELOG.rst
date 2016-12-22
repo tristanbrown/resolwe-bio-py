@@ -5,6 +5,16 @@ Change Log
 All notable changes to this project are documented in this file.
 
 
+==========
+Unreleased
+==========
+
+Added
+-----
+* Support ``RESOLWE_API_HOST``, ``RESOLWE_API_USERNAME`` and
+  ``RESOLWE_API_PASSWORD`` environmental variables
+
+
 ==================
 1.5.1 - 2016-12-20
 ==================

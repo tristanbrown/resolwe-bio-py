@@ -108,6 +108,28 @@ class TestResolwe(unittest.TestCase):
         rep = Resolwe.__repr__(resolwe_mock)
         self.assertEqual(rep, 'Resolwe <url: www.abc.com>')
 
+    @patch('resdk.resolwe.ResAuth')
+    def test_env_variables(self, resauth_mock):
+        # Ensure environmental variables are not set.
+        os.environ.pop('RESOLWE_API_HOST', None)
+        os.environ.pop('RESOLWE_API_USERNAME', None)
+        os.environ.pop('RESOLWE_API_PASSWORD', None)
+
+        # Default URL should be used by default.
+        resolwe_api = Resolwe()
+        self.assertEqual(resolwe_api.url, 'http://localhost:8000')
+        self.assertEqual(resauth_mock.call_args[0][0], None)
+        self.assertEqual(resauth_mock.call_args[0][1], None)
+
+        # If environment variable is set, it overrides the default URL.
+        os.environ['RESOLWE_API_HOST'] = 'http://resolwe-api:8000'
+        os.environ['RESOLWE_API_USERNAME'] = 'foo'
+        os.environ['RESOLWE_API_PASSWORD'] = 'bar'
+        resolwe_api = Resolwe()
+        self.assertEqual(resolwe_api.url, 'http://resolwe-api:8000')
+        self.assertEqual(resauth_mock.call_args[0][0], 'foo')
+        self.assertEqual(resauth_mock.call_args[0][1], 'bar')
+
 
 class TestVersionConverters(unittest.TestCase):
     """
