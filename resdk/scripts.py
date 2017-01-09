@@ -115,7 +115,7 @@ def sequp():
 
     We want to upload files which have not been uploaded yet. We need
     to know the most recent modification date of all uploaded files.
-    Files modiffied later are upload candidates. The timestamp of last
+    Files modified later are upload candidates. The timestamp of last
     modification time is stored in config_file.
 
     """

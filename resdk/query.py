@@ -22,8 +22,8 @@ class ResolweQuery(object):
 
     A Resolwe instance (for example "res") has several endpoints:
     res.data, res.collections, res.sample and res.process. Each
-    andpooint is an instance of the ResolweQuery class. ResolweQuery
-    supports querries on corresponding objects, for example:
+    endpoint is an instance of the ResolweQuery class. ResolweQuery
+    supports queries on corresponding objects, for example:
 
     .. code-block:: python
 
@@ -44,7 +44,7 @@ class ResolweQuery(object):
         res.data.filter(contributor=1, name='My object')
 
     This is especially useful, because all endpoints at Resolwe instance
-    are such queries and can be filtered further before transfering
+    are such queries and can be filtered further before transferring
     any data.
 
     Filters can be made with the following keywords (and operators)
@@ -103,7 +103,7 @@ class ResolweQuery(object):
         res.data.filter(status='OK')
 
         # Get a list of sample objects that contain data object 42 and
-        # were contributed by contibutor with ID 1
+        # were contributed by contributor with ID 1
 
         res.collection.filter(data=42, contributor=1)
 
@@ -172,7 +172,7 @@ class ResolweQuery(object):
         return query_list[0]
 
     def __iter__(self):
-        """Return itterator over the current object."""
+        """Return iterator over the current object."""
         self._fetch()
         return iter(self._cache)
 
@@ -249,7 +249,7 @@ class ResolweQuery(object):
         """Get object that matches given parameters.
 
         If only one non-keyworded argument is given, it is considered
-        as id if it is number and as slug othervise.
+        as id if it is number and as slug otherwise.
 
         :param uid: unique identifier - ID or slug
         :type uid: int for ID or string for slug
@@ -265,9 +265,9 @@ class ResolweQuery(object):
         """
         if args:
             if len(args) > 1:
-                raise ValueError('Only one non-keyworded argumen can be given')
+                raise ValueError('Only one non-keyworded argument can be given')
             if kwargs:
-                raise ValueError('Non-keyworded arguments cannot be combined with keyqorded ones.')
+                raise ValueError('Non-keyworded arguments cannot be combined with keyworded ones.')
 
             arg = args[0]
             kwargs = {'id': arg} if str(arg).isdigit() else {'slug': arg}

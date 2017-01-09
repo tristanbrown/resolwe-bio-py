@@ -304,7 +304,7 @@ class Resolwe(ResolweUtilsMixin):
         """Process input fields.
 
         Processing includes:
-        * wraping ``list:*`` to the list if they are not already
+        * wrapping ``list:*`` to the list if they are not already
         * dehydrating values of ``data:*`` and ``list:data:*`` fields
         * uploading files in ``basic:file:`` and ``list:basic:file:``
           fields

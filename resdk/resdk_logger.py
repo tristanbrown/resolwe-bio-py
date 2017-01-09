@@ -55,7 +55,7 @@ modify it for our puruses - to log all uncaught exceptions.
 Note#1: Modified behaviour (logging of all uncaught exceptions) applies
 only when runing in non-interactive mode.
 
-Note#2: Any exception can be caught/uncaought and it can happen in
+Note#2: Any exception can be caught/uncaught and it can happen in
 interactive/non-interactive mode. This makes 4 different scenarios.
 The sys.excepthook modification takes care of uncaught exceptions in
 non-interactive mode. In interactive mode, user is notified directly
@@ -84,7 +84,7 @@ LOGGER_NAME = __name__.split('.')[0]
 # Create root logger:
 ROOT_LOGGER = logging.getLogger(LOGGER_NAME)
 # Set to lowest threshold possible, since specific handlers can
-# increase threshold level, if neccessary:
+# increase threshold level, if necessary:
 ROOT_LOGGER.setLevel(logging.DEBUG)  # lowest possible value
 
 # Create "do-nothing" handler. Why? If both (file and stdout handlers) are turned off,
