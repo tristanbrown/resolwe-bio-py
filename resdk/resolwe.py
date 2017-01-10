@@ -30,6 +30,7 @@ from .resources import Data, Collection, Sample, Process
 from .resources.kb import Feature, Mapping
 from .resources.utils import (
     iterate_fields, iterate_schema, endswith_colon, get_collection_id, get_data_id)
+from .utils.resolwe import ResolweUtilsMixin
 from .query import ResolweQuery
 
 
@@ -58,7 +59,7 @@ class ResolweAPI(slumber.API):
     resource_class = ResolweResource
 
 
-class Resolwe(object):
+class Resolwe(ResolweUtilsMixin):
     """Connect to a Resolwe server.
 
     :param email: user's email
