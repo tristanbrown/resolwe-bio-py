@@ -71,6 +71,9 @@ class Sample(SampleUtilsMixin, BaseCollection):
         """Find background sample of the current one."""
         # XXX: This is a workaround until relations are implemented in the right way.
 
+        if not background_slug and fail_silently:
+            return None
+
         try:
             return self.resolwe.sample.get(slug=background_slug)
         except LookupError:
