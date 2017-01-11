@@ -1,10 +1,12 @@
 """Sample resource."""
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from resdk.utils.sample import SampleUtilsMixin
+
 from .collection import BaseCollection
 
 
-class Sample(BaseCollection):
+class Sample(SampleUtilsMixin, BaseCollection):
     """Resolwe Sample resource.
 
     One and only one of the identifiers (slug, id or model_data)
@@ -64,3 +66,13 @@ class Sample(BaseCollection):
             self.logger.info('Moved Sample %s from presmaples to samples', self.id)
         else:
             raise NotImplementedError("Method supports objects in presample endpoint only.")
+
+    def get_background(self, background_slug, fail_silently=False):
+        """Find background sample of the current one."""
+        # XXX: This is a workaround until relations are implemented in the right way.
+
+        try:
+            return self.resolwe.sample.get(slug=background_slug)
+        except LookupError:
+            raise LookupError(
+                'Cannot find (background) sample with slug `{}`.'.format(background_slug))
