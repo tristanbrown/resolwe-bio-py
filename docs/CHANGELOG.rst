@@ -6,6 +6,16 @@ All notable changes to this project are documented in this file.
 
 
 ==================
+1.6.1 - 2017-01-11
+==================
+
+Fixed
+-----
+* Use right function to get bed files in ``run_rose2`` function
+* Return None if background slug is not given and ``fail_silently`` 
+  is ``True``
+
+==================
 1.6.0 - 2017-01-11
 ==================
 
