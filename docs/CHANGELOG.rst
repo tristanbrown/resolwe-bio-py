@@ -6,6 +6,16 @@ All notable changes to this project are documented in this file.
 
 
 ==================
+1.6.0 - 2017-01-11
+==================
+
+Added
+-----
+* ``get_bam``, ``get_macs``, ``run_rose2`` and ``run_macs`` utility
+  functions in ``Sample`` class
+* ``run_bamplot`` utility function in ``Resolwe`` class
+
+==================
 1.5.2 - 2016-12-22
 ==================
 
