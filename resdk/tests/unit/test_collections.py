@@ -108,7 +108,7 @@ class TestSample(unittest.TestCase):
         # cache is cleared at update
         sample.data = MagicMock()
         sample.update()
-        self.assertEqual(sample.data.clear_cache.call_count, 1)
+        self.assertEqual(sample.data.clear_cache.call_count, 1)  # pylint: disable=no-member
 
     def test_collections(self):
         resolwe_mock = MagicMock(
