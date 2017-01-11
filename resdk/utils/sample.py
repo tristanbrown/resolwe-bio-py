@@ -121,7 +121,7 @@ class SampleUtilsMixin(object):
             else:
                 self.logger.info('Rose-2 will run without a control sample.')
 
-        bed_list = self.get_beds()
+        bed_list = self.get_macs()
         if beds is not None:
             # Convert objects to the list of their ids
             if isinstance(beds, list):
