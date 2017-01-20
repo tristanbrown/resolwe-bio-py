@@ -4,6 +4,14 @@ Change Log
 
 All notable changes to this project are documented in this file.
 
+==========
+Unreleased
+==========
+
+Added
+-----
+* Queries support paginated responses
+
 
 ==================
 1.6.1 - 2017-01-11
@@ -12,7 +20,7 @@ All notable changes to this project are documented in this file.
 Fixed
 -----
 * Use right function to get bed files in ``run_rose2`` function
-* Return None if background slug is not given and ``fail_silently`` 
+* Return None if background slug is not given and ``fail_silently``
   is ``True``
 
 ==================

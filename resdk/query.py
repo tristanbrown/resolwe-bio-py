@@ -239,6 +239,10 @@ class ResolweQuery(object):
             raise NotImplementedError(
                 'Unsupported query_method: {}'.format(self.resource.query_method))
 
+        # Extract data from paginated response
+        if isinstance(items, dict) and 'results' in items:
+            items = items['results']
+
         self._cache = [self._populate_resource(data, **resource_inputs) for data in items]
 
     def clear_cache(self):
