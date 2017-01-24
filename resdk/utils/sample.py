@@ -20,6 +20,7 @@ class SampleUtilsMixin(object):
     This mixin includes handy methods for common tasks like getting
     data object of specific type from sample (or list of them, based on
     common usecase) and running analysis on the objects in the sample.
+
     """
 
     def get_bam(self):
@@ -29,6 +30,10 @@ class SampleUtilsMixin(object):
     def get_macs(self):
         """Return list of ``bed`` objects on the sample."""
         return self.data.filter(type='data:chipseq:macs14:')
+
+    def get_cuffquant(self):
+        """Return ``cuffquant`` object on the sample."""
+        return self.data.get(type='data:cufflinks:cuffquant:')
 
     def run_macs(self, use_background=True, background_slug='', p_value=None):
         """Run ``MACS 1.4`` process on the sample.
@@ -90,7 +95,7 @@ class SampleUtilsMixin(object):
         :param bool use_background: if set to ``True``, background
             sample will be used in the process
         :param str genome: Genome used in the process (options are HG18,
-            HG19, MM9 and MM10), default is HG19
+            HG19, MM9 and MM10), default is ``HG19``
         :param int tss: TSS exclusion used in process
         :param int stitch: Stitch used in process
         :param list beds: subset of bed files to run process on, if
@@ -140,3 +145,25 @@ class SampleUtilsMixin(object):
             results.append(rose)
 
         return results
+
+    def run_cuffquant(self, gff):
+        """Run Cuffquant_ for selected cuffquats.
+
+        This method runs `Cuffquant`_ process with ``annotation``
+        specified in arguments.
+
+         .. _Cuffquant:
+            http://resolwe-bio.readthedocs.io/en/latest/catalog-definitions.html#process-cuffquant
+
+        :param gff: id of annotation file is given
+        :type gff: int or `~resdk.resources.data.Data`
+
+        """
+        inputs = {
+            'alignment': self.get_bam().id,
+            'gff': get_data_id(gff),
+        }
+
+        cuffquant = self.resolwe.get_or_run(slug='cuffquant', input=inputs)
+
+        return cuffquant

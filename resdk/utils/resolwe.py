@@ -76,3 +76,45 @@ class ResolweUtilsMixin(object):
         bamplot = self.get_or_run(slug='bamplot', input=inputs)
 
         return bamplot
+
+    def run_cuffnorm(self, cuffquant, replicates, annotation, labels, use_ercc=None, threads=None):
+        """Run Cuffnorm_ for selected cuffquats.
+
+         This method runs `Cuffnorm`_ process with ``cuffquant``
+         ``replicates``, ``annotation``, ``labels``, ``useERCC`` and
+        ``threads`` parameters specified in arguments.
+
+        .. _Cuffnorm:
+            http://resolwe-bio.readthedocs.io/en/latest/catalog-definitions.html#process-upload-expression-cuffnorm
+
+        :param list cuffquant: subset of cuffquant files to run process
+            on
+        :param list replicates: list where sample groups and/or sample
+            replicates are defined
+        :param annotation: id of annotation file is given
+        :type annotation: int or `~resdk.resources.data.Data`
+        :param list labels: labels for each sample group are defined
+        :param bool useERCC: use ERRCC spike-in controls for
+            normalization
+        :param int threads: use this many threads to align reads, the
+            default is ``1``
+
+        """
+        cuffquant = [get_data_id(cuffquant_obj) for cuffquant_obj in cuffquant]
+
+        inputs = {
+            'cuffquant': cuffquant,
+            'replicates': replicates,
+            'annotation': annotation,
+            'labels': labels,
+        }
+
+        if use_ercc is not None:
+            inputs['useERCC'] = use_ercc
+
+        if threads is not None:
+            inputs['threads'] = threads
+
+        cuffnorm = self.get_or_run(slug='cuffnorm', input=inputs)
+
+        return cuffnorm
