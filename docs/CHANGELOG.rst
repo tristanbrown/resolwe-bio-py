@@ -4,13 +4,15 @@ Change Log
 
 All notable changes to this project are documented in this file.
 
-==========
-Unreleased
-==========
+==================
+1.6.2 - 2017-01-24
+==================
 
 Added
 -----
 * Queries support paginated responses
+* ``run_cuffnorm`` utility function to the ``Resolwe`` object
+* ``run_cuffquant`` utility function to the ``Sample`` object
 
 
 ==================
