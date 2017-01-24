@@ -10,7 +10,45 @@ class ResolweUtilsMixin(object):
     def run_bamplot(self, bam, genome, input_gff=None, input_region=None, stretch_input=None,
                     color=None, sense=None, extension=None, rpm=None, yscale=None, names=None,
                     plot=None, title=None, scale=None, bed=None, multi_page=None):
-        """Run bamplot."""
+        """Run ``bamplot`` on the list of bam files.
+
+        This method runs `bamplot`_ with bams, genome and gff or region
+        specified in arguments. If only one bam file is given, it will
+        be auto-wrapped in list, if it is not already.
+
+        .. _bamplot:
+            http://resolwe-bio.readthedocs.io/en/latest/catalog-definitions.html#process-bamplot
+
+        :param list bam: subset of bam files to run process on
+        :param str genome: Genome used in the process (options are HG18,
+            HG19, MM9 and MM10)
+        :param input_gff: id of annotation file is given
+        :type input_gff: int or `~resdk.resources.data.Data`
+        :param str input_region: enter a genomic region
+        :param int stretch_input: stretch the input regions to a minimum
+            length
+        :param str color: enter a colon separated list of colors
+        :param str sense: map to forward, reverse or'both strand,
+            default maps to ``both``
+        :param int extension: extends reads by n bp, dfault value is
+             200bp
+        :param bool rpm: normalizes density to reads per million (rpm),
+            default is ``False``
+        :param str yscale: choose either relative or uniform y axis
+             scaling, default is ``relative scaling``
+        :param str names: a comma separated list of names for your bams
+        :param str plot: choose all lines on a single plot or multiple
+            plots
+        :param str title: title for the output plot(s), default will be
+            the coordinate region
+        :param str scale: a comma separated list of multiplicative
+            scaling factors for your bams, default is ``None``
+        :param list beds: subset of bed files to run process on, if
+            empty processes for all bed files will be run
+        :param bool multi_page: if flagged will create a new pdf for
+            each region
+
+        """
         if not input_gff and not input_region:
             raise KeyError('Please specify `input_gff` or `input_region.')
         if input_gff and input_region:
