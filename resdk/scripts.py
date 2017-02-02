@@ -322,16 +322,16 @@ def sequp():
                 for up_file in file_path:
                     uploaded_files.append(up_file)
 
-                presample = resolwe.presample.filter(data=data.id)[0]
+                sample = data.sample
 
-                if 'sample' not in presample.descriptor:
-                    presample.descriptor['sample'] = {}
+                if 'sample' not in sample.descriptor:
+                    sample.descriptor['sample'] = {}
 
                 organism = ORGANISMS.get(annotations[sample_n]['ORGANISM'].upper(), '')
                 if organism:
-                    presample.descriptor['sample']['organism'] = organism
+                    sample.descriptor['sample']['organism'] = organism
 
-                presample.update_descriptor(presample.descriptor)
+                sample.update_descriptor(sample.descriptor)
 
             else:
                 logger.error("Error uploading {}".format(sample_n))

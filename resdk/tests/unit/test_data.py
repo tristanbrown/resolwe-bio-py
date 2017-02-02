@@ -49,28 +49,6 @@ class TestData(unittest.TestCase):
         data.update()
         self.assertEqual(data._sample, None)
 
-    def test_presample(self):
-        data = Data(id=1, resolwe=MagicMock())
-
-        data.resolwe.presample.filter = MagicMock(return_value=[])
-        self.assertEqual(data.presample, None)
-
-        data.resolwe.presample.filter = MagicMock(return_value=['presample'])
-        self.assertEqual(data.presample, 'presample')
-
-        # don't overwrite existing presample
-        data.resolwe.presample.filter = MagicMock(return_value=['presample 2'])
-        self.assertEqual(data.presample, 'presample')
-
-        # remove presample when gone
-        data.resolwe.presample.filter = MagicMock(return_value=[])
-        self.assertEqual(data.presample, None)
-
-        # cache is cleared at update
-        data._presample = 'presample'
-        data.update()
-        self.assertEqual(data._presample, None)
-
     def test_collections(self):
         resolwe_mock = MagicMock(
             **{'collection.filter.return_value': ['collection_1', 'collection_2']})

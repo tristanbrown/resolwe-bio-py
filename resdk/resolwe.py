@@ -90,7 +90,6 @@ class Resolwe(ResolweUtilsMixin):
         self.data = ResolweQuery(self, Data)
         self.collection = ResolweQuery(self, Collection)
         self.sample = ResolweQuery(self, Sample)
-        self.presample = ResolweQuery(self, Sample, endpoint='presample')
         self.process = ResolweQuery(self, Process)
         self.feature = ResolweQuery(self, Feature)
         self.mapping = ResolweQuery(self, Mapping)

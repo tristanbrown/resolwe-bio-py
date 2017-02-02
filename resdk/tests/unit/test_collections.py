@@ -135,14 +135,9 @@ class TestSample(unittest.TestCase):
 
     @patch('resdk.resources.sample.Sample', spec=True)
     def test_confirm_is_annotated(self, sample_mock):
-        sample_mock.configure_mock(endpoint='anything but presample')
-        with self.assertRaises(NotImplementedError):
-            Sample.confirm_is_annotated(sample_mock)
-
-        sample_mock.configure_mock(endpoint='presample', id=42,
-                                   api=MagicMock(), logger=MagicMock())
+        sample_mock.configure_mock(endpoint='sample', id=42, api=MagicMock(), logger=MagicMock())
         Sample.confirm_is_annotated(sample_mock)
-        sample_mock.api(42).patch.assert_called_once_with({'presample': False})
+        sample_mock.api(42).patch.assert_called_once_with({'descriptor_completed': True})
 
 
 if __name__ == '__main__':

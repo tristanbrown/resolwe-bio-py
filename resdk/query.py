@@ -217,18 +217,14 @@ class ResolweQuery(object):
 
         return dict(filters)
 
-    def _populate_resource(self, data, **resource_inputs):
+    def _populate_resource(self, data):
         """Populate resource with given data."""
-        return self.resource(model_data=data, **resource_inputs)
+        return self.resource(model_data=data, resolwe=self.resolwe)
 
     def _fetch(self):
         """"Make request to the server and populate cache."""
         if self._cache is not None:
             return  # already fetched
-
-        resource_inputs = {'resolwe': self.resolwe}
-        if self.endpoint == 'presample':
-            resource_inputs['presample'] = True
 
         filters = self._compose_filters()
         if self.resource.query_method == 'GET':
@@ -243,7 +239,7 @@ class ResolweQuery(object):
         if isinstance(items, dict) and 'results' in items:
             items = items['results']
 
-        self._cache = [self._populate_resource(data, **resource_inputs) for data in items]
+        self._cache = [self._populate_resource(data) for data in items]
 
     def clear_cache(self):
         """Clear cache."""

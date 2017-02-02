@@ -32,8 +32,6 @@ class Data(BaseResource):
 
     #: (lazy loaded) annotated ``Sample`` to which ``Data`` object belongs
     _sample = None
-    #: (lazy loaded) unannotated ``Sample`` to which ``Data`` object belongs
-    _presample = None
 
     WRITABLE_FIELDS = ('descriptor_schema', 'descriptor') + BaseResource.WRITABLE_FIELDS
     UPDATE_PROTECTED_FIELDS = ('input', 'process') + BaseResource.UPDATE_PROTECTED_FIELDS
@@ -93,7 +91,6 @@ class Data(BaseResource):
     def update(self):
         """Clear cache and update resource fields from the server."""
         self._sample = None
-        self._presample = None
         self.collections.clear_cache()
 
         super(Data, self).update()
@@ -143,27 +140,10 @@ class Data(BaseResource):
     @property
     def sample(self):
         """Get ``sample`` that object belongs to."""
-        # ``None`` means that request hasn't been made yet or that there
-        # is no ``sample`` for this object.
-        # In both cases we have to make the request as ``sample`` can be
-        # created (from ``presample``) anytime.
         if self._sample is None:
             self._sample = self.resolwe.sample.filter(data=self.id)
             self._sample = None if len(self._sample) == 0 else self._sample[0]
         return self._sample
-
-    @property
-    def presample(self):
-        """Get ``presample`` that object belongs to."""
-        # ``presample`` can not be cached as it can be converted to
-        # ``sample``.
-        presample = self.resolwe.presample.filter(data=self.id)
-        if len(presample) == 0:
-            self._presample = None
-        # don't overwrite existing sample object
-        elif self._presample is None:
-            self._presample = presample[0]
-        return self._presample
 
     def files(self, file_name=None, field_name=None):
         """Get list of downloadable fields.

@@ -4,6 +4,16 @@ Change Log
 
 All notable changes to this project are documented in this file.
 
+==========
+Unreleased
+==========
+
+Changed
+-------
+* Remove ``presample`` endpoint, as it doesn't exist in resolwe anymore
+* Update the way to mark ``sample`` as annotated
+
+
 ==================
 1.6.4 - 2017-02-17
 ==================

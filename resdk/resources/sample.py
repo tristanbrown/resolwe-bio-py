@@ -25,21 +25,15 @@ class Sample(SampleUtilsMixin, BaseCollection):
 
     endpoint = 'sample'
 
-    WRITABLE_FIELDS = ('presample', ) + BaseCollection.WRITABLE_FIELDS
-
-    def __init__(self, slug=None, id=None,  # pylint: disable=redefined-builtin
-                 model_data=None, resolwe=None, presample=False):
+    def __init__(self, slug=None, id=None, model_data=None,  # pylint: disable=redefined-builtin
+                 resolwe=None):
         """Initialize attributes."""
-        self.endpoint = 'presample' if presample else 'sample'
-
-        self.presample = presample
-
         super(Sample, self).__init__(slug, id, model_data, resolwe)
 
         #: (lazy loaded) list of collections  to which object belongs
-        self.collections = self.resolwe.collection.filter(sample=self.id)
+        self.collections = self.resolwe.collection.filter(entity=self.id)
         #: (lazy loaded) list of data object that belong to sample
-        self.data = self.resolwe.data.filter(sample=self.id)
+        self.data = self.resolwe.data.filter(entity=self.id)
 
     def update(self):
         """Clear cache and update resource fields from the server."""
@@ -60,12 +54,9 @@ class Sample(SampleUtilsMixin, BaseCollection):
         self.api(self.id).patch({'descriptor': descriptor})
 
     def confirm_is_annotated(self):
-        """Move Sample object from presample to sample endpoint."""
-        if self.endpoint == 'presample':
-            self.api(self.id).patch({'presample': False})
-            self.logger.info('Moved Sample %s from presmaples to samples', self.id)
-        else:
-            raise NotImplementedError("Method supports objects in presample endpoint only.")
+        """Mark sample as annotated (descriptor is completed)."""
+        self.api(self.id).patch({'descriptor_completed': True})
+        self.logger.info('Marked Sample %s as annotated', self.id)
 
     def get_background(self, background_slug, fail_silently=False):
         """Find background sample of the current one."""
