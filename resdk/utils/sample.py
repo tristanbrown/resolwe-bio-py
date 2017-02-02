@@ -146,23 +146,51 @@ class SampleUtilsMixin(object):
 
         return results
 
-    def run_cuffquant(self, gff):
+    def run_cuffquant(self, gff, genome=None, mask_file=None, library_type=None,
+                      multi_read_correct=None, threads=None):
         """Run Cuffquant_ for selected cuffquats.
 
         This method runs `Cuffquant`_ process with ``annotation``
-        specified in arguments.
+        specified in arguments. Library type is by defalt fr-unsstranded.
+        Other parameters: genome, mask_file, multi_reads_correct and
+        threads are optional.
 
          .. _Cuffquant:
             http://resolwe-bio.readthedocs.io/en/latest/catalog-definitions.html#process-cuffquant
 
         :param gff: id of annotation file is given
         :type gff: int or `~resdk.resources.data.Data`
+        :param genome: id of genome file is given to run bias detection
+            and correction algorithm
+        :type genome: int or `~resdk.resources.data.Data`
+        :param mask_file: id of mask file is given
+        :type mask_file: int or `~resdk.resources.data.Data`
+        :param str library_type: options are fr-unstranded,
+            fr-firststrand, fr-secondstrand
+        :param bool multi_read_correct: do initial estimation procedure
+            to more accurately weight reads with multiple genome mappings
+        :param int threads: use this many processor threads
 
         """
         inputs = {
             'alignment': self.get_bam().id,
             'gff': get_data_id(gff),
         }
+
+        if genome is not None:
+            inputs['genome'] = genome
+
+        if mask_file is not None:
+            inputs['mask_file'] = mask_file
+
+        if library_type is not None:
+            inputs['library_type'] = library_type
+
+        if multi_read_correct is not None:
+            inputs['multi_read_correct'] = multi_read_correct
+
+        if threads is not None:
+            inputs['threads'] = threads
 
         cuffquant = self.resolwe.get_or_run(slug='cuffquant', input=inputs)
 

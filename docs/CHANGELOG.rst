@@ -4,6 +4,15 @@ Change Log
 
 All notable changes to this project are documented in this file.
 
+==========
+Unreleased
+==========
+
+Added
+-----
+* Add extra parameters to ``run_cuffquant`` function
+
+
 ==================
 1.6.2 - 2017-01-24
 ==================
