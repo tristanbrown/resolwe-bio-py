@@ -4,6 +4,15 @@ Change Log
 
 All notable changes to this project are documented in this file.
 
+==========
+Unreleased
+==========
+
+Fixed
+-----
+* Use ``process`` resource to get process in ``run`` function
+
+
 ==================
 1.6.3 - 2017-02-06
 ==================

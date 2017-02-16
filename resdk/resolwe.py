@@ -289,16 +289,7 @@ class Resolwe(ResolweUtilsMixin):
 
         Raise error if process doesn't exist or more than one is returned.
         """
-        process = self.api.process.get(slug=slug, ordering='-version', limit=1)
-
-        if len(process) == 1:
-            process = process[0]
-        elif len(process) == 0:
-            raise ValueError("Could not get process for given slug.")
-        else:
-            raise ValueError("Unexpected behaviour at get process with slug {}".format(slug))
-
-        return process
+        return self.process.get(slug=slug, ordering='-version', limit=1)
 
     def _process_inputs(self, inputs, process):
         """Process input fields.
@@ -312,7 +303,7 @@ class Resolwe(ResolweUtilsMixin):
         inputs = copy.deepcopy(inputs)  # leave original intact
 
         try:
-            for schema, fields in iterate_fields(inputs, process['input_schema']):
+            for schema, fields in iterate_fields(inputs, process.input_schema):
                 field_name = schema['name']
                 field_type = schema['type']
                 field_value = fields[field_name]
@@ -341,7 +332,7 @@ class Resolwe(ResolweUtilsMixin):
 
         except KeyError as key_error:
             field_name = key_error.args[0]
-            slug = process['slug']
+            slug = process.slug
             raise ValidationError(
                 "Field '{}' not in process '{}' input schema.".format(field_name, slug))
 
@@ -400,7 +391,7 @@ class Resolwe(ResolweUtilsMixin):
         collections = dehydrated_collections
 
         data = {
-            'process': process['slug'],
+            'process': process.slug,
             'input': inputs,
         }
 
@@ -427,7 +418,7 @@ class Resolwe(ResolweUtilsMixin):
         inputs = self._process_inputs(input, process)
 
         data = {
-            'process': process['slug'],
+            'process': process.slug,
             'input': inputs,
         }
 

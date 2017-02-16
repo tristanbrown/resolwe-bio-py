@@ -16,7 +16,7 @@ import yaml
 
 from resdk.exceptions import ValidationError, ResolweServerError
 from resdk.resolwe import Resolwe, ResAuth, ResolweResource
-from resdk.resources import Collection, Data
+from resdk.resources import Collection, Data, Process
 from resdk import resolwe
 
 
@@ -334,32 +334,39 @@ class TestProcessFileField(unittest.TestCase):
 class TestRun(unittest.TestCase):
 
     def setUp(self):
-        self.process_json = [
-            {'slug': 'some:prc:slug:',
-             'input_schema': [
-                 {"label": "NGS reads (FASTQ)",
-                  "type": "basic:file:",
-                  "required": "false",
-                  "name": "src"},
-                 {"label": "list of NGS reads",
-                  "type": "list:basic:file:",
-                  "required": "false",
-                  "name": "src_list"},
-                 {"label": "Genome object",
-                  "type": "data:genome:fasta:",
-                  "required": "false",
-                  "name": "genome"},
-                 {"label": "List of reads objects",
-                  "type": "list:data:reads:fastg:",
-                  "required": "false",
-                  "name": "reads"},
-             ]}
+        self.process_mock = MagicMock(spec=Process)
+        self.process_mock.slug = 'some:prc:slug:'
+        self.process_mock.input_schema = [
+            {
+                "label": "NGS reads (FASTQ)",
+                "type": "basic:file:",
+                "required": "false",
+                "name": "src"
+            },
+            {
+                "label": "list of NGS reads",
+                "type": "list:basic:file:",
+                "required": "false",
+                "name": "src_list"
+            },
+            {
+                "label": "Genome object",
+                "type": "data:genome:fasta:",
+                "required": "false",
+                "name": "genome"
+            },
+            {
+                "label": "List of reads objects",
+                "type": "list:data:reads:fastg:",
+                "required": "false",
+                "name": "reads"
+            },
         ]
 
     @patch('resdk.resolwe.Data')
     @patch('resdk.resolwe.Resolwe', spec=True)
     def test_run_process(self, resolwe_mock, data_mock):
-        resolwe_mock.api = MagicMock(**{'process.get.return_value': self.process_json})
+        resolwe_mock.api = MagicMock(**{'process.get.return_value': self.process_mock})
 
         Resolwe.run(resolwe_mock)
         self.assertEqual(resolwe_mock.api.data.post.call_count, 1)
@@ -367,14 +374,14 @@ class TestRun(unittest.TestCase):
     @patch('resdk.resolwe.Data')
     @patch('resdk.resolwe.Resolwe', spec=True)
     def test_get_or_run(self, resolwe_mock, data_mock):
-        resolwe_mock.api = MagicMock(**{'process.get.return_value': self.process_json})
+        resolwe_mock.api = MagicMock(**{'process.get.return_value': self.process_mock})
 
         Resolwe.get_or_run(resolwe_mock)
         self.assertEqual(resolwe_mock.api.data.get_or_create.post.call_count, 1)
 
     @patch('resdk.resolwe.Resolwe', spec=True)
     def test_wrap_list(self, resolwe_mock):
-        process = self.process_json[0]
+        process = self.process_mock
 
         Resolwe._process_inputs(resolwe_mock, {"src_list": ["/path/to/file"]}, process)
         resolwe_mock._process_file_field.assert_called_once_with('/path/to/file')
@@ -385,7 +392,7 @@ class TestRun(unittest.TestCase):
 
     @patch('resdk.resolwe.Resolwe', spec=True)
     def test_keep_input(self, resolwe_mock):
-        process = self.process_json[0]
+        process = self.process_mock
 
         input_dict = {"src_list": ["/path/to/file"]}
         Resolwe._process_inputs(resolwe_mock, input_dict, process)
@@ -400,33 +407,12 @@ class TestRun(unittest.TestCase):
         with six.assertRaisesRegex(self, ValueError, message):
             Resolwe.run(resolwe_mock, descriptor_schema="a")
 
-    @patch('resdk.resolwe.Resolwe', spec=True)
-    def test_get_process(self, resolwe_mock):
-        resolwe_mock.api = MagicMock(**{'process.get.return_value': self.process_json})
-        process = Resolwe._get_process(resolwe_mock)
-        self.assertEqual(process['slug'], 'some:prc:slug:')
-
-    @patch('resdk.resolwe.Resolwe', spec=True)
-    def test_process_length_0(self, resolwe_mock):
-        resolwe_mock.api = MagicMock(**{'process.get.return_value': []})
-        message = "Could not get process for given slug."
-        with six.assertRaisesRegex(self, ValueError, message):
-            Resolwe._get_process(resolwe_mock)
-
-    @patch('resdk.resolwe.Resolwe', spec=True)
-    def test_process_length_gt1(self, resolwe_mock):
-        process_out = ['process1', 'process2']
-        resolwe_mock.api = MagicMock(**{'process.get.return_value': process_out})
-        message = "Unexpected behaviour at get process with slug .*"
-        with six.assertRaisesRegex(self, ValueError, message):
-            Resolwe._get_process(resolwe_mock)
-
     @patch('resdk.resolwe.os')
     @patch('resdk.resolwe.Resolwe', spec=True)
     def test_bad_inputs(self, resolwe_mock, os_mock):
         # Good file, upload fails becouse of bad input keyword
         os_mock.path.isfile.return_value = True
-        process = self.process_json[0]
+        process = self.process_mock
 
         resolwe_mock._upload_file = MagicMock(return_value=None)
         message = r'Field .* not in process .* input schema.'
@@ -437,7 +423,7 @@ class TestRun(unittest.TestCase):
     @patch('resdk.resolwe.Resolwe', spec=True)
     def test_file_processing(self, resolwe_mock, data_mock):
 
-        resolwe_mock.api = MagicMock(**{'process.get.return_value': self.process_json,
+        resolwe_mock.api = MagicMock(**{'process.get.return_value': self.process_mock,
                                         'data.post.return_value': {}})
         resolwe_mock._process_file_field = MagicMock(side_effect=[
             {'file': 'file_name1', 'file_temp': 'temp_file1'},
@@ -453,7 +439,7 @@ class TestRun(unittest.TestCase):
     def test_dehydrate_data(self, resolwe_mock):
         data_obj = Data(id=1, resolwe=MagicMock())
         data_obj.id = 1  # this is overriden when initialized
-        process = self.process_json[0]
+        process = self.process_mock
 
         result = Resolwe._process_inputs(resolwe_mock, {"genome": data_obj}, process)
         self.assertEqual(result, {'genome': 1})
@@ -463,10 +449,12 @@ class TestRun(unittest.TestCase):
 
     @patch('resdk.resolwe.Resolwe', spec=True)
     def test_dehydrate_collections(self, resolwe_mock):
-        resolwe_mock.configure_mock(**{'_get_process.return_value': {'slug': 'some:prc:slug:'},
-                                       '_process_inputs.return_value': {}})
+        resolwe_mock.configure_mock(
+            **{'_get_process.return_value': MagicMock(spec=Process, slug='some:prc:slug:'),
+               '_process_inputs.return_value': {}}
+        )
         resolwe_mock.collection = MagicMock()
-        resolwe_mock.api = MagicMock(**{'process.get.return_value': self.process_json,
+        resolwe_mock.api = MagicMock(**{'process.get.return_value': self.process_mock,
                                         'data.post.return_value': {}})
 
         collection = Collection(id=1, resolwe=MagicMock())
@@ -481,7 +469,7 @@ class TestRun(unittest.TestCase):
     @patch('resdk.resolwe.Resolwe', spec=True)
     def test_call_with_all_args(self, resolwe_mock, os_mock, data_mock):
         resolwe_mock.api = MagicMock(**{
-            'process.get.return_value': self.process_json,
+            'process.get.return_value': self.process_mock,
             'data.post.return_value': "model_data"})
         data_mock.return_value = "Data object"
 
