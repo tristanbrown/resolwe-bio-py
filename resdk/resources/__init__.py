@@ -22,6 +22,9 @@ Resource classes
 .. autoclass:: resdk.resources.Sample
    :members:
 
+.. autoclass:: resdk.resources.Relation
+   :members:
+
 .. autoclass:: resdk.resources.Process
    :members:
 
@@ -38,5 +41,6 @@ from .collection import Collection
 from .data import Data
 from .sample import Sample
 from .process import Process
+from .relation import Relation
 
 __all__ = ('Collection', 'Data', 'Sample', 'Process')

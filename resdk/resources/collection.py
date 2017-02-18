@@ -3,6 +3,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import six
 
+from resdk.shortcuts.collection import CollectionRelationsMixin
+
 from .base import BaseResource
 from .utils import get_data_id, get_sample_id
 
@@ -121,7 +123,7 @@ class BaseCollection(BaseResource):
         raise NotImplementedError()
 
 
-class Collection(BaseCollection):
+class Collection(CollectionRelationsMixin, BaseCollection):
     """Resolwe Collection resource.
 
     One and only one of the identifiers (slug, id or model_data)
@@ -143,6 +145,9 @@ class Collection(BaseCollection):
     #: (lazy loaded) list of samples that belong to collection
     _samples = None
 
+    #: (lazy loaded) list of relations that belong to collection
+    _relations = None
+
     def __init__(self, slug=None, id=None,  # pylint: disable=redefined-builtin
                  model_data=None, resolwe=None):
         """Initialize attributes."""
@@ -152,6 +157,7 @@ class Collection(BaseCollection):
         """Clear cache and update resource fields from the server."""
         self._data = None
         self._samples = None
+        self._relations = None
 
         super(Collection, self).update()
 
@@ -174,6 +180,16 @@ class Collection(BaseCollection):
             self._samples = self.resolwe.sample.filter(collections=self.id)
 
         return self._samples
+
+    @property
+    def relations(self):
+        """Return list of data objects on collection."""
+        if self.id is None:
+            raise ValueError('Instance must be saved before accessing `relations` attribute.')
+        if self._relations is None:
+            self._relations = self.resolwe.relation.filter(collection=self.id)
+
+        return self._relations
 
     def add_samples(self, *samples):
         """Add `samples` objects to the collection."""

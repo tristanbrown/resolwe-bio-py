@@ -112,6 +112,23 @@ class TestCollection(unittest.TestCase):
         with self.assertRaises(ValueError):
             _ = collection.samples
 
+    def test_relations(self):
+        collection = Collection(id=1, resolwe=MagicMock())
+
+        # test getting relations attribute
+        collection.resolwe.relation.filter = MagicMock(return_value=['relation1', 'relation2'])
+        self.assertEqual(collection.relations, ['relation1', 'relation2'])
+
+        # cache is cleared at update
+        collection._relations = ['relation']
+        collection.update()
+        self.assertEqual(collection._relations, None)
+
+        # raising error if data collection is not saved
+        collection.id = None
+        with self.assertRaises(ValueError):
+            _ = collection.relations
+
 
 class TestSample(unittest.TestCase):
 

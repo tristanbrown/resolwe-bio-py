@@ -26,7 +26,7 @@ import slumber
 from six.moves.urllib.parse import urljoin  # pylint: disable=import-error
 
 from .exceptions import handle_http_exception, ValidationError
-from .resources import Data, Collection, Sample, Process
+from .resources import Data, Collection, Sample, Process, Relation
 from .resources.kb import Feature, Mapping
 from .resources.utils import (
     iterate_fields, iterate_schema, endswith_colon, get_collection_id, get_data_id)
@@ -102,6 +102,7 @@ class Resolwe(ResolweUtilsMixin):
         self.data = ResolweQuery(self, Data)
         self.collection = ResolweQuery(self, Collection)
         self.sample = ResolweQuery(self, Sample)
+        self.relation = ResolweQuery(self, Relation)
         self.process = ResolweQuery(self, Process)
         self.feature = ResolweQuery(self, Feature)
         self.mapping = ResolweQuery(self, Mapping)
