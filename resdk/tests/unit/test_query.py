@@ -103,7 +103,7 @@ class TestResolweQuery(unittest.TestCase):
         self.assertEqual(rep, '[1,\n 2,\n 3]')
 
     def test_len(self):
-        query = MagicMock(spec=ResolweQuery, _cache=[1, 2, 3])
+        query = MagicMock(spec=ResolweQuery, **{'count.return_value': 3})
         query.__len__ = ResolweQuery.__len__
 
         self.assertEqual(len(query), 3)
@@ -165,6 +165,30 @@ class TestResolweQuery(unittest.TestCase):
         query = MagicMock(spec=ResolweQuery, _cache=['obj1', 'obj2'])
         ResolweQuery.clear_cache(query)
         self.assertEqual(query._cache, None)
+
+    def test_count(self):
+        count_query = MagicMock(spec=ResolweQuery, _count=10)
+        query = MagicMock(spec=ResolweQuery, _count=None, _limit=None, _offset=None,
+                          **{'_clone.return_value': count_query})
+
+        self.assertEqual(ResolweQuery.count(query), 10)
+
+        query._limit = 2
+        query._offset = 0
+        self.assertEqual(ResolweQuery.count(query), 2)
+
+        query._limit = 2
+        query._offset = 9
+        self.assertEqual(ResolweQuery.count(query), 1)
+
+        query._limit = 2
+        query._offset = 12
+        self.assertEqual(ResolweQuery.count(query), 0)
+
+        query._count = 5
+        query._limit = None
+        query._offset = None
+        self.assertEqual(ResolweQuery.count(query), 5)
 
     def test_get(self):
         new_query = MagicMock(spec=ResolweQuery)

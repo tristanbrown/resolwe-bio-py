@@ -110,6 +110,7 @@ class ResolweQuery(object):
     """
 
     _cache = None
+    _count = None  # number of objects in current query (without applied limit and offset)
     _limit = None
     _offset = None
     _filters = collections.defaultdict(list)
@@ -183,8 +184,7 @@ class ResolweQuery(object):
 
     def __len__(self):
         """Return length of results of current query."""
-        self._fetch()
-        return len(self._cache)
+        return self.count()
 
     def _clone(self):
         """Return copy of current object with empty cache."""
@@ -237,6 +237,7 @@ class ResolweQuery(object):
 
         # Extract data from paginated response
         if isinstance(items, dict) and 'results' in items:
+            self._count = items['count']
             items = items['results']
 
         self._cache = [self._populate_resource(data) for data in items]
@@ -244,6 +245,23 @@ class ResolweQuery(object):
     def clear_cache(self):
         """Clear cache."""
         self._cache = None
+        self._count = None
+
+    def count(self):
+        """Return number of objects in current query."""
+        # pylint: disable=protected-access
+        if self._count is None:
+            count_query = self._clone()
+            count_query._offset = 0
+            count_query._limit = 1
+            count_query._fetch()
+            self._count = count_query._count
+
+        if self._limit is None:
+            return self._count
+
+        remaining = self._count - self._offset
+        return max(0, min(self._limit, remaining))
 
     def get(self, *args, **kwargs):
         """Get object that matches given parameters.
@@ -285,6 +303,10 @@ class ResolweQuery(object):
 
         return response[0]
 
+    def create(self, *args, **kwargs):
+        """Return new instance of current resource."""
+        return self.resource(resolwe=self.resolwe, *args, **kwargs)
+
     def post(self, data):
         """Post data to this endpoint.
 
@@ -297,6 +319,20 @@ class ResolweQuery(object):
         new_query = self._clone()
         new_query._add_filter(filters)  # pylint: disable=protected-access
         return new_query
+
+    def delete(self, force=False):
+        """Delete objects in current query."""
+        if not force:
+            user_input = six.moves.input(
+                'Do you really want to delete {} object(s)?[yN] '.format(self.count()))
+            if user_input.strip().lower() != 'y':
+                return
+
+        # TODO: Use bulk delete when supported on backend
+        for obj in self:
+            obj.delete(force=True)
+
+        self.clear_cache()
 
     def all(self):
         """Return copy of the current queryset.

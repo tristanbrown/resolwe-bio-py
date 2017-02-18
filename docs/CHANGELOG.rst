@@ -12,6 +12,10 @@ Added
 -----
 * Option to set API url with ``RESOLWE_HOST_URL`` environment varaible
 
+Added
+-----
+* ``count``, ``delete`` and ``create`` methods to query
+
 Changed
 -------
 * Remove ``presample`` endpoint, as it doesn't exist in resolwe anymore
