@@ -25,25 +25,40 @@ class Sample(SampleUtilsMixin, BaseCollection):
 
     endpoint = 'sample'
 
+    #: (lazy loaded) list of collections  to which object belongs
+    _collections = None
+
     def __init__(self, slug=None, id=None, model_data=None,  # pylint: disable=redefined-builtin
                  resolwe=None):
         """Initialize attributes."""
         super(Sample, self).__init__(slug, id, model_data, resolwe)
 
-        #: (lazy loaded) list of collections  to which object belongs
-        self.collections = self.resolwe.collection.filter(entity=self.id)
-        #: (lazy loaded) list of data object that belong to sample
-        self.data = self.resolwe.data.filter(entity=self.id)
-
     def update(self):
         """Clear cache and update resource fields from the server."""
-        self.collections.clear_cache()
-        self.data.clear_cache()  # pylint: disable=no-member
+        self._collections = None
+        self._data = None
 
         super(Sample, self).update()
 
-    def _clear_data_cache(self):
-        self.data.clear_cache()  # pylint: disable=no-member
+    @property
+    def data(self):
+        """Return list of data objects on collection."""
+        if self.id is None:
+            raise ValueError('Instance must be saved before accessing `data` attribute.')
+        if self._data is None:
+            self._data = self.resolwe.data.filter(entity=self.id)
+
+        return self._data
+
+    @property
+    def collections(self):
+        """Return list of collections to which sample belongs."""
+        if self.id is None:
+            raise ValueError('Instance must be saved before accessing `collections` attribute.')
+        if self._collections is None:
+            self._collections = self.resolwe.collection.filter(entity=self.id)
+
+        return self._collections
 
     def print_annotation(self):
         """Provide annotation data."""

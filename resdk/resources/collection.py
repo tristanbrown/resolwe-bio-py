@@ -24,6 +24,9 @@ class BaseCollection(BaseResource):
 
     """
 
+    #: lazy loaded list of data objects
+    _data = None
+
     WRITABLE_FIELDS = ('description', 'settings', 'descriptor_schema',
                        'descriptor') + BaseResource.WRITABLE_FIELDS
 
@@ -38,14 +41,17 @@ class BaseCollection(BaseResource):
         self.descriptor = None
         #: descriptor schema
         self.descriptor_schema = None
-        #: list of data objects - SET THIS IN SUBCLASS
-        self.data = []
 
         super(BaseCollection, self).__init__(slug, id, model_data, resolwe)
 
+    @property
+    def data(self):
+        """Return list of attached Data objects."""
+        raise NotImplementedError('This should be implemented in subclass')
+
     def _clear_data_cache(self):
         """Clear data cache."""
-        raise NotImplementedError('This should be implemented in subclass')
+        self._data = None
 
     def add_data(self, *data):
         """Add ``data`` objects to the collection."""
@@ -134,25 +140,40 @@ class Collection(BaseCollection):
 
     endpoint = 'collection'
 
+    #: (lazy loaded) list of samples that belong to collection
+    _samples = None
+
     def __init__(self, slug=None, id=None,  # pylint: disable=redefined-builtin
                  model_data=None, resolwe=None):
         """Initialize attributes."""
         BaseCollection.__init__(self, slug, id, model_data, resolwe)
 
-        #: (lazy loaded) list of data object that belong to collection
-        self.data = self.resolwe.data.filter(collection=self.id)
-        #: (lazy loaded) list of samples that belong to collection
-        self.samples = self.resolwe.sample.filter(collections=self.id)
-
     def update(self):
         """Clear cache and update resource fields from the server."""
-        self.data.clear_cache()  # pylint: disable=no-member
-        self.samples.clear_cache()
+        self._data = None
+        self._samples = None
 
         super(Collection, self).update()
 
-    def _clear_data_cache(self):
-        self.data.clear_cache()  # pylint: disable=no-member
+    @property
+    def data(self):
+        """Return list of data objects on collection."""
+        if self.id is None:
+            raise ValueError('Instance must be saved before accessing `data` attribute.')
+        if self._data is None:
+            self._data = self.resolwe.data.filter(collection=self.id)
+
+        return self._data
+
+    @property
+    def samples(self):
+        """Return list of samples on collection."""
+        if self.id is None:
+            raise ValueError('Instance must be saved before accessing `samples` attribute.')
+        if self._samples is None:
+            self._samples = self.resolwe.sample.filter(collections=self.id)
+
+        return self._samples
 
     def add_samples(self, *samples):
         """Add `samples` objects to the collection."""

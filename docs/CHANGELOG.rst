@@ -22,6 +22,12 @@ Changed
 * Update the way to mark ``sample`` as annotated
 * Add confirmation before deleting an object
 
+Fixed
+-----
+* Fix related queries (i.e. ``collection.data``, ``collection.samples``...)
+  for newly created objects and raise error if they are accessed before object
+  is saved
+
 ==================
 1.6.4 - 2017-02-17
 ==================

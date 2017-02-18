@@ -49,17 +49,31 @@ class TestData(unittest.TestCase):
         data.update()
         self.assertEqual(data._sample, None)
 
-    def test_collections(self):
-        resolwe_mock = MagicMock(
-            **{'collection.filter.return_value': ['collection_1', 'collection_2']})
-        data = Data(id=1, resolwe=resolwe_mock)
+        # raising error if data object is not saved
+        data.id = None
+        with self.assertRaises(ValueError):
+            _ = data.sample
 
-        self.assertEqual(data.collections, ['collection_1', 'collection_2'])
+    def test_collections(self):
+        data = Data(id=1, resolwe=MagicMock())
+
+        # test getting collections attribute
+        data.resolwe.collection.filter = MagicMock(return_value=['collection'])
+        self.assertEqual(data.collections, ['collection'])
+
+        # test caching collections attribute
+        self.assertEqual(data.collections, ['collection'])
+        self.assertEqual(data.resolwe.collection.filter.call_count, 1)
 
         # cache is cleared at update
-        data.collections = MagicMock()
+        data._collections = ['collection']
         data.update()
-        self.assertEqual(data.collections.clear_cache.call_count, 1)
+        self.assertEqual(data._collections, None)
+
+        # raising error if data object is not saved
+        data.id = None
+        with self.assertRaises(ValueError):
+            _ = data.collections
 
     @patch('resdk.resources.data.Data', spec=True)
     def test_files(self, data_mock):

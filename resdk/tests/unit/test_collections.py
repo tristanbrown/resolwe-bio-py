@@ -75,52 +75,88 @@ class TestCollection(unittest.TestCase):
             Collection.print_annotation(collection_mock)
 
     def test_data(self):
-        resolwe_mock = MagicMock(**{'data.filter.return_value': ['data_1', 'data_2', 'data_3']})
-        collection = Collection(id=1, resolwe=resolwe_mock)
+        collection = Collection(id=1, resolwe=MagicMock())
 
+        # test getting data attribute
+        collection.resolwe.data.filter = MagicMock(return_value=['data_1', 'data_2', 'data_3'])
         self.assertEqual(collection.data, ['data_1', 'data_2', 'data_3'])
 
+        # test caching data attribute
+        self.assertEqual(collection.data, ['data_1', 'data_2', 'data_3'])
+        self.assertEqual(collection.resolwe.data.filter.call_count, 1)
+
         # cache is cleared at update
-        collection.data = MagicMock()
+        collection._data = ['data']
         collection.update()
-        self.assertEqual(collection.data.clear_cache.call_count, 1)
+        self.assertEqual(collection._data, None)
+
+        # raising error if collection is not saved
+        collection.id = None
+        with self.assertRaises(ValueError):
+            _ = collection.data
 
     def test_samples(self):
-        resolwe_mock = MagicMock(**{'sample.filter.return_value': ['sample1', 'sample2']})
-        collection = Collection(id=1, resolwe=resolwe_mock)
+        collection = Collection(id=1, resolwe=MagicMock())
 
+        # test getting samples attribute
+        collection.resolwe.sample.filter = MagicMock(return_value=['sample1', 'sample2'])
         self.assertEqual(collection.samples, ['sample1', 'sample2'])
 
         # cache is cleared at update
-        collection.samples = MagicMock()
+        collection._samples = ['sample']
         collection.update()
-        self.assertEqual(collection.samples.clear_cache.call_count, 1)
+        self.assertEqual(collection._samples, None)
+
+        # raising error if data collection is not saved
+        collection.id = None
+        with self.assertRaises(ValueError):
+            _ = collection.samples
 
 
 class TestSample(unittest.TestCase):
 
     def test_data(self):
-        resolwe_mock = MagicMock(**{'data.filter.return_value': ['data_1', 'data_2', 'data_3']})
-        sample = Sample(id=1, resolwe=resolwe_mock)
+        sample = Sample(id=1, resolwe=MagicMock())
 
+        # test getting data attribute
+        sample.resolwe.data.filter = MagicMock(return_value=['data_1', 'data_2', 'data_3'])
         self.assertEqual(sample.data, ['data_1', 'data_2', 'data_3'])
 
+        # test caching data attribute
+        self.assertEqual(sample.data, ['data_1', 'data_2', 'data_3'])
+        self.assertEqual(sample.resolwe.data.filter.call_count, 1)
+
         # cache is cleared at update
-        sample.data = MagicMock()
+        sample._data = ['data']
         sample.update()
-        self.assertEqual(sample.data.clear_cache.call_count, 1)  # pylint: disable=no-member
+        self.assertEqual(sample._data, None)
+
+        # raising error if sample is not saved
+        sample.id = None
+        with self.assertRaises(ValueError):
+            _ = sample.data
 
     def test_collections(self):
-        resolwe_mock = MagicMock(
-            **{'collection.filter.return_value': ['collection_1', 'collection_2']})
-        sample = Sample(id=1, resolwe=resolwe_mock)
+        sample = Sample(id=1, resolwe=MagicMock())
 
-        self.assertEqual(sample.collections, ['collection_1', 'collection_2'])
+        # test getting data attribute
+        sample.resolwe.collection.filter = MagicMock(
+            return_value=['collection_1', 'collection_2', 'collection_3'])
+        self.assertEqual(sample.collections, ['collection_1', 'collection_2', 'collection_3'])
+
+        # test caching data attribute
+        self.assertEqual(sample.collections, ['collection_1', 'collection_2', 'collection_3'])
+        self.assertEqual(sample.resolwe.collection.filter.call_count, 1)
 
         # cache is cleared at update
-        sample.collections = MagicMock()
+        sample._collections = ['collection']
         sample.update()
-        self.assertEqual(sample.collections.clear_cache.call_count, 1)
+        self.assertEqual(sample._collections, None)
+
+        # raising error if sample is not saved
+        sample.id = None
+        with self.assertRaises(ValueError):
+            _ = sample.collections
 
     @patch('resdk.resources.sample.Sample', spec=True)
     def test_sample_print_annotation(self, sample_mock):

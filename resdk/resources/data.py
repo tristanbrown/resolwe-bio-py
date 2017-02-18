@@ -32,6 +32,8 @@ class Data(BaseResource):
 
     #: (lazy loaded) annotated ``Sample`` to which ``Data`` object belongs
     _sample = None
+    #: (lazy loaded) list of collections to which data object belongs
+    _collections = None
 
     WRITABLE_FIELDS = ('descriptor_schema', 'descriptor') + BaseResource.WRITABLE_FIELDS
     UPDATE_PROTECTED_FIELDS = ('input', 'process') + BaseResource.UPDATE_PROTECTED_FIELDS
@@ -83,15 +85,12 @@ class Data(BaseResource):
 
         super(Data, self).__init__(slug, id, model_data, resolwe)
 
-        #: (lazy loaded) list of collections to which data object belongs
-        self.collections = self.resolwe.collection.filter(data=self.id)
-
         self.logger = logging.getLogger(__name__)
 
     def update(self):
         """Clear cache and update resource fields from the server."""
         self._sample = None
-        self.collections.clear_cache()
+        self._collections = None
 
         super(Data, self).update()
 
@@ -138,8 +137,20 @@ class Data(BaseResource):
         return flat
 
     @property
+    def collections(self):
+        """Return list of collections to which data object belongs."""
+        if self.id is None:
+            raise ValueError('Instance must be saved before accessing `collections` attribute.')
+        if self._collections is None:
+            self._collections = self.resolwe.collection.filter(data=self.id)
+
+        return self._collections
+
+    @property
     def sample(self):
         """Get ``sample`` that object belongs to."""
+        if self.id is None:
+            raise ValueError('Instance must be saved before accessing `sample` attribute.')
         if self._sample is None:
             self._sample = self.resolwe.sample.filter(data=self.id)
             self._sample = None if len(self._sample) == 0 else self._sample[0]
