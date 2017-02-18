@@ -16,7 +16,7 @@ Changed
 -------
 * Remove ``presample`` endpoint, as it doesn't exist in resolwe anymore
 * Update the way to mark ``sample`` as annotated
-
+* Add confirmation before deleting an object
 
 ==================
 1.6.4 - 2017-02-17

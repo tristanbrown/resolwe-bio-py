@@ -153,8 +153,14 @@ class BaseResource(object):
             response = self.api.post(payload)
             self._update_fields(response)
 
-    def delete(self):
+    def delete(self, force=False):
         """Delete the resource object from the server."""
+        if not force:
+            user_input = six.moves.input('Do you really want to delete {}?[yN] '.format(self))
+
+            if user_input.strip().lower() != 'y':
+                return
+
         self.api(self.id).delete()
 
     def __setattr__(self, name, value):
