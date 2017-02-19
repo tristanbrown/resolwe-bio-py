@@ -569,7 +569,6 @@ class TestDownload(unittest.TestCase):
     @patch('resdk.resolwe.Resolwe', spec=True)
     def test_empty_file_list(self, resolwe_mock, os_mock):
         resolwe_mock.configure_mock(**self.config)
-        os_mock.path.isfile.return_value = True
 
         Resolwe._download_files(resolwe_mock, [])
 

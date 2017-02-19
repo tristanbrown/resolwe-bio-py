@@ -15,6 +15,7 @@ Added
 Added
 -----
 * ``count``, ``delete`` and ``create`` methods to query
+* Support downloading ``basic:dir:`` fields
 
 Changed
 -------

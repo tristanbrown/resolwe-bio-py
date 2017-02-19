@@ -2,6 +2,7 @@
 Unit tests for resdk/resources/data.py file.
 """
 # pylint: disable=missing-docstring, protected-access
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import unittest
 
@@ -75,32 +76,57 @@ class TestData(unittest.TestCase):
         with self.assertRaises(ValueError):
             _ = data.collections
 
-    @patch('resdk.resources.data.Data', spec=True)
-    def test_files(self, data_mock):
-        data_annotation = {
+    def test_files(self):
+        data = Data(id=123, resolwe=MagicMock())
+        data._get_dir_files = MagicMock(
+            side_effect=[['first_dir/file1.txt'], ['fastq_dir/file2.txt']])
+
+        data.annotation = {
             'output.list': {'value': [{'file': "element.gz"}], 'type': 'list:basic:file:'},
+            'output.dir_list': {'value': [{'dir': "first_dir"}], 'type': 'list:basic:dir:'},
             'output.fastq': {'value': {'file': "file.fastq.gz"}, 'type': 'basic:file:fastq'},
             'output.fastq_archive': {'value': {'file': "archive.gz"}, 'type': 'basic:file:'},
+            'output.fastq_dir': {'value': {'dir': "fastq_dir"}, 'type': 'basic:dir:'},
             'input.fastq_url': {'value': {'file': "blah"}, 'type': 'basic:url:'},
             'input.blah': {'value': "blah.gz", 'type': 'basic:file:'}
         }
-        bad_data_annotation = {
+
+        file_list = data.files()
+        six.assertCountEqual(self, file_list, [
+            'element.gz',
+            'archive.gz',
+            'file.fastq.gz',
+            'first_dir/file1.txt',
+            'fastq_dir/file2.txt'
+        ])
+        file_list = data.files(file_name='element.gz')
+        self.assertEqual(file_list, ['element.gz'])
+        file_list = data.files(field_name='output.fastq')
+        self.assertEqual(file_list, ['file.fastq.gz'])
+
+        data.annotation = {
             'output.list': {'value': [{'no_file_field_here': "element.gz"}],
                             'type': 'list:basic:file:'},
         }
-        data_mock.configure_mock(annotation=data_annotation)
+        with six.assertRaisesRegex(self, KeyError, "does not contain 'file' key."):
+            data.files()
 
-        file_list = Data.files(data_mock)
-        self.assertEqual(set(file_list), set(['element.gz', 'archive.gz', 'file.fastq.gz']))
-        file_list = Data.files(data_mock, file_name='element.gz')
-        self.assertEqual(file_list, ['element.gz'])
-        file_list = Data.files(data_mock, field_name='output.fastq')
-        self.assertEqual(file_list, ['file.fastq.gz'])
+        data = Data(resolwe=MagicMock())
+        with six.assertRaisesRegex(self, ValueError, "must be saved before"):
+            data.files()
 
-        data_mock.configure_mock(annotation=bad_data_annotation)
-        message = r"Item .* does not contain 'file' key."
-        with six.assertRaisesRegex(self, KeyError, message):
-            Data.files(data_mock)
+    @patch('resdk.resources.data.requests')
+    def test_dir_files(self, requests_mock):
+        data = Data(id=123, resolwe=MagicMock(url='http://resolwe.url'))
+        requests_mock.get = MagicMock(side_effect=[
+            MagicMock(content=b'[{"type": "file", "name": "file1.txt"}, '
+                              b'{"type": "directory", "name": "subdir"}]'),
+            MagicMock(content=b'[{"type": "file", "name": "file2.txt"}]'),
+        ])
+
+        files = data._get_dir_files('test_dir')
+
+        self.assertEqual(files, ['test_dir/file1.txt', 'test_dir/subdir/file2.txt'])
 
     @patch('resdk.resources.data.Data', spec=True)
     def test_download_fail(self, data_mock):
@@ -111,16 +137,18 @@ class TestData(unittest.TestCase):
     @patch('resdk.resources.data.Data', spec=True)
     def test_download_ok(self, data_mock):
         data_mock.configure_mock(id=123, **{'resolwe': MagicMock()})
-        data_mock.configure_mock(**{'files.return_value': ['file1.txt', 'file2.fq.gz']})
+        data_mock.configure_mock(**{
+            'files.return_value': ['file1.txt', 'file2.fq.gz'],
+        })
 
         Data.download(data_mock)
         data_mock.resolwe._download_files.assert_called_once_with(
-            [u'123/file1.txt', u'123/file2.fq.gz'], None)
+            ['123/file1.txt', '123/file2.fq.gz'], None)
 
         data_mock.reset_mock()
         Data.download(data_mock, download_dir="/some/path/")
         data_mock.resolwe._download_files.assert_called_once_with(
-            [u'123/file1.txt', u'123/file2.fq.gz'], '/some/path/')
+            ['123/file1.txt', '123/file2.fq.gz'], '/some/path/')
 
     @patch('resdk.resources.data.Data', spec=True)
     def test_add_output(self, data_mock):
@@ -129,10 +157,10 @@ class TestData(unittest.TestCase):
                         'output.fasta': {'type': 'basic:file:', 'value': {'file': 'genome.fa'}}}
         )
 
-        files_list = Data.files(data_mock, field_name="output.fastq")
+        files_list = Data._files_dirs(data_mock, 'file', field_name="output.fastq")
         self.assertEqual(files_list, ['reads.fq'])
 
-        files_list = Data.files(data_mock, field_name="fastq")
+        files_list = Data._files_dirs(data_mock, 'file', field_name="fastq")
         self.assertEqual(files_list, ['reads.fq'])
 
     @patch('resdk.resources.data.Data', spec=True)

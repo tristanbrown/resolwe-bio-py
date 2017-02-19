@@ -514,11 +514,18 @@ class Resolwe(ResolweUtilsMixin):
 
             for file_uri in files:
                 file_name = os.path.basename(file_uri)
+                file_path = os.path.dirname(file_uri)
                 file_url = urljoin(self.url, 'data/{}'.format(file_uri))
 
-                self.logger.info("* %s", file_name)
+                # Remove data id from path
+                file_path = file_path.split('/', 1)[1] if '/' in file_path else ''
+                full_path = os.path.join(download_dir, file_path)
+                if not os.path.isdir(full_path):
+                    os.makedirs(full_path)
 
-                with open(os.path.join(download_dir, file_name), 'wb') as file_handle:
+                self.logger.info("* %s", os.path.join(file_path, file_name))
+
+                with open(os.path.join(download_dir, file_path, file_name), 'wb') as file_handle:
                     response = requests.get(file_url, stream=True, auth=self.auth)
 
                     if not response.ok:
