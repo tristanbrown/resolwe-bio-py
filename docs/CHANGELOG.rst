@@ -8,6 +8,10 @@ All notable changes to this project are documented in this file.
 Unreleased
 ==========
 
+Added
+-----
+* Option to set API url with ``RESOLWE_HOST_URL`` environment varaible
+
 Changed
 -------
 * Remove ``presample`` endpoint, as it doesn't exist in resolwe anymore

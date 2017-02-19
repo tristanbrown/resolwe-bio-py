@@ -122,11 +122,25 @@ class TestResolwe(unittest.TestCase):
         self.assertEqual(resauth_mock.call_args[0][1], None)
 
         # If environment variable is set, it overrides the default URL.
-        os.environ['RESOLWE_API_HOST'] = 'http://resolwe-api:8000'
         os.environ['RESOLWE_API_USERNAME'] = 'foo'
         os.environ['RESOLWE_API_PASSWORD'] = 'bar'
+
+        os.environ['RESOLWE_HOST_URL'] = 'http://resolwe-api:8000'
         resolwe_api = Resolwe()
         self.assertEqual(resolwe_api.url, 'http://resolwe-api:8000')
+        self.assertEqual(resauth_mock.call_args[0][0], 'foo')
+        self.assertEqual(resauth_mock.call_args[0][1], 'bar')
+
+        # `RESOLWE_HOST_URL` takes precedence
+        os.environ['RESOLWE_API_HOST'] = 'http://resolwe-api:9000'
+        resolwe_api = Resolwe()
+        self.assertEqual(resolwe_api.url, 'http://resolwe-api:8000')
+        self.assertEqual(resauth_mock.call_args[0][0], 'foo')
+        self.assertEqual(resauth_mock.call_args[0][1], 'bar')
+
+        os.environ.pop('RESOLWE_HOST_URL')
+        resolwe_api = Resolwe()
+        self.assertEqual(resolwe_api.url, 'http://resolwe-api:9000')
         self.assertEqual(resauth_mock.call_args[0][0], 'foo')
         self.assertEqual(resauth_mock.call_args[0][1], 'bar')
 
