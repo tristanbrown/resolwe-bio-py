@@ -10,6 +10,7 @@ import slumber
 
 from mock import patch, MagicMock, call
 
+from resdk.resources import Collection
 from resdk.resources.base import BaseResource
 
 
@@ -117,6 +118,17 @@ class TestBaseResource(unittest.TestCase):
         base_resource.UPDATE_PROTECTED_FIELDS = ('update_protected', )
         base_resource.READ_ONLY_FIELDS = ('read_only', )
         self.assertEqual(base_resource.fields(), ('writable', 'update_protected', 'read_only'))
+
+    def test_dehydrate_resources(self):
+        # `Collection` is used because it is easier to use
+        collection = Collection(id=100, resolwe=MagicMock())
+        obj_1 = Collection(id=1, resolwe=MagicMock())
+        obj_1.id = 1  # this is overriden when initialized
+
+        self.assertEqual(collection._dehydrate_resources(obj_1), 1)
+        self.assertEqual(collection._dehydrate_resources([obj_1]), [1])
+        self.assertEqual(collection._dehydrate_resources({'key': obj_1}), {'key': 1})
+        self.assertEqual(collection._dehydrate_resources({'key': [obj_1]}), {'key': [1]})
 
 
 class TestBaseMethods(unittest.TestCase):

@@ -116,6 +116,16 @@ class BaseResource(object):
         response = self.api(self.id).get()
         self._update_fields(response)
 
+    def _dehydrate_resources(self, obj):
+        """Iterate through object and replace all objects with their ids."""
+        if isinstance(obj, BaseResource):
+            return obj.id
+        if isinstance(obj, list):
+            return [self._dehydrate_resources(element) for element in obj]
+        if isinstance(obj, dict):
+            return {key: self._dehydrate_resources(value) for key, value in six.iteritems(obj)}
+        return obj
+
     def save(self):
         """Save resource to the server."""
         def field_changed(field_name):
@@ -137,7 +147,7 @@ class BaseResource(object):
             payload = {}
             for field_name in self.WRITABLE_FIELDS:
                 if field_changed(field_name):
-                    payload[field_name] = getattr(self, field_name)
+                    payload[field_name] = self._dehydrate_resources(getattr(self, field_name))
 
             if payload:
                 response = self.api(self.id).patch(payload)
@@ -147,8 +157,8 @@ class BaseResource(object):
             assert_fields_changed(self.READ_ONLY_FIELDS)
 
             field_names = self.WRITABLE_FIELDS + self.UPDATE_PROTECTED_FIELDS
-            payload = {field_name: getattr(self, field_name) for field_name in field_names
-                       if getattr(self, field_name) is not None}
+            payload = {field_name: self._dehydrate_resources(getattr(self, field_name))
+                       for field_name in field_names if getattr(self, field_name) is not None}
 
             response = self.api.post(payload)
             self._update_fields(response)
