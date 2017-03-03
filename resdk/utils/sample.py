@@ -55,7 +55,7 @@ class SampleUtilsMixin(object):
         """
         inputs = {
             'treatment': self.get_bam().id,
-            'gsize': abbreviate_organism(self.descriptor['geo']['organism']),
+            'gsize': abbreviate_organism(self.descriptor['sample']['organism']),
         }
 
         if p_value is not None:

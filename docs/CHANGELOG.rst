@@ -28,6 +28,7 @@ Fixed
 * Fix related queries (i.e. ``collection.data``, ``collection.samples``...)
   for newly created objects and raise error if they are accessed before object
   is saved
+* Fix ``run_macs`` function to use up-to-date descriptor schema
 
 ==================
 1.6.4 - 2017-02-17
