@@ -303,9 +303,15 @@ class ResolweQuery(object):
 
         return response[0]
 
-    def create(self, *args, **kwargs):
+    def create(self, *args, **model_data):
         """Return new instance of current resource."""
-        return self.resource(resolwe=self.resolwe, *args, **kwargs)
+        slug = model_data.pop('slug', None)
+        id_ = model_data.pop('id', None)
+
+        resource = self.resource(slug=slug, id=id_, model_data=model_data, resolwe=self.resolwe)
+        resource.save()
+
+        return resource
 
     def post(self, data):
         """Post data to this endpoint.
