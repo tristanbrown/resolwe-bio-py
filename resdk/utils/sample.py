@@ -35,7 +35,7 @@ class SampleUtilsMixin(object):
         """Return ``cuffquant`` object on the sample."""
         return self.data.get(type='data:cufflinks:cuffquant:')
 
-    def run_macs(self, use_background=True, background_slug='', p_value=None):
+    def run_macs(self, use_background=True, p_value=None):
         """Run ``MACS 1.4`` process on the sample.
 
         This method runs `MACS 1.4`_ process with ``p-value`` specified
@@ -62,20 +62,16 @@ class SampleUtilsMixin(object):
             inputs['pvalue'] = p_value
 
         if use_background:
-            background = self.get_background(background_slug, fail_silently=True)
+            background = self.get_background()
 
-            if background:
-                inputs['control'] = background.get_bam().id
-            else:
-                self.logger.info('Macs will run without a control sample.')
+            inputs['control'] = background.get_bam().id
 
         macs = self.resolwe.get_or_run(slug='macs14', input=inputs)
         self.add_data(macs)
 
         return macs
 
-    def run_rose2(self, use_background=True, background_slug='', genome='HG19', tss=None,
-                  stitch=None, beds=None):
+    def run_rose2(self, use_background=True, genome='HG19', tss=None, stitch=None, beds=None):
         """Run ``ROSE 2`` process on the sample.
 
         This method runs `ROSE2`_ process with ``tss_exclusion`` and
@@ -119,12 +115,9 @@ class SampleUtilsMixin(object):
             inputs['stitch'] = stitch
 
         if use_background:
-            background = self.get_background(background_slug, fail_silently=True)
+            background = self.get_background()
 
-            if background:
-                inputs['control'] = background.get_bam().id
-            else:
-                self.logger.info('Rose-2 will run without a control sample.')
+            inputs['control'] = background.get_bam().id
 
         bed_list = self.get_macs()
         if beds is not None:

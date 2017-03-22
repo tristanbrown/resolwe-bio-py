@@ -73,15 +73,26 @@ class Sample(SampleUtilsMixin, BaseCollection):
         self.api(self.id).patch({'descriptor_completed': True})
         self.logger.info('Marked Sample %s as annotated', self.id)
 
-    def get_background(self, background_slug, fail_silently=False):
+    def get_background(self, fail_silently=False):
         """Find background sample of the current one."""
-        # XXX: This is a workaround until relations are implemented in the right way.
+        background_relation = self.resolwe.relation.filter(
+            type='compare',
+            label='background',
+            entity=[self.id],
+            position=['sample'],
+        )
 
-        if not background_slug and fail_silently:
-            return None
+        # Execute query to prevent multiple requests to api
+        background_relation = list(background_relation)
 
-        try:
-            return self.resolwe.sample.get(slug=background_slug)
-        except LookupError:
+        if len(background_relation) > 1:
+            raise RuntimeError(
+                "More than one background is defined for sample '{}'".format(self.name)
+            )
+        elif len(background_relation) == 1:
+            for entity_obj in background_relation[0].entities:
+                if entity_obj['position'] == 'background':
+                    return self.resolwe.sample.get(id=entity_obj['entity'])
+        elif not fail_silently:
             raise LookupError(
-                'Cannot find (background) sample with slug `{}`.'.format(background_slug))
+                'Cannot find (background) sample for sample `{}`.'.format(self.name))
