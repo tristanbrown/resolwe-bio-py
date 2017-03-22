@@ -4,6 +4,15 @@ Change Log
 
 All notable changes to this project are documented in this file.
 
+==========
+Unreleased
+==========
+
+Fixed
+-----
+* Latest API returns process version in string instead of integer
+
+
 ==================
 1.7.0 - 2017-02-20
 ==================

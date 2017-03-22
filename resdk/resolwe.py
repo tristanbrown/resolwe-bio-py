@@ -34,12 +34,21 @@ from .utils.resolwe import ResolweUtilsMixin
 from .query import ResolweQuery
 
 
-VERSION_NUMBER_BITS = (8, 10, 14)
 CHUNK_SIZE = 8000000  # 8MB
 DEFAULT_URL = 'http://localhost:8000'
 # Tools directory on the Resolwe server, for example:
 # username@torta.bcmt.bcm.edu://genialis/tools
 TOOLS_REMOTE_HOST = os.environ.get('TOOLS_REMOTE_HOST', None)
+
+
+def version_str_to_tuple(version):
+    """Split version string to tuple of integers."""
+    return tuple(map(int, (version.split("."))))
+
+
+def version_tuple_to_str(version):
+    """Join version tuple to string."""
+    return '.'.join(map(str, version))
 
 
 class ResolweResource(slumber.Resource):
@@ -105,43 +114,6 @@ class Resolwe(ResolweUtilsMixin):
             return "Resolwe <url: {}, username: {}>".format(self.url, self.auth.username)
         return "Resolwe <url: {}>".format(self.url)
 
-    def _version_string_to_int(self, version):
-        """Transform dot separated version string to int."""
-        version_numbers = [int(number_string) for number_string in version.split(".")]
-
-        if len(version_numbers) > len(VERSION_NUMBER_BITS):
-            raise NotImplementedError("Version should have at most {} decimal places.".format(
-                len(VERSION_NUMBER_BITS) - 1))
-
-        # add 0s for missing numbers
-        version_numbers.extend([0] * (len(VERSION_NUMBER_BITS) - len(version_numbers)))
-
-        # convert version to single int
-        version_number = 0
-        total_bits = 0
-        for num, bits in zip(reversed(version_numbers), reversed(VERSION_NUMBER_BITS)):
-            max_num = (bits + 1) - 1
-            if num >= 1 << max_num:
-                raise ValueError("Number {} cannot be stored with only {} bits. Max is {}.".format(
-                    num, bits, max_num))
-            version_number += num << total_bits
-            total_bits += bits
-
-        return version_number
-
-    def _version_int_to_string(self, number):
-        """Transform int to dot separated version string."""
-        number_strings = []
-        total_bits = sum(VERSION_NUMBER_BITS)
-        for bits in VERSION_NUMBER_BITS:
-            shift_amount = (total_bits - bits)
-            number_segment = number >> shift_amount
-            number_strings.append(str(number_segment))
-            total_bits = total_bits - bits
-            number = number - (number_segment << shift_amount)
-
-        return ".".join(number_strings)
-
     def _register(self, src, slug):
         """Register processes on the server.
 
@@ -174,8 +146,6 @@ class Resolwe(ResolweUtilsMixin):
         endswith_colon(process, 'type')
         endswith_colon(process, 'category')
 
-        process['version'] = self._version_string_to_int(process['version'])
-
         for field in ['input', 'output']:
             if field in process:
                 for schema, _, _ in iterate_schema({}, process[field], field):
@@ -195,19 +165,17 @@ class Resolwe(ResolweUtilsMixin):
                 server_process = server_process[0]
                 # Version for newly reistered process has to be increased. If
                 # this has not been already done in yaml file it is raised now.
-                if not process['version'] > server_process.version:
-                    process['version'] = server_process.version + 1
+                process_version = version_str_to_tuple(process['version'])
+                server_version = version_str_to_tuple(server_process.version)
+                if process_version <= server_version:
+                    new_process_version = server_version[:-1] + (server_version[-1] + 1,)
+                    process['version'] = version_tuple_to_str(new_process_version)
                     self.logger.warning(
                         "Process '%s' version increased automatically: %s",
-                        slug,
-                        self._version_int_to_string(process['version']))
+                        slug, process['version']
+                    )
 
-                response = self.api.process.post(process)
-
-            elif len(server_process) == 0:
-                response = self.api.process.post(process)
-            else:
-                raise ValueError("Unexpected behaviour at get process with slug {}".format(slug))
+            response = self.api.process.post(process)
 
         # Updating processes is supported only on development servers
         # This error will be raised on production server.

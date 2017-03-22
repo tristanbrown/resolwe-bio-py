@@ -15,7 +15,9 @@ from slumber.exceptions import SlumberHttpBaseException
 import yaml
 
 from resdk.exceptions import ValidationError, ResolweServerError
-from resdk.resolwe import Resolwe, ResAuth, ResolweResource
+from resdk.resolwe import (
+    Resolwe, ResAuth, ResolweResource, version_str_to_tuple, version_tuple_to_str
+)
 from resdk.resources import Collection, Data, Process
 from resdk import resolwe
 
@@ -146,33 +148,12 @@ class TestResolwe(unittest.TestCase):
 
 
 class TestVersionConverters(unittest.TestCase):
-    """
-    Test both version convert methods.
-    """
 
-    @patch('resdk.resolwe.Resolwe', spec=True)
-    def test_version_string_to_int(self, resolwe_mock):
-        version = Resolwe._version_string_to_int(resolwe_mock, "1.2.3")
-        self.assertEqual(version, 16809987)
-        version = Resolwe._version_string_to_int(resolwe_mock, "12.6")
-        self.assertEqual(version, 201424896)
+    def test_version_string_to_tuple(self):
+        self.assertEqual(version_str_to_tuple('1.0.2'), (1, 0, 2))
 
-        # Fail if version has 4 or more "decimal places":
-        message = 'Version should have at most 2 decimal places.'
-        with six.assertRaisesRegex(self, NotImplementedError, message):
-            Resolwe._version_string_to_int(resolwe_mock, "1.2.3.4")
-
-        # Fail if number used for "decimal place" is too big:
-        message = r"Number \d+ cannot be stored with only \d+ bits. Max is \d+."
-        with six.assertRaisesRegex(self, ValueError, message):
-            Resolwe._version_string_to_int(resolwe_mock, "1000.2.3")
-
-    @patch('resdk.resolwe.Resolwe', spec=True)
-    def test_version_int_to_string(self, resolwe_mock):
-        version = Resolwe._version_int_to_string(resolwe_mock, 16809987)
-        self.assertEqual(version, "1.2.3")
-        version = Resolwe._version_int_to_string(resolwe_mock, 201424896)
-        self.assertEqual(version, "12.6.0")
+    def test_version_tuple_to_string(self):
+        self.assertEqual(version_tuple_to_str((1, 0, 2)), '1.0.2')
 
 
 class TestRegister(unittest.TestCase):
@@ -182,7 +163,6 @@ class TestRegister(unittest.TestCase):
         self.yaml_file = os.path.join(BASE_DIR, 'files', 'bowtie.yaml')
         self.bad_yaml_file = os.path.join(BASE_DIR, 'files', 'bowtie_bad.yaml')
         self.resolwe_mock = resolwe_mock
-        self.resolwe_mock._version_string_to_int = MagicMock(return_value=16777229)
         self.resolwe_mock.api = MagicMock()
         self.resolwe_mock.logger = MagicMock()
         self.resolwe_mock.process = MagicMock()
@@ -203,22 +183,19 @@ class TestRegister(unittest.TestCase):
 
     def test_update_existing_process(self):
         """If process exists, process.filter returns list with exactly one element."""
-        self.resolwe_mock.process.filter.return_value = [MagicMock(version=16777228)]
-
         # local process version > server process version
+        self.resolwe_mock.process.filter.return_value = [MagicMock(version='1.0.12')]
         Resolwe._register(self.resolwe_mock, self.yaml_file, "alignment-bowtie")
         self.assertEqual(self.resolwe_mock.api.process.post.call_count, 1)
-        # Comfirm version was NOT raised (_version_int_to_string NOT called)
-        self.assertEqual(self.resolwe_mock._version_int_to_string.call_count, 0)
+        self.assertEqual(self.resolwe_mock.api.process.post.call_args[0][0]['version'], '1.0.13')
 
         self.resolwe_mock.reset_mock()
 
         # local process version = server process version
-        self.resolwe_mock.process.filter.return_value = [MagicMock(version=16777229)]
+        self.resolwe_mock.process.filter.return_value = [MagicMock(version='1.0.13')]
         Resolwe._register(self.resolwe_mock, self.yaml_file, "alignment-bowtie")
         self.assertEqual(self.resolwe_mock.api.process.post.call_count, 1)
-        # Confirm version was NOT raised (_version_int_to_string NOT called)
-        self.assertEqual(self.resolwe_mock._version_int_to_string.call_count, 1)
+        self.assertEqual(self.resolwe_mock.api.process.post.call_args[0][0]['version'], '1.0.14')
 
     def test_completely_new_process(self):
         """If process with given slug does not exist, process.filter will return empty list"""
@@ -226,7 +203,6 @@ class TestRegister(unittest.TestCase):
 
         Resolwe._register(self.resolwe_mock, self.yaml_file, "alignment-bowtie")
         self.assertEqual(self.resolwe_mock.api.process.post.call_count, 1)
-        self.assertEqual(self.resolwe_mock._version_int_to_string.call_count, 0)
 
     def test_raises_client_error(self):
         # Check raises error if slumber.exceptions.HttpClientError happens
