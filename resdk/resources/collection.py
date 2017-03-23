@@ -4,6 +4,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import six
 
 from resdk.shortcuts.collection import CollectionRelationsMixin
+from resdk.utils.collection import CollectionUtilsMixin
 
 from .base import BaseResource
 from .utils import get_data_id, get_sample_id
@@ -123,7 +124,7 @@ class BaseCollection(BaseResource):
         raise NotImplementedError()
 
 
-class Collection(CollectionRelationsMixin, BaseCollection):
+class Collection(CollectionUtilsMixin, CollectionRelationsMixin, BaseCollection):
     """Resolwe Collection resource.
 
     One and only one of the identifiers (slug, id or model_data)
