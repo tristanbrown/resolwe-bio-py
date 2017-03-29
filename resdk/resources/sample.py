@@ -13,6 +13,10 @@ class SampleUtilsMixin(object):
 
     """
 
+    def get_reads(self):
+        """Return ``fastq`` object on the sample."""
+        return self.data.get(type='data:reads:fastq')
+
     def get_bam(self):
         """Return ``bam`` object on the sample."""
         return self.data.get(type='data:alignment:bam:')

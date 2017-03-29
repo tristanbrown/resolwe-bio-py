@@ -11,6 +11,7 @@ Unreleased
 Added
 -----
 * Support relations endpoint
+* Analysis functions for running ``bowtie2`` and ``hisat2`` aligners
 
 Changed
 -------
