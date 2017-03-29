@@ -6,7 +6,7 @@ import logging
 from resdk.exceptions import ValidationError
 
 from .base import BaseResource
-from .utils import get_collection_id, get_sample_id
+from .utils import get_collection_id, get_sample_id, is_collection
 
 
 class Relation(BaseResource):
@@ -34,8 +34,10 @@ class Relation(BaseResource):
     def __init__(self, slug=None, id=None,  # pylint: disable=redefined-builtin
                  model_data=None, resolwe=None):
         """Initialize attributes."""
-        #: collection in which relation is
+        #: collection id in which relation is
         self._collection = None
+        #: (lazy loaded) collection object in which relation is
+        self._hydrated_collection = None
         #: (lazy loaded) list of samples in the relation
         self._samples = None
 
@@ -69,16 +71,21 @@ class Relation(BaseResource):
     @property
     def collection(self):
         """Return collection object to which relation belongs."""
-        return self.resolwe.collection.get(self._collection)
+        if not self._hydrated_collection:
+            self._hydrated_collection = self.resolwe.collection.get(self._collection)
+        return self._hydrated_collection
 
     @collection.setter
     def collection(self, collection):
         """Set collection to which relation belongs."""
         self._collection = get_collection_id(collection)
+        # Save collection if already hydrated, othervise it will be rerived in getter
+        self._hydrated_collection = collection if is_collection(collection) else None
 
     def update(self):
         """Clear cache and update resource fields from the server."""
         self._samples = None
+        self._hydrated_collection = None
 
         super(Relation, self).update()
 
