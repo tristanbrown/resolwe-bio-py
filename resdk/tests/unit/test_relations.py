@@ -62,7 +62,6 @@ class TestRelation(unittest.TestCase):
         relation.update()
         self.assertEqual(relation._hydrated_collection, None)
 
-
     def test_repr(self):
         relation = Relation(id=1, resolwe=MagicMock())
         relation.id = 1  # this is overriden when initialized

@@ -1,9 +1,29 @@
 """Sample resource."""
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from resdk.utils.sample import SampleUtilsMixin
-
 from .collection import BaseCollection
+
+
+class SampleUtilsMixin(object):
+    """Mixin with utility functions for `~resdk.resources.sample.Sample` resource.
+
+    This mixin includes handy methods for common tasks like getting
+    data object of specific type from sample (or list of them, based on
+    common usecase) and running analysis on the objects in the sample.
+
+    """
+
+    def get_bam(self):
+        """Return ``bam`` object on the sample."""
+        return self.data.get(type='data:alignment:bam:')
+
+    def get_macs(self):
+        """Return list of ``bed`` objects on the sample."""
+        return self.data.filter(type='data:chipseq:macs14:')
+
+    def get_cuffquant(self):
+        """Return ``cuffquant`` object on the sample."""
+        return self.data.get(type='data:cufflinks:cuffquant:')
 
 
 class Sample(SampleUtilsMixin, BaseCollection):
@@ -73,13 +93,14 @@ class Sample(SampleUtilsMixin, BaseCollection):
         self.api(self.id).patch({'descriptor_completed': True})
         self.logger.info('Marked Sample %s as annotated', self.id)
 
-    def get_background(self, fail_silently=False):
+    def get_background(self, fail_silently=False, **extra_filters):
         """Find background sample of the current one."""
         background_relation = self.resolwe.relation.filter(
             type='compare',
             label='background',
             entity=[self.id],
             position=['sample'],
+            **extra_filters
         )
 
         # Execute query to prevent multiple requests to api

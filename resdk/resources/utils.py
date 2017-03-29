@@ -114,3 +114,95 @@ def get_process_id(process):
 def get_sample_id(sample):
     """Return id attribute of the object if it is sample, othervise return given value."""
     return sample.id if type(sample).__name__ == 'Sample' else sample
+
+
+def get_relation_id(relation):
+    """Return id attribute of the object if it is relation, othervise return given value."""
+    return relation.id if type(relation).__name__ == 'Relation' else relation
+
+
+def is_collection(collection):
+    """Return ``True`` if passed object is Collection and ``False`` otherwise."""
+    return type(collection).__name__ == 'Collection'
+
+
+def is_data(data):
+    """Return ``True`` if passed object is Data and ``False`` otherwise."""
+    return type(data).__name__ == 'Data'
+
+
+def is_process(process):
+    """Return ``True`` if passed object is Process and ``False`` otherwise."""
+    return type(process).__name__ == 'Process'
+
+
+def is_sample(sample):
+    """Return ``True`` if passed object is Sample and ``False`` otherwise."""
+    return type(sample).__name__ == 'Sample'
+
+
+def is_relation(relation):
+    """Return ``True`` if passed object is Relation and ``False`` otherwise."""
+    return type(relation).__name__ == 'Relation'
+
+
+def get_samples(resource):
+    """Get the list of samples from given resources.
+
+    Get the list of samples with:
+    * use recursion if given resource is a list
+    * return the resource if it is already the sample
+    * call ResolweQuery object named `samples` (if exists) and return
+      the result
+    """
+    if isinstance(resource, list):
+        samples = []
+        for res in resource:
+            samples.extend(get_samples(res))
+        return samples
+
+    elif is_sample(resource):
+        return [resource]
+
+    elif hasattr(resource, 'samples'):
+        return resource.samples
+
+    else:
+        raise TypeError(
+            "Resource should be sample, have `samples` query or be list of multiple resources.")
+
+
+def get_resource_collection(resource, fail_silently=True):
+    """Get id of the collection to which resource belongs.
+
+    If resource does not belong to any collection or collection cannot
+    be determined uniquely, ``None`` is returned of ``LookupError`` is
+    raised (if ``fail_silently`` is set to ``True``).
+    """
+    if is_collection(resource):
+        return resource.id
+
+    elif hasattr(resource, 'collection'):
+        return resource.collection.id
+
+    elif hasattr(resource, 'collections'):
+        collections = resource.collections
+        if len(collections) == 1:
+            return collections[0].id
+
+    if fail_silently:
+        return None
+
+    raise LookupError('Collection id cannot be determined uniquely.')
+
+
+def get_resolwe(*resources):
+    """Return resolwe object used in given resources.
+
+    Raise an error if there is more than one.
+    """
+    resolwes = {res_obj.resolwe for res_obj in resources}
+    if len(resolwes) != 1:
+        raise TypeError('All input objects must be from the same `Resolwe` connection.')
+
+    return list(resolwes)[0]

@@ -12,6 +12,10 @@ Added
 -----
 * Support relations endpoint
 
+Changed
+-------
+* Move ``run_*`` functions to separate ``resdk.analysis`` module
+
 Fixed
 -----
 * Latest API returns process version in string instead of integer
