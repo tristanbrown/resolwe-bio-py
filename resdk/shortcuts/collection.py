@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from collections import defaultdict
+import copy
 import os
 import yaml
 import six
@@ -71,7 +72,7 @@ class CollectionRelationsMixin(object):
         if relation is None:
             relation = self.resolwe.relation.get(id=id_)
 
-        to_delete = relation.entities.copy()
+        to_delete = copy.copy(relation.entities)
         to_add = []
 
         for sample, position in zip_longest(samples, positions):
