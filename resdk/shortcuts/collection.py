@@ -20,6 +20,14 @@ class IncreasedIndentDumper(yaml.Dumper):
         return super(IncreasedIndentDumper, self).increase_indent(flow, False)
 
 
+# Get rid of '!!python/unicode' tags in front of strings in py2
+if six.PY2:
+    # pylint: disable=undefined-variable,no-member
+    IncreasedIndentDumper.add_representer(
+        unicode, yaml.representer.SafeRepresenter.represent_unicode
+    )
+
+
 class CollectionRelationsMixin(object):
     """Shortcuts mixin for ``Collection`` class.
 
