@@ -289,12 +289,17 @@ class CollectionRelationsMixin(object):
             """Process single relation."""
             flat_samples, flat_positions = [], []
             for sample, position in six.moves.zip_longest(samples, positions or []):
+                if not sample:
+                    continue
                 if isinstance(sample, list):
                     flat_samples.extend([sample_slug_to_id(s) for s in sample])
                     flat_positions.extend([position] * len(sample))
                 else:
                     flat_samples.append(sample_slug_to_id(sample))
                     flat_positions.append(position)
+
+            if not flat_samples:
+                return  # ignore (template) relations where no sample is defined
 
             if id_:
                 if id_ in _relations_by_id:
