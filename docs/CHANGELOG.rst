@@ -4,9 +4,9 @@ Change Log
 
 All notable changes to this project are documented in this file.
 
-==========
-Unreleased
-==========
+==================
+1.8.0 - 2017-03-30
+==================
 
 Added
 -----
@@ -20,6 +20,7 @@ Changed
 Fixed
 -----
 * Latest API returns process version in string instead of integer
+* Fix ``run_macs`` function to use up-to-date descriptor schema
 
 
 ==================
@@ -46,7 +47,7 @@ Fixed
 * Fix related queries (i.e. ``collection.data``, ``collection.samples``...)
   for newly created objects and raise error if they are accessed before object
   is saved
-* Fix ``run_macs`` function to use up-to-date descriptor schema
+
 
 ==================
 1.6.4 - 2017-02-17
