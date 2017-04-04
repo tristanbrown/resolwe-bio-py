@@ -11,8 +11,16 @@ Unreleased
 Added
 -----
 * Support ``tags`` in ``Sample`` and ``Data`` resources
-* Support running macs on more organisms (`drosophila melanogaster`, 
+* Support running macs on more organisms (`drosophila melanogaster`,
   `caenorhabditis elegans` and `rattus norvegicus`)
+
+Changed
+-------
+* Update E2E tests
+* ``rose2`` and ``macs`` functions fail if they are run on a single
+  sample with ``use_background=True`` and there is no background for
+  that sample
+* ``create_*_relation`` functions return created relation
 
 Fixed
 -----
