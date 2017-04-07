@@ -4,6 +4,15 @@ Change Log
 
 All notable changes to this project are documented in this file.
 
+==========
+Unreleased
+==========
+
+Added
+-----
+* Support ``tags`` in ``Sample`` and ``Data`` resources
+
+
 ==================
 1.8.0 - 2017-03-30
 ==================

@@ -36,7 +36,7 @@ class Data(BaseResource):
     #: (lazy loaded) list of collections to which data object belongs
     _collections = None
 
-    WRITABLE_FIELDS = ('descriptor_schema', 'descriptor') + BaseResource.WRITABLE_FIELDS
+    WRITABLE_FIELDS = ('descriptor_schema', 'descriptor', 'tags') + BaseResource.WRITABLE_FIELDS
     UPDATE_PROTECTED_FIELDS = ('input', 'process') + BaseResource.UPDATE_PROTECTED_FIELDS
     READ_ONLY_FIELDS = ('process_input_schema', 'process_output_schema', 'output', 'started',
                         'finished', 'checksum', 'status', 'process_progress', 'process_rc',
@@ -83,6 +83,8 @@ class Data(BaseResource):
         self.process_type = None
         #: process name
         self.process_name = None
+        #: data object's tags
+        self.tags = None
 
         super(Data, self).__init__(slug, id, model_data, resolwe)
 
