@@ -36,14 +36,9 @@ class Sample(SampleUtilsMixin, BaseCollection):
     One and only one of the identifiers (slug, id or model_data)
     should be given.
 
-    :param slug: Resource slug
-    :type slug: str
-    :param id: Resource ID
-    :type id: int
-    :param model_data: Resource model data
-    :type model_data: dict
     :param resolwe: Resolwe instance
     :type resolwe: Resolwe object
+    :param model_data: Resource model data
 
     """
 
@@ -54,13 +49,12 @@ class Sample(SampleUtilsMixin, BaseCollection):
     #: (lazy loaded) list of collections  to which object belongs
     _collections = None
 
-    def __init__(self, slug=None, id=None, model_data=None,  # pylint: disable=redefined-builtin
-                 resolwe=None):
+    def __init__(self, resolwe, **model_data):
         """Initialize attributes."""
         #: sample's tags
         self.tags = None
 
-        super(Sample, self).__init__(slug, id, model_data, resolwe)
+        super(Sample, self).__init__(resolwe, **model_data)
 
     def update(self):
         """Clear cache and update resource fields from the server."""

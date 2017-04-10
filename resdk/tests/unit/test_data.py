@@ -110,7 +110,7 @@ class TestData(unittest.TestCase):
         with six.assertRaisesRegex(self, KeyError, "does not contain 'file' key."):
             data.files()
 
-        data = Data(resolwe=MagicMock())
+        data = Data(resolwe=MagicMock(), id=None)
         with six.assertRaisesRegex(self, ValueError, "must be saved before"):
             data.files()
 

@@ -9,6 +9,12 @@ All notable changes to this project are documented in this file.
 Unreleased
 ==========
 
+Changed
+-------
+* Remove ``id`` and ``slug`` parameters from init functions of
+  resources. Query object should be used instead, i.e.
+  ``<resolwe>.<resource>.get(...)``
+
 Fixed
 -----
 * Fix ``Relation`` resource to work if ``entities`` attribute is set to

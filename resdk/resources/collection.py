@@ -15,14 +15,9 @@ class BaseCollection(BaseResource):
     One and only one of the identifiers (slug, id or model_data)
     should be given.
 
-    :param slug: Resource slug
-    :type slug: str
-    :param id: Resource ID
-    :type id: int
-    :param model_data: Resource model data
-    :type model_data: dict
     :param resolwe: Resolwe instance
     :type resolwe: Resolwe object
+    :param model_data: Resource model data
 
     """
 
@@ -32,8 +27,7 @@ class BaseCollection(BaseResource):
     WRITABLE_FIELDS = ('description', 'settings', 'descriptor_schema',
                        'descriptor') + BaseResource.WRITABLE_FIELDS
 
-    def __init__(self, slug=None, id=None,  # pylint: disable=redefined-builtin
-                 model_data=None, resolwe=None):
+    def __init__(self, resolwe, **model_data):
         """Initialize attributes."""
         #: a description
         self.description = None
@@ -44,7 +38,7 @@ class BaseCollection(BaseResource):
         #: descriptor schema
         self.descriptor_schema = None
 
-        super(BaseCollection, self).__init__(slug, id, model_data, resolwe)
+        super(BaseCollection, self).__init__(resolwe, **model_data)
 
     @property
     def data(self):
@@ -129,14 +123,9 @@ class Collection(CollectionRelationsMixin, BaseCollection):
     One and only one of the identifiers (slug, id or model_data)
     should be given.
 
-    :param slug: Resource slug
-    :type slug: str
-    :param id: Resource ID
-    :type id: int
-    :param model_data: Resource model data
-    :type model_data: dict
     :param resolwe: Resolwe instance
     :type resolwe: Resolwe object
+    :param model_data: Resource model data
 
     """
 
@@ -147,11 +136,6 @@ class Collection(CollectionRelationsMixin, BaseCollection):
 
     #: (lazy loaded) list of relations that belong to collection
     _relations = None
-
-    def __init__(self, slug=None, id=None,  # pylint: disable=redefined-builtin
-                 model_data=None, resolwe=None):
-        """Initialize attributes."""
-        BaseCollection.__init__(self, slug, id, model_data, resolwe)
 
     def update(self):
         """Clear cache and update resource fields from the server."""

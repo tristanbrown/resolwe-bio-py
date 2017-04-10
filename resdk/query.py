@@ -220,7 +220,7 @@ class ResolweQuery(object):
 
     def _populate_resource(self, data):
         """Populate resource with given data."""
-        return self.resource(model_data=data, resolwe=self.resolwe)
+        return self.resource(resolwe=self.resolwe, **data)
 
     def _fetch(self):
         """Make request to the server and populate cache."""
@@ -304,12 +304,9 @@ class ResolweQuery(object):
 
         return response[0]
 
-    def create(self, *args, **model_data):
+    def create(self, **model_data):
         """Return new instance of current resource."""
-        slug = model_data.pop('slug', None)
-        id_ = model_data.pop('id', None)
-
-        resource = self.resource(slug=slug, id=id_, model_data=model_data, resolwe=self.resolwe)
+        resource = self.resource(self.resolwe, **model_data)
         resource.save()
 
         return resource

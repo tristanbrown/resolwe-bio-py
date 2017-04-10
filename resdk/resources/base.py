@@ -6,7 +6,6 @@ import logging
 import operator
 
 import six
-import slumber
 
 
 class BaseResource(object):
@@ -15,11 +14,9 @@ class BaseResource(object):
     One and only one of the identifiers (slug, id or model_data)
     should be given.
 
-    :param str slug: Resource slug
-    :param int id: Resource ID
-    :param dict model_data: Resource model data
     :param resolwe: Resolwe instance
     :type resolwe: Resolwe object
+    :param model_data: Resource model data
 
     """
 
@@ -31,22 +28,8 @@ class BaseResource(object):
     UPDATE_PROTECTED_FIELDS = ('contributor', )
     READ_ONLY_FIELDS = ('id', 'created', 'modified')
 
-    def __init__(self, slug=None, id=None,  # pylint: disable=redefined-builtin
-                 model_data=None, resolwe=None):
+    def __init__(self, resolwe, **model_data):
         """Verify that only a single attribute of slug, id or model_data given."""
-        if len([attr for attr in (slug, id, model_data) if attr is not None]) > 1:
-            raise ValueError("Only one of slug, id or model_data allowed")
-
-        if id:
-            if not isinstance(id, int):
-                raise ValueError("id should be an integer.")
-        elif slug:
-            if not isinstance(slug, six.string_types):
-                raise ValueError("slug should be a string.")
-        elif model_data:
-            if not isinstance(model_data, dict):
-                raise ValueError("model_data should be a dict.")
-
         self._original_values = {}
 
         def initialize_field(field_name, value):
@@ -60,9 +43,9 @@ class BaseResource(object):
         #: a descriptive name of the resource
         self.name = None
         #: unique identifier
-        self.id = id  # pylint: disable=invalid-name
+        self.id = None  # pylint: disable=invalid-name
         #: human-readable unique identifier
-        self.slug = slug
+        self.slug = None
         #: user id of the contributor
         self.contributor = None
         #: date of creation
@@ -75,24 +58,7 @@ class BaseResource(object):
         self.api = operator.attrgetter(self.endpoint)(resolwe.api)
         self.resolwe = resolwe
 
-        if id:
-            try:
-                self._update_fields(self.api(id).get())
-            except slumber.exceptions.HttpNotFoundError:
-                raise ValueError("ID '{}' does not exist or you do not "
-                                 "have access permission.".format(id))
-        elif slug:
-            resources = self.api.get(slug=slug)  # pylint: disable=no-member
-
-            if len(resources) > 1:
-                # Return the latest version
-                resources.sort(key=lambda resource: resource['version'], reverse=True)
-            elif len(resources) < 1:
-                raise ValueError("Slug '{}' does not exist or you do not "
-                                 "have access permission.".format(slug))
-
-            self._update_fields(resources[0])
-        elif model_data:
+        if model_data:
             self._update_fields(model_data)
 
         self.logger = logging.getLogger(__name__)
@@ -190,5 +156,6 @@ class BaseResource(object):
 
     def __repr__(self):
         """Format resource name."""
-        return "{} <id: {}, slug: '{}', name: '{}'>".format(self.__class__.__name__,
-                                                            self.id, self.slug, self.name)
+        return "{} <id: {}, slug: '{}', name: '{}'>".format(
+            self.__class__.__name__, self.id, self.slug, self.name
+        )

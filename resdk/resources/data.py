@@ -17,18 +17,16 @@ class Data(BaseResource):
     One and only one of the identifiers (slug, id or model_data)
     should be given.
 
-    :param slug: Resource slug
-    :type slug: str
-    :param id: Resource ID
-    :type id: int
-    :param model_data: Resource model data
-    :type model_data: dict
     :param resolwe: Resolwe instance
     :type resolwe: Resolwe object
+    :param model_data: Resource model data
 
     """
 
     endpoint = 'data'
+
+    #: Flattened dict of inputs and outputs, where keys are dit separated paths to values
+    annotation = {}
 
     #: (lazy loaded) annotated ``Sample`` to which ``Data`` object belongs
     _sample = None
@@ -42,8 +40,7 @@ class Data(BaseResource):
                         'process_info', 'process_warning', 'process_error', 'process_type',
                         'process_name') + BaseResource.READ_ONLY_FIELDS
 
-    def __init__(self, slug=None, id=None,  # pylint: disable=redefined-builtin
-                 model_data=None, resolwe=None):
+    def __init__(self, resolwe, **model_data):
         """Initialize attributes."""
         #: specification of inputs
         self.process_input_schema = None
@@ -85,7 +82,7 @@ class Data(BaseResource):
         #: data object's tags
         self.tags = None
 
-        super(Data, self).__init__(slug, id, model_data, resolwe)
+        super(Data, self).__init__(resolwe, **model_data)
 
         self.logger = logging.getLogger(__name__)
 
@@ -105,12 +102,15 @@ class Data(BaseResource):
         """
         BaseResource._update_fields(self, payload)
 
-        self.annotation = {}
-        self.annotation.update(
-            self._flatten_field(payload['input'], payload['process_input_schema'], 'input'))
+        if 'input' in payload and 'process_input_schema' in payload:
+            self.annotation.update(
+                self._flatten_field(payload['input'], payload['process_input_schema'], 'input')
+            )
 
-        self.annotation.update(
-            self._flatten_field(payload['output'], payload['process_output_schema'], 'output'))
+        if 'output' in payload and 'process_output_schema' in payload:
+            self.annotation.update(
+                self._flatten_field(payload['output'], payload['process_output_schema'], 'output')
+            )
 
         # TODO: Descriptor schema!
 

@@ -15,14 +15,9 @@ class Relation(BaseResource):
     One and only one of the identifiers (slug, id or model_data)
     should be given.
 
-    :param slug: Resource slug
-    :type slug: str
-    :param id: Resource ID
-    :type id: int
-    :param model_data: Resource model data
-    :type model_data: dict
     :param resolwe: Resolwe instance
     :type resolwe: Resolwe object
+    :param model_data: Resource model data
 
     """
 
@@ -31,8 +26,7 @@ class Relation(BaseResource):
     WRITABLE_FIELDS = ('collection', 'label') + BaseResource.WRITABLE_FIELDS
     UPDATE_PROTECTED_FIELDS = ('entities', 'type') + BaseResource.UPDATE_PROTECTED_FIELDS
 
-    def __init__(self, slug=None, id=None,  # pylint: disable=redefined-builtin
-                 model_data=None, resolwe=None):
+    def __init__(self, resolwe, **model_data):
         """Initialize attributes."""
         #: collection id in which relation is
         self._collection = None
@@ -48,7 +42,7 @@ class Relation(BaseResource):
         #: optional label of the relation
         self.label = None
 
-        super(Relation, self).__init__(slug, id, model_data, resolwe)
+        super(Relation, self).__init__(resolwe, **model_data)
 
         #: list of the sample positions in the relation or `None` if none of the positions is set
         if self.entities is None:

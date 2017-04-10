@@ -19,30 +19,6 @@ class TestBaseResource(unittest.TestCase):
     def setUp(self, resolwe_mock):  # pylint: disable=arguments-differ
         self.resolwe_mock = resolwe_mock
 
-    @patch('resdk.resources.base.BaseResource', spec=True)
-    def test_not_only_one_input(self, base_mock):
-        message = "Only one of slug, id or model_data allowed"
-        with six.assertRaisesRegex(self, ValueError, message):
-            BaseResource.__init__(base_mock, id=1, slug="a", resolwe=self.resolwe_mock)
-        with six.assertRaisesRegex(self, ValueError, message):
-            BaseResource.__init__(base_mock, id=1, model_data={'a': 1}, resolwe=self.resolwe_mock)
-        with six.assertRaisesRegex(self, ValueError, message):
-            BaseResource.__init__(base_mock, slug="a", model_data={'a': 1},
-                                  resolwe=self.resolwe_mock)
-        with six.assertRaisesRegex(self, ValueError, message):
-            BaseResource.__init__(base_mock, id=1, slug="a", model_data={'a': 1},
-                                  resolwe=self.resolwe_mock)
-
-    @patch('resdk.resources.base.BaseResource', spec=True)
-    def test_wrong_type_input(self, base_mock):
-        message = r"\w+ should be a\w? \w+."
-        with six.assertRaisesRegex(self, ValueError, message):
-            BaseResource.__init__(base_mock, id="bad_type_id", resolwe=self.resolwe_mock)
-        with six.assertRaisesRegex(self, ValueError, message):
-            BaseResource.__init__(base_mock, slug={'a': 1}, resolwe=self.resolwe_mock)
-        with six.assertRaisesRegex(self, ValueError, message):
-            BaseResource.__init__(base_mock, model_data="a", resolwe=self.resolwe_mock)
-
     @patch('operator.attrgetter')
     def test_field_constraints(self, attrgetter_mock):
         base_resource = BaseResource(resolwe=self.resolwe_mock)
@@ -61,53 +37,17 @@ class TestBaseResource(unittest.TestCase):
         self.assertEqual(base_resource.writable_scalar, '42')
 
     @patch('resdk.resources.base.BaseResource', spec=True)
-    def test_id_http_error(self, base_mock):
-        base_mock.configure_mock(endpoint='resource_endpoint')
-        base_mock._update_fields.side_effect = slumber.exceptions.HttpNotFoundError
-        message = r"ID '\d+' does not exist or you do not have access permission."
-        with six.assertRaisesRegex(self, ValueError, message):
-            BaseResource.__init__(base_mock, id=1, resolwe=self.resolwe_mock)
-
-    @patch('resdk.resources.base.BaseResource', spec=True)
-    def test_id_ok(self, base_mock):
-        base_mock.configure_mock(endpoint='resource_endpoint')
-        BaseResource.__init__(base_mock, id=1, resolwe=self.resolwe_mock)
-        self.assertEqual(base_mock._update_fields.call_count, 1)
-
-    @patch('resdk.resources.base.BaseResource', spec=True)
-    def test_slug_value_error(self, base_mock):
-        base_mock.configure_mock(endpoint='resource_endpoint')
-        message = r"Slug '\w+' does not exist or you do not have access permission."
-        with six.assertRaisesRegex(self, ValueError, message):
-            BaseResource.__init__(base_mock, slug="a", resolwe=self.resolwe_mock)
-        base_mock._update_fields.assert_not_called()
-
-    @patch('resdk.resources.base.BaseResource', spec=True)
-    def test_slug_ok(self, base_mock):
-        base_mock.configure_mock(endpoint='resource_endpoint')
-        self.resolwe_mock.configure_mock(**{'api.resource_endpoint.get.return_value': [123]})
-        BaseResource.__init__(base_mock, slug="a", resolwe=self.resolwe_mock)
-        base_mock._update_fields.assert_called_once_with(123)
-
-        self.resolwe_mock.configure_mock(
-            **{'api.resource_endpoint.get.return_value': [{'version': 1}, {'version': 2}]}
-        )
-
-        BaseResource.__init__(base_mock, slug="a", resolwe=self.resolwe_mock)
-        self.assertEqual(base_mock._update_fields.call_count, 2)
-
-    @patch('resdk.resources.base.BaseResource', spec=True)
     def test_model_data(self, base_mock):
         base_mock.configure_mock(endpoint='resource_endpoint')
         mdata = {'a': 1, 'b': 2}
-        BaseResource.__init__(base_mock, model_data=mdata, resolwe=self.resolwe_mock)
+        BaseResource.__init__(base_mock, resolwe=self.resolwe_mock, **mdata)
         base_mock._update_fields.assert_called_once_with(mdata)
 
     @patch('resdk.resources.base.logging')
     @patch('resdk.resources.base.BaseResource', spec=True)
     def test_init_all_ok(self, base_mock, log_mock):
         base_mock.configure_mock(endpoint='resource_endpoint')
-        BaseResource.__init__(base_mock, id=1, resolwe=self.resolwe_mock)
+        BaseResource.__init__(base_mock, resolwe=self.resolwe_mock)
         self.assertEqual(log_mock.getLogger.call_count, 1)
 
     @patch('operator.attrgetter')
@@ -120,9 +60,9 @@ class TestBaseResource(unittest.TestCase):
 
     def test_dehydrate_resources(self):
         # `Collection` is used because it is easier to use
-        collection = Collection(id=100, resolwe=MagicMock())
-        obj_1 = Collection(id=1, resolwe=MagicMock())
-        obj_1.id = 1  # this is overriden when initialized
+        collection = Collection(resolwe=MagicMock())
+        obj_1 = Collection(resolwe=MagicMock())
+        obj_1.id = 1
 
         self.assertEqual(collection._dehydrate_resources(obj_1), 1)
         self.assertEqual(collection._dehydrate_resources([obj_1]), [1])
@@ -138,9 +78,9 @@ class TestBaseMethods(unittest.TestCase):
         fields = {'id': 1, 'slug': 'testobj'}
         base_mock.fields.return_value = ('id', 'slug')
         BaseResource._update_fields(base_mock, fields)
-        setattr_mock.assert_has_calls([call(base_mock, 'id', 1),
-                                       call(base_mock, 'slug', 'testobj')],
-                                      any_order=True)
+        setattr_mock.assert_has_calls(
+            [call(base_mock, 'id', 1), call(base_mock, 'slug', 'testobj')], any_order=True
+        )
 
     @patch('resdk.resources.base.BaseResource', spec=True)
     def test_update(self, base_mock):

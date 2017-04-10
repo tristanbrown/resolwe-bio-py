@@ -376,7 +376,7 @@ class Resolwe(object):
             data['collections'] = collections
 
         model_data = self.api.data.post(data)
-        return Data(model_data=model_data, resolwe=self)
+        return Data(resolwe=self, **model_data)
 
     def get_or_run(self, slug=None, input={}):  # pylint: disable=redefined-builtin
         """Return existing object if found, otherwise create new one.
@@ -393,7 +393,7 @@ class Resolwe(object):
         }
 
         model_data = self.api.data.get_or_create.post(data)
-        return Data(model_data=model_data, resolwe=self)
+        return Data(resolwe=self, **model_data)
 
     def _upload_file(self, file_path):
         """Upload a single file on the platform.

@@ -11,14 +11,9 @@ class Process(BaseResource):
     One and only one of the identifiers (slug, id or model_data)
     should be given.
 
-    :param slug: Resource slug
-    :type slug: str
-    :param id: Resource ID
-    :type id: int
-    :param model_data: Resource model data
-    :type model_data: dict
     :param resolwe: Resolwe instance
     :type resolwe: Resolwe object
+    :param model_data: Resource model data
 
     """
 
@@ -28,8 +23,7 @@ class Process(BaseResource):
                        'persistence', 'priority', 'description', 'input_schema',
                        'output_schema', 'run') + BaseResource.WRITABLE_FIELDS
 
-    def __init__(self, slug=None, id=None,  # pylint: disable=redefined-builtin
-                 model_data=None, resolwe=None):
+    def __init__(self, resolwe, **model_data):
         """Initialize attributes."""
         self.data_name = None
         """
@@ -68,7 +62,7 @@ class Process(BaseResource):
         #: the heart of process - here the algorithm is defined.
         self.run = None
 
-        super(Process, self).__init__(slug, id, model_data, resolwe)
+        super(Process, self).__init__(resolwe, **model_data)
 
     def print_inputs(self):
         """Pretty print input_schema."""

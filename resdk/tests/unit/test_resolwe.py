@@ -459,7 +459,7 @@ class TestRun(unittest.TestCase):
     def test_call_with_all_args(self, resolwe_mock, os_mock, data_mock):
         resolwe_mock.api = MagicMock(**{
             'process.get.return_value': self.process_mock,
-            'data.post.return_value': "model_data"})
+            'data.post.return_value': {'data': 'some_data'}})
         data_mock.return_value = "Data object"
 
         data = Resolwe.run(resolwe_mock,
@@ -473,7 +473,7 @@ class TestRun(unittest.TestCase):
         self.assertEqual(resolwe_mock._register.call_count, 1)
         self.assertEqual(resolwe_mock._upload_tools.call_count, 1)
         self.assertEqual(resolwe_mock._upload_file.call_count, 0)
-        data_mock.assert_called_with(model_data='model_data', resolwe=resolwe_mock)
+        data_mock.assert_called_with(data='some_data', resolwe=resolwe_mock)
         self.assertEqual(data, "Data object")
 
 
