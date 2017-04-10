@@ -159,7 +159,7 @@ class BaseResolweResource(BaseResource):
     UPDATE_PROTECTED_FIELDS = ('contributor', )
     READ_ONLY_FIELDS = ('id', 'created', 'modified')
 
-    def __init__(self, resolwe=None, **model_data):
+    def __init__(self, resolwe, **model_data):
         """Initialize attributes."""
         #: a descriptive name of the resource
         self.name = None
@@ -178,6 +178,7 @@ class BaseResolweResource(BaseResource):
 
     def __repr__(self):
         """Format resource name."""
-        return "{} <id: {}, slug: '{}', name: '{}'>".format(
+        rep = "{} <id: {}, slug: '{}', name: '{}'>".format(
             self.__class__.__name__, self.id, self.slug, self.name
         )
+        return rep.encode('utf-8') if six.PY2 else rep

@@ -8,7 +8,7 @@ Resolwe Query
    :members:
 
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import collections
 import copy
@@ -181,7 +181,10 @@ class ResolweQuery(object):
     def __repr__(self):
         """Return string representation of the current object."""
         self._fetch()
-        return '[{}]'.format(',\n '.join(str(obj) for obj in self._cache))
+        rep = '[{}]'.format(
+            ',\n '.join(str(obj).decode('utf-8') if six.PY2 else str(obj) for obj in self._cache)
+        )
+        return rep.encode('utf-8') if six.PY2 else rep
 
     def __len__(self):
         """Return length of results of current query."""

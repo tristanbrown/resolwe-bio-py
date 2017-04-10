@@ -3,6 +3,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import logging
 
+import six
+
 from resdk.exceptions import ValidationError
 
 from .base import BaseResolweResource
@@ -135,6 +137,8 @@ class Relation(BaseResolweResource):
         if self.label:
             label = "label: '{}', ".format(self.label)
 
-        return "{} <id:{} type: '{}', {}samples: {}>".format(
+        rep = "{} <id:{} type: '{}', {}samples: {}>".format(
             self.__class__.__name__, self.id, self.type, label, samples
         )
+
+        return rep.encode('utf-8') if six.PY2 else rep

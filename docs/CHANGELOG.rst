@@ -19,6 +19,8 @@ Fixed
 -----
 * Fix ``Relation`` resource to work if ``entities`` attribute is set to
   ``None``
+* Fixed resource representations to correctly handle non-english letters
+  in Python 2
 
 
 =================
