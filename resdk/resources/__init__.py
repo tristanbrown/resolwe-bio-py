@@ -28,6 +28,9 @@ Resource classes
 .. autoclass:: resdk.resources.Process
    :members:
 
+.. autoclass:: resdk.resources.User
+   :members:
+
 Utility functions
 =================
 
@@ -42,5 +45,6 @@ from .data import Data
 from .process import Process
 from .relation import Relation
 from .sample import Sample
+from .user import Group, User
 
-__all__ = ('Collection', 'Data', 'Sample', 'Process')
+__all__ = ('Collection', 'Data', 'Group', 'Sample', 'Process', 'Relation', 'User')

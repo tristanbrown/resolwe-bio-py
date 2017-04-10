@@ -7,6 +7,8 @@ import operator
 
 import six
 
+from .permissions import PermissionsManager
+
 
 class BaseResource(object):
     """Abstract resource.
@@ -27,6 +29,8 @@ class BaseResource(object):
     WRITABLE_FIELDS = ()
     UPDATE_PROTECTED_FIELDS = ()
     READ_ONLY_FIELDS = ('id',)
+
+    ALL_PERMISSIONS = []  # override this in subclass
 
     def __init__(self, resolwe, **model_data):
         """Verify that only a single attribute of slug, id or model_data given."""
@@ -155,9 +159,11 @@ class BaseResolweResource(BaseResource):
 
     """
 
-    WRITABLE_FIELDS = ('slug', 'name', 'permissions')
+    _permissions = None
+
+    WRITABLE_FIELDS = ('slug', 'name')
     UPDATE_PROTECTED_FIELDS = ('contributor', )
-    READ_ONLY_FIELDS = ('id', 'created', 'modified')
+    READ_ONLY_FIELDS = ('id', 'created', 'modified', 'current_user_permissions')
 
     def __init__(self, resolwe, **model_data):
         """Initialize attributes."""
@@ -172,9 +178,29 @@ class BaseResolweResource(BaseResource):
         #: date of latest modification
         self.modified = None
         #: permissions - (view/download/add/edit/share/owner for user/group/public)
-        self.permissions = None
+        self.current_user_permissions = None
 
         BaseResource.__init__(self, resolwe, **model_data)
+
+    @property
+    def permissions(self):
+        """TODO."""
+        if not self.id:
+            raise ValueError('Instance must be saved before accessing `permissions` attribute.')
+        if not self._permissions:
+            self._permissions = PermissionsManager(
+                self.ALL_PERMISSIONS,
+                self.api(self.id),
+                self.resolwe
+            )
+
+        return self._permissions
+
+    def update(self):
+        """Clear permissions cache and update the object."""
+        self.permissions.clear_cache()
+
+        super(BaseResolweResource, self).update()
 
     def __repr__(self):
         """Format resource name."""

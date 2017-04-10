@@ -9,6 +9,11 @@ All notable changes to this project are documented in this file.
 Unreleased
 ==========
 
+Added
+-----
+* ``User`` and ``Group`` resources
+* Support for permissions management on resolwe resources
+
 Changed
 -------
 * Remove ``id`` and ``slug`` parameters from init functions of

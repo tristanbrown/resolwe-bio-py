@@ -23,6 +23,8 @@ class Process(BaseResolweResource):
                        'persistence', 'priority', 'description', 'input_schema',
                        'output_schema', 'run') + BaseResolweResource.WRITABLE_FIELDS
 
+    ALL_PERMISSIONS = ['view', 'share', 'owner']
+
     def __init__(self, resolwe, **model_data):
         """Initialize attributes."""
         self.data_name = None

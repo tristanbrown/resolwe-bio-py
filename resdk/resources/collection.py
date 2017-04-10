@@ -27,6 +27,8 @@ class BaseCollection(BaseResolweResource):
     WRITABLE_FIELDS = ('description', 'settings', 'descriptor_schema',
                        'descriptor') + BaseResolweResource.WRITABLE_FIELDS
 
+    ALL_PERMISSIONS = ['view', 'download', 'add', 'edit', 'share', 'owner']
+
     def __init__(self, resolwe, **model_data):
         """Initialize attributes."""
         #: a description

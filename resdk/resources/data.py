@@ -41,6 +41,8 @@ class Data(BaseResolweResource):
                         'process_info', 'process_warning', 'process_error', 'process_type',
                         'process_name') + BaseResolweResource.READ_ONLY_FIELDS
 
+    ALL_PERMISSIONS = ['view', 'download', 'edit', 'share', 'owner']
+
     def __init__(self, resolwe, **model_data):
         """Initialize attributes."""
         #: specification of inputs

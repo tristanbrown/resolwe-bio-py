@@ -146,6 +146,16 @@ def is_relation(relation):
     return type(relation).__name__ == 'Relation'
 
 
+def is_user(user):
+    """Return ``True`` if passed object is User and ``False`` otherwise."""
+    return type(user).__name__ == 'User'
+
+
+def is_group(group):
+    """Return ``True`` if passed object is Group and ``False`` otherwise."""
+    return type(group).__name__ == 'Group'
+
+
 def get_samples(resource):
     """Get the list of samples from given resources.
 

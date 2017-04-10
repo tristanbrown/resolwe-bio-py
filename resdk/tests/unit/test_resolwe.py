@@ -94,8 +94,8 @@ class TestResolwe(unittest.TestCase):
         self.assertEqual(resauth_mock.call_count, 1)
         self.assertEqual(resolwe_api_mock.call_count, 1)
         # There are seven instances of ResolweQuery in init: data, process, sample, relations,
-        # collection, feature and mapping.
-        self.assertEqual(resolwe_querry_mock.call_count, 7)
+        # collection, user, gorup, feature and mapping.
+        self.assertEqual(resolwe_querry_mock.call_count, 9)
         self.assertEqual(log_mock.getLogger.call_count, 1)
 
     def test_repr(self):

@@ -122,10 +122,12 @@ class ResolweQuery(object):
     api = None
     logger = None
 
-    def __init__(self, resolwe, resource, endpoint=None):
+    def __init__(self, resolwe, resource, endpoint=None, slug_field='slug'):
         """Initialize attributes."""
         self.resolwe = resolwe
         self.resource = resource
+
+        self.slug_field = slug_field
 
         # Determine the endpoint to use.
         if endpoint is not None:
@@ -292,7 +294,7 @@ class ResolweQuery(object):
                 raise ValueError('Non-keyworded arguments cannot be combined with keyworded ones.')
 
             arg = args[0]
-            kwargs = {'id': arg} if str(arg).isdigit() else {'slug': arg}
+            kwargs = {'id': arg} if str(arg).isdigit() else {self.slug_field: arg}
 
         new_query = self._clone()
         new_query._add_filter(kwargs)  # pylint: disable=protected-access

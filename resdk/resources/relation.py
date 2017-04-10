@@ -28,6 +28,8 @@ class Relation(BaseResolweResource):
     WRITABLE_FIELDS = ('collection', 'label') + BaseResolweResource.WRITABLE_FIELDS
     UPDATE_PROTECTED_FIELDS = ('entities', 'type') + BaseResolweResource.UPDATE_PROTECTED_FIELDS
 
+    ALL_PERMISSIONS = ['view', 'edit', 'share', 'owner']
+
     def __init__(self, resolwe, **model_data):
         """Initialize attributes."""
         #: collection id in which relation is
