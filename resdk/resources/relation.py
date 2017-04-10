@@ -5,11 +5,11 @@ import logging
 
 from resdk.exceptions import ValidationError
 
-from .base import BaseResource
+from .base import BaseResolweResource
 from .utils import get_collection_id, get_sample_id, is_collection
 
 
-class Relation(BaseResource):
+class Relation(BaseResolweResource):
     """Resolwe Relation resource.
 
     One and only one of the identifiers (slug, id or model_data)
@@ -23,8 +23,8 @@ class Relation(BaseResource):
 
     endpoint = 'relation'
 
-    WRITABLE_FIELDS = ('collection', 'label') + BaseResource.WRITABLE_FIELDS
-    UPDATE_PROTECTED_FIELDS = ('entities', 'type') + BaseResource.UPDATE_PROTECTED_FIELDS
+    WRITABLE_FIELDS = ('collection', 'label') + BaseResolweResource.WRITABLE_FIELDS
+    UPDATE_PROTECTED_FIELDS = ('entities', 'type') + BaseResolweResource.UPDATE_PROTECTED_FIELDS
 
     def __init__(self, resolwe, **model_data):
         """Initialize attributes."""

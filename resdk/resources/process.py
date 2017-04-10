@@ -1,11 +1,11 @@
 """Process resource."""
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from .base import BaseResource
+from .base import BaseResolweResource
 from .utils import _print_input_line
 
 
-class Process(BaseResource):
+class Process(BaseResolweResource):
     """Resolwe Process resource.
 
     One and only one of the identifiers (slug, id or model_data)
@@ -21,7 +21,7 @@ class Process(BaseResource):
 
     WRITABLE_FIELDS = ('data_name', 'version', 'type', 'flow_collection', 'category',
                        'persistence', 'priority', 'description', 'input_schema',
-                       'output_schema', 'run') + BaseResource.WRITABLE_FIELDS
+                       'output_schema', 'run') + BaseResolweResource.WRITABLE_FIELDS
 
     def __init__(self, resolwe, **model_data):
         """Initialize attributes."""

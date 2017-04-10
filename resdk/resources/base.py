@@ -24,9 +24,9 @@ class BaseResource(object):
     query_endpoint = None
     query_method = 'GET'
 
-    WRITABLE_FIELDS = ('slug', 'name', 'permissions')
-    UPDATE_PROTECTED_FIELDS = ('contributor', )
-    READ_ONLY_FIELDS = ('id', 'created', 'modified')
+    WRITABLE_FIELDS = ()
+    UPDATE_PROTECTED_FIELDS = ()
+    READ_ONLY_FIELDS = ('id',)
 
     def __init__(self, resolwe, **model_data):
         """Verify that only a single attribute of slug, id or model_data given."""
@@ -40,20 +40,8 @@ class BaseResource(object):
         for field_name in self.fields():
             initialize_field(field_name, None)
 
-        #: a descriptive name of the resource
-        self.name = None
         #: unique identifier
         self.id = None  # pylint: disable=invalid-name
-        #: human-readable unique identifier
-        self.slug = None
-        #: user id of the contributor
-        self.contributor = None
-        #: date of creation
-        self.created = None
-        #: date of latest modification
-        self.modified = None
-        #: permissions - (view/download/add/edit/share/owner for user/group/public)
-        self.permissions = None
 
         self.api = operator.attrgetter(self.endpoint)(resolwe.api)
         self.resolwe = resolwe
@@ -153,6 +141,40 @@ class BaseResource(object):
             raise ValueError("Can not change read only field {}".format(name))
 
         super(BaseResource, self).__setattr__(name, value)
+
+
+class BaseResolweResource(BaseResource):
+    """Base class for Resolwe resources.
+
+    One and only one of the identifiers (slug, id or model_data)
+    should be given.
+
+    :param resolwe: Resolwe instance
+    :type resolwe: Resolwe object
+    :param model_data: Resource model data
+
+    """
+
+    WRITABLE_FIELDS = ('slug', 'name', 'permissions')
+    UPDATE_PROTECTED_FIELDS = ('contributor', )
+    READ_ONLY_FIELDS = ('id', 'created', 'modified')
+
+    def __init__(self, resolwe=None, **model_data):
+        """Initialize attributes."""
+        #: a descriptive name of the resource
+        self.name = None
+        #: human-readable unique identifier
+        self.slug = None
+        #: user id of the contributor
+        self.contributor = None
+        #: date of creation
+        self.created = None
+        #: date of latest modification
+        self.modified = None
+        #: permissions - (view/download/add/edit/share/owner for user/group/public)
+        self.permissions = None
+
+        BaseResource.__init__(self, resolwe, **model_data)
 
     def __repr__(self):
         """Format resource name."""

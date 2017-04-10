@@ -5,11 +5,11 @@ import six
 
 from resdk.shortcuts.collection import CollectionRelationsMixin
 
-from .base import BaseResource
+from .base import BaseResolweResource
 from .utils import get_data_id, get_sample_id
 
 
-class BaseCollection(BaseResource):
+class BaseCollection(BaseResolweResource):
     """Abstract collection resource.
 
     One and only one of the identifiers (slug, id or model_data)
@@ -25,7 +25,7 @@ class BaseCollection(BaseResource):
     _data = None
 
     WRITABLE_FIELDS = ('description', 'settings', 'descriptor_schema',
-                       'descriptor') + BaseResource.WRITABLE_FIELDS
+                       'descriptor') + BaseResolweResource.WRITABLE_FIELDS
 
     def __init__(self, resolwe, **model_data):
         """Initialize attributes."""

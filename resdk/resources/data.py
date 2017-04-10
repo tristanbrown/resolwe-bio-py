@@ -7,11 +7,11 @@ import logging
 import requests
 from six.moves.urllib.parse import urljoin  # pylint: disable=import-error
 
-from .base import BaseResource
+from .base import BaseResolweResource
 from .utils import iterate_schema
 
 
-class Data(BaseResource):
+class Data(BaseResolweResource):
     """Resolwe Data resource.
 
     One and only one of the identifiers (slug, id or model_data)
@@ -33,12 +33,13 @@ class Data(BaseResource):
     #: (lazy loaded) list of collections to which data object belongs
     _collections = None
 
-    WRITABLE_FIELDS = ('descriptor_schema', 'descriptor', 'tags') + BaseResource.WRITABLE_FIELDS
-    UPDATE_PROTECTED_FIELDS = ('input', 'process') + BaseResource.UPDATE_PROTECTED_FIELDS
+    WRITABLE_FIELDS = ('descriptor_schema', 'descriptor',
+                       'tags') + BaseResolweResource.WRITABLE_FIELDS
+    UPDATE_PROTECTED_FIELDS = ('input', 'process') + BaseResolweResource.UPDATE_PROTECTED_FIELDS
     READ_ONLY_FIELDS = ('process_input_schema', 'process_output_schema', 'output', 'started',
                         'finished', 'checksum', 'status', 'process_progress', 'process_rc',
                         'process_info', 'process_warning', 'process_error', 'process_type',
-                        'process_name') + BaseResource.READ_ONLY_FIELDS
+                        'process_name') + BaseResolweResource.READ_ONLY_FIELDS
 
     def __init__(self, resolwe, **model_data):
         """Initialize attributes."""
@@ -100,7 +101,7 @@ class Data(BaseResource):
         :rtype: None
 
         """
-        BaseResource._update_fields(self, payload)
+        BaseResolweResource._update_fields(self, payload)
 
         if 'input' in payload and 'process_input_schema' in payload:
             self.annotation.update(
