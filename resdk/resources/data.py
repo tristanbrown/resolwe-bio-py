@@ -224,7 +224,6 @@ class Data(BaseResource):
         file_list = self._files_dirs('file', file_name, field_name)
 
         for dir_name in self._files_dirs('dir', file_name, field_name):
-            print('>>', self._get_dir_files)
             file_list.extend(self._get_dir_files(dir_name))
 
         return file_list
