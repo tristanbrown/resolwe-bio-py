@@ -13,6 +13,7 @@ Added
 * Support ``tags`` in ``Sample`` and ``Data`` resources
 * Support running macs on more organisms (`drosophila melanogaster`,
   `caenorhabditis elegans` and `rattus norvegicus`)
+* Automatically run E2E tests on Genialis' Jenkins
 
 Changed
 -------
