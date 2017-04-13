@@ -9,8 +9,11 @@ import six
 import slumber
 from mock import MagicMock, call, patch
 
-from resdk.resources import Collection
-from resdk.resources.base import BaseResolweResource
+from resdk.resources.base import BaseResolweResource, BaseResource
+
+# This is normally set in subclass
+BaseResolweResource.endpoint = 'endpoint'
+BaseResource.endpoint = 'endpoint'
 
 
 class TestBaseResolweResource(unittest.TestCase):
@@ -19,13 +22,14 @@ class TestBaseResolweResource(unittest.TestCase):
     def setUp(self, resolwe_mock):  # pylint: disable=arguments-differ
         self.resolwe_mock = resolwe_mock
 
-    @patch('operator.attrgetter')
-    def test_field_constraints(self, attrgetter_mock):
+    def test_field_constraints(self):
         base_resource = BaseResolweResource(resolwe=self.resolwe_mock)
 
         base_resource.WRITABLE_FIELDS = ('writable_scalar', )
         base_resource.READ_ONLY_FIELDS = ('read_only_scalar', )
         base_resource._original_values = {'writable_scalar': None, 'read_only_scalar': None}
+
+        # Setting to same value should be fine.
         base_resource.writable_scalar = None
         base_resource.read_only_scalar = None
 
@@ -36,15 +40,7 @@ class TestBaseResolweResource(unittest.TestCase):
         base_resource.writable_scalar = '42'
         self.assertEqual(base_resource.writable_scalar, '42')
 
-    @patch('resdk.resources.base.logging')
-    @patch('resdk.resources.base.BaseResolweResource', spec=True)
-    def test_init_all_ok(self, base_mock, log_mock):
-        base_mock.configure_mock(endpoint='resource_endpoint')
-        BaseResolweResource.__init__(base_mock, resolwe=self.resolwe_mock)
-        self.assertEqual(log_mock.getLogger.call_count, 1)
-
-    @patch('operator.attrgetter')
-    def test_fields(self, attrgetter_mock):
+    def test_fields(self):
         base_resource = BaseResolweResource(resolwe=self.resolwe_mock)
         base_resource.WRITABLE_FIELDS = ('writable', )
         base_resource.UPDATE_PROTECTED_FIELDS = ('update_protected', )
@@ -52,15 +48,23 @@ class TestBaseResolweResource(unittest.TestCase):
         self.assertEqual(base_resource.fields(), ('writable', 'update_protected', 'read_only'))
 
     def test_dehydrate_resources(self):
-        # `Collection` is used because it is easier to use
-        collection = Collection(resolwe=MagicMock())
-        obj_1 = Collection(resolwe=MagicMock())
-        obj_1.id = 1
+        obj = BaseResource(resolwe=self.resolwe_mock, id=1)
 
-        self.assertEqual(collection._dehydrate_resources(obj_1), 1)
-        self.assertEqual(collection._dehydrate_resources([obj_1]), [1])
-        self.assertEqual(collection._dehydrate_resources({'key': obj_1}), {'key': 1})
-        self.assertEqual(collection._dehydrate_resources({'key': [obj_1]}), {'key': [1]})
+        self.assertEqual(obj._dehydrate_resources(obj), 1)
+        self.assertEqual(obj._dehydrate_resources([obj]), [1])
+        self.assertEqual(obj._dehydrate_resources({'key': obj}), {'key': 1})
+        self.assertEqual(obj._dehydrate_resources({'key': [obj]}), {'key': [1]})
+
+    def test_update_fileds(self):
+        resource = BaseResource(resolwe=self.resolwe_mock)
+        resource.WRITABLE_FIELDS = ('first_field',)
+        resource.first_field = None
+
+        payload = {'first_field': 42}
+
+        resource._update_fields(payload)
+
+        self.assertEqual(resource.first_field, 42)
 
 
 class TestBaseMethods(unittest.TestCase):
@@ -74,12 +78,6 @@ class TestBaseMethods(unittest.TestCase):
         setattr_mock.assert_has_calls(
             [call(base_mock, 'id', 1), call(base_mock, 'slug', 'testobj')], any_order=True
         )
-
-    @patch('resdk.resources.base.BaseResolweResource', spec=True)
-    def test_update(self, base_mock):
-        base_mock.configure_mock(api=MagicMock(), id=1)
-        BaseResolweResource.update(base_mock)
-        self.assertEqual(base_mock._update_fields.call_count, 1)
 
     @patch('resdk.resources.base.BaseResolweResource', spec=True)
     def test_save_post(self, base_mock):
