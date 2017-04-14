@@ -24,6 +24,9 @@ def abbreviate_organism(name):
         'homo sapiens': 'hs',
         'mus musculus': 'mm',
         'dictyostelium discoideum': 'dd',
+        'drosophila melanogaster': 'dm',
+        'caenorhabditis elegans': 'ce',
+        'rattus norvegicus': '2e9',
     }
     return mapping[name.lower()]
 
