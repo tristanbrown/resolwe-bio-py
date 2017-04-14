@@ -52,11 +52,6 @@ class Sample(SampleUtilsMixin, BaseCollection):
     #: (lazy loaded) list of collections  to which object belongs
     _collections = None
 
-    def __init__(self, slug=None, id=None, model_data=None,  # pylint: disable=redefined-builtin
-                 resolwe=None):
-        """Initialize attributes."""
-        super(Sample, self).__init__(slug, id, model_data, resolwe)
-
     def update(self):
         """Clear cache and update resource fields from the server."""
         self._collections = None

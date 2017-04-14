@@ -271,7 +271,7 @@ def sequp():
     resolwe = Resolwe(genialis_email, genialis_pass, genialis_url)
 
     read_schemas = resolwe.api.descriptorschema.get(slug='reads')
-    read_schema = read_schemas[0] if len(read_schemas) > 0 else None
+    read_schema = read_schemas[0] if read_schemas else None
 
     # Upload all files in all_new_read_files_uploaded with annotations
     uploaded_files = []
@@ -338,7 +338,7 @@ def sequp():
 
     # Set the modification timestamp
     modif_times = [os.path.getmtime(f) for f in uploaded_files]
-    if len(modif_times) > 0:
+    if modif_times:
         set_timestamp(sorted(modif_times)[-1])
 
 

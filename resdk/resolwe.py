@@ -132,8 +132,8 @@ class Resolwe(object):
             with open(src) as src_file:
                 processes = yaml.load(src_file)
 
-        except yaml.parser.ParserError as parser_error:
-            raise parser_error
+        except yaml.parser.ParserError:
+            raise
 
         process = None
         for process in processes:
@@ -182,7 +182,7 @@ class Resolwe(object):
         except slumber.exceptions.HttpClientError as http_client_error:
             if http_client_error.response.status_code == 405:  # pylint: disable=no-member
                 self.logger.warning("Server does not support adding processes")
-            raise http_client_error
+            raise
 
         return response
 
@@ -372,7 +372,7 @@ class Resolwe(object):
             data['descriptor'] = descriptor
             data['descriptor_schema'] = descriptor_schema
 
-        if len(collections) > 0:
+        if collections:
             data['collections'] = collections
 
         model_data = self.api.data.post(data)
@@ -474,7 +474,7 @@ class Resolwe(object):
         if not os.path.isdir(download_dir):
             raise ValueError("Download directory does not exist: {}".format(download_dir))
 
-        if len(files) == 0:
+        if not files:
             self.logger.info("No files to download.")
 
         else:

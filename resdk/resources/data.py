@@ -95,22 +95,21 @@ class Data(BaseResource):
 
         super(Data, self).update()
 
-    def _update_fields(self, fields):
+    def _update_fields(self, payload):
         """Update the Data object with new data.
 
-        :param fields: Data resource fields
-        :type fields: dict
+        :param dict payload: Data resource fields
         :rtype: None
 
         """
-        BaseResource._update_fields(self, fields)
+        BaseResource._update_fields(self, payload)
 
         self.annotation = {}
         self.annotation.update(
-            self._flatten_field(fields['input'], fields['process_input_schema'], 'input'))
+            self._flatten_field(payload['input'], payload['process_input_schema'], 'input'))
 
         self.annotation.update(
-            self._flatten_field(fields['output'], fields['process_output_schema'], 'output'))
+            self._flatten_field(payload['output'], payload['process_output_schema'], 'output'))
 
         # TODO: Descriptor schema!
 
@@ -154,7 +153,7 @@ class Data(BaseResource):
             raise ValueError('Instance must be saved before accessing `sample` attribute.')
         if self._sample is None:
             self._sample = self.resolwe.sample.filter(data=self.id)
-            self._sample = None if len(self._sample) == 0 else self._sample[0]
+            self._sample = self._sample[0] if self._sample else None
         return self._sample
 
     def _files_dirs(self, field_type, file_name=None, field_name=None):

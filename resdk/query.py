@@ -168,7 +168,7 @@ class ResolweQuery(object):
         new_query._limit = 1
 
         query_list = list(new_query)
-        if len(query_list) == 0:
+        if not query_list:
             raise IndexError('list index out of range')
         return query_list[0]
 
@@ -295,7 +295,7 @@ class ResolweQuery(object):
 
         response = list(new_query)
 
-        if len(response) == 0:
+        if not response:
             raise LookupError('Matching object does not exist.')
 
         if len(response) > 1:

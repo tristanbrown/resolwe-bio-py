@@ -104,13 +104,13 @@ class Relation(BaseResource):
         self.api(self.id).remove_entity.post({'ids': samples})
         self.update()
 
-    def save(self, *args, **kwargs):
+    def save(self):
         """Check that collection is saved and save instance."""
         if self._collection is None:
             # `save` fails in an ugly way if collection is not set
             raise ValidationError('`collection` attribute is required.')
 
-        super(Relation, self).save(*args, **kwargs)
+        super(Relation, self).save()
 
     def __repr__(self):
         """Format relation name."""
