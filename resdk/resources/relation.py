@@ -66,6 +66,8 @@ class Relation(BaseResource):
         if not self._samples:
             sample_ids = [entity_obj['entity'] for entity_obj in self.entities]
             self._samples = self.resolwe.sample.filter(id__in=','.join(map(str, sample_ids)))
+            # Samples should be sorted, so they have same order as positions
+            self._samples = sorted(self._samples, key=lambda sample: sample_ids.index(sample.id))
         return self._samples
 
     @property

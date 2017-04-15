@@ -14,6 +14,10 @@ Added
 * Support running macs on more organisms (`drosophila melanogaster`, 
   `caenorhabditis elegans` and `rattus norvegicus`)
 
+Fixed
+-----
+* Samples in relations are sorted in the same order as positions
+
 
 ==================
 1.8.0 - 2017-03-30

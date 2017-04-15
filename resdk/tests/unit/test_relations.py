@@ -17,16 +17,19 @@ class TestRelation(unittest.TestCase):
     def test_samples(self):
         relation = Relation(id=1, resolwe=MagicMock())
 
-        relation.resolwe.sample.filter = MagicMock(return_value=['sample_1', 'sample_2'])
+        sample_1 = MagicMock(id=1)
+        sample_2 = MagicMock(id=2)
+        # order in return_value is intentionally mixed to test ordering
+        relation.resolwe.sample.filter = MagicMock(return_value=[sample_2, sample_1])
         relation.entities = [
             {'entity': 1, 'position': None},
             {'entity': 2, 'position': None},
         ]
-        self.assertEqual(relation.samples, ['sample_1', 'sample_2'])
+        self.assertEqual(relation.samples, [sample_1, sample_2])
         relation.resolwe.sample.filter.assert_called_with(id__in='1,2')
 
         # test caching
-        self.assertEqual(relation.samples, ['sample_1', 'sample_2'])
+        self.assertEqual(relation.samples, [sample_1, sample_2])
         self.assertEqual(relation.resolwe.sample.filter.call_count, 1)
 
         # cache is cleared at update
