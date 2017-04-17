@@ -23,6 +23,8 @@ Changed
   that sample
 * ``create_*_relation`` functions return created relation
 * Add ``RN4`` and ``RN6`` as valid genomes to ``bamplot`` function
+* Add ``MM8``, ``RN4`` and ``RN6`` genomes as valid to ``rose2`` 
+  function
 
 Fixed
 -----

@@ -127,7 +127,7 @@ def rose2(resource, use_background=True, genome='HG19', tss=None, stitch=None, b
                 background_filter['collection'] = collection_id
 
         for sample in get_samples(single_resource):
-            valid_genomes = ['HG18', 'HG19', 'MM9', 'MM10']
+            valid_genomes = ['HG18', 'HG19', 'MM8', 'MM9', 'MM10', 'RN4', 'RN6']
             if genome not in valid_genomes:
                 raise KeyError('Invalid `genome`, please use one of the following: '
                                '{}'. format(', '.join(valid_genomes)))
