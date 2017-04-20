@@ -52,11 +52,11 @@ node {
                 )
             }
 
-            // create an empty configuration schema file to avoid an error about it not being
-            // available when calling manage.py
+            // create an empty configuration schema to avoid an error about it not being available
+            // when calling manage.py
             dir(genialis_base_dir) {
                 sh "mkdir -p frontend/genjs/schema && \
-                    touch frontend/genjs/schema/configuration.json"
+                    echo '{}' > frontend/genjs/schema/configuration.json"
             }
 
             // prepare a clean Python virtual environment
