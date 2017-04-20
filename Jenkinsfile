@@ -15,7 +15,8 @@ node {
                 sh "rm ${junit_report_file}"
             }
 
-            // check if we trust the author who has submitted this change
+            // check if we trust the author who has submitted this change or if a branch from the
+            // main repository is being built
             // NOTE: This is necessary since we don't want to expose Genialis Base code base to
             // unauthorized people.
             // NOTE: This is a work-around until the GitHub Branch Source Plugin authors implement
@@ -23,6 +24,7 @@ node {
             // which not. More info at:
             // https://github.com/jenkinsci/github-branch-source-plugin/pull/96
             // https://issues.jenkins-ci.org/browse/JENKINS-36240
+            def change_author = env.CHANGE_AUTHOR
             def trusted_authors = [
                 "dblenkus",
                 "kostko",
@@ -32,8 +34,10 @@ node {
                 "mstajdohar",
                 "tjanez"
             ]
-            if (! trusted_authors.contains(env.CHANGE_AUTHOR)) {
-                error "User '${env.CHANGE_AUTHOR}' is not yet trusted to build pull requests. \
+            if (change_author != null && ! trusted_authors.contains(change_author)) {
+                // NOTE: The change_author variable equals null if a branch from the main
+                // repository is being built
+                error "User '${change_author}' is not yet trusted to build pull requests. \
                     Please, contact maintainers!"
             }
 
