@@ -22,6 +22,7 @@ Changed
   sample with ``use_background=True`` and there is no background for
   that sample
 * ``create_*_relation`` functions return created relation
+* Add ``RN4`` and ``RN6`` as valid genomes to ``bamplot`` function
 
 Fixed
 -----

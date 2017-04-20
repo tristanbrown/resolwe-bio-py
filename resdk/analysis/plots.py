@@ -52,7 +52,7 @@ def bamplot(resource, genome, input_gff=None, input_region=None, stretch_input=N
     if input_gff and input_region:
         raise KeyError('Please specify `input_gff` or `input_region.')
 
-    valid_genomes = ['HG18', 'HG19', 'MM8', 'MM9', 'MM10']
+    valid_genomes = ['HG18', 'HG19', 'MM8', 'MM9', 'MM10', 'RN4', 'RN6']
     if genome not in valid_genomes:
         raise KeyError('Invalid `genome`, please use one of the following: '
                        '{}'. format(', '.join(valid_genomes)))
