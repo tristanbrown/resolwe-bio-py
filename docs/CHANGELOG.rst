@@ -4,9 +4,9 @@ Change Log
 
 All notable changes to this project are documented in this file.
 
-==========
-Unreleased
-==========
+==================
+1.8.1 - 2017-04-23
+==================
 
 Added
 -----
@@ -14,6 +14,7 @@ Added
 * Support running macs on more organisms (`drosophila melanogaster`,
   `caenorhabditis elegans` and `rattus norvegicus`)
 * Automatically run E2E tests on Genialis' Jenkins
+* Utility function for running bamliquidator process
 
 Changed
 -------
@@ -29,7 +30,6 @@ Changed
 Fixed
 -----
 * Samples in relations are sorted in the same order as positions
-* Utility function for running bamliquidator process
 
 
 ==================
