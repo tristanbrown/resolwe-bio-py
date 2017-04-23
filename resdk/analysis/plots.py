@@ -1,7 +1,11 @@
 """Plot analysis."""
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from resdk.resources.utils import get_data_id, get_resolwe, get_samples, is_collection, is_relation
+from operator import xor
+
+from resdk.resources.utils import (
+    get_data_id, get_resolwe, get_samples, is_collection, is_data, is_relation,
+)
 
 __all__ = ('bamplot', )
 
@@ -121,3 +125,94 @@ def bamplot(resource, genome, input_gff=None, input_region=None, stretch_input=N
         resource.collection.add_data(bamplot_obj)
 
     return bamplot_obj
+
+
+def bamliquidator(resource, cell_type=None, bin_size=None, regions=None, extension=None,
+                  sense=None, skip_plot=None, black_list=None, threads=None):
+    """Run ``bamliquidator`` on the resource.
+
+    This method runs `bamliquidator`_ with bams, where three different
+    analysis type options are possible: Bin mode, Region mode and BED
+    mode.
+
+    .. _bamliquidator:
+        http://resolwe-bio.readthedocs.io/en/latest/catalog-definitions.html#process-bamliquidator
+
+    :param list resource: resource from which bam objects will be get
+    :param str cell_type: the name of cell type will be given in counts
+        tables
+    :param int bin_size: number of base pairs in each bin. Default is
+        100000.
+    :param regions: gtf or bed annotation object used in region mode
+    :type regions: `~resdk.resources.data.Data`
+    :param int extension: Extends reads by number of bp. Default is 200.
+    :param str sense: Mapping strand to gff file. Use '+' for forwaed,
+        '-' for reverse and '.' for both. Defoult is both.
+    :param bool skip_plot: True for skip plot.
+    :param list str black_list: One or more chromosome patterns to skip
+        during bin liquidation. Default is to skip any chromosomes that
+        contain any of the following substrings `chrUn`, `_random`,
+        `Zv9_` or `_hap`.
+    :param int threads: Number of CPUs
+
+    """
+    if not xor(bin_size, regions):
+        raise KeyError('Exactly one of `bin_size` and `regions` parameters must be given.')
+
+    if regions and not is_data(regions):
+        raise KeyError('`regions` parameter must be data object.')
+
+    input_objects = []
+
+    bams = [sample.get_bam() for sample in get_samples(resource)]
+    input_objects.extend(bams)
+    bams = [get_data_id(bam) for bam in bams]
+
+    inputs = {
+        'bam': bams,
+    }
+
+    if bin_size:
+        inputs['analysis_type'] = 'bin'
+        inputs['bin_size'] = bin_size
+    else:  # regions
+        if regions.process_type == 'data:annotation:gtf:':
+            inputs['analysis_type'] = 'gtf'
+        elif regions.process_type == 'data:bed:':
+            inputs['analysis_type'] = 'bed'
+        else:
+            raise KeyError(
+                '`regions` object must be of type `data:annotation:gtf:` or `data:bed:`'
+            )
+
+        input_objects.append(regions)
+        inputs['regions_file_gtf'] = get_data_id(regions)
+
+    if cell_type is not None:
+        inputs['cell_type'] = cell_type
+
+    if extension is not None:
+        inputs['extension'] = extension
+
+    if sense is not None:
+        inputs['sense'] = sense
+
+    if skip_plot is not None:
+        inputs['skip_plot'] = skip_plot
+
+    if black_list is not None:
+        inputs['black_list'] = black_list
+
+    if threads is not None:
+        inputs['threads'] = threads
+
+    resolwe = get_resolwe(*input_objects)
+
+    bamliquidator_obj = resolwe.get_or_run(slug='bamliquidator', input=inputs)
+
+    if is_collection(resource):
+        resource.add_data(bamliquidator_obj)
+    elif is_relation(resource):
+        resource.collection.add_data(bamliquidator_obj)
+
+    return bamliquidator_obj
