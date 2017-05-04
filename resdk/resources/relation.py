@@ -42,7 +42,7 @@ class Relation(BaseResource):
         self._samples = None
 
         #: list of entities in the relation
-        self.entities = []
+        self.entities = None
         #: type of the relation
         self.type = None
         #: optional label of the relation
@@ -50,11 +50,14 @@ class Relation(BaseResource):
 
         super(Relation, self).__init__(slug, id, model_data, resolwe)
 
-        #: list of the sample positions in the relation or `None` in none of the positions is set
-        self.positions = [
-            entity_obj['position'] if 'position' in entity_obj else None
-            for entity_obj in self.entities
-        ]
+        #: list of the sample positions in the relation or `None` if none of the positions is set
+        if self.entities is None:
+            self.positions = []
+        else:
+            self.positions = [
+                entity_obj.get('position', None)
+                for entity_obj in self.entities  # pylint: disable=not-an-iterable
+            ]
         if not any(self.positions):
             self.positions = None
 
@@ -64,10 +67,19 @@ class Relation(BaseResource):
     def samples(self):
         """Return list of the sample objects in the relation."""
         if not self._samples:
-            sample_ids = [entity_obj['entity'] for entity_obj in self.entities]
-            self._samples = self.resolwe.sample.filter(id__in=','.join(map(str, sample_ids)))
-            # Samples should be sorted, so they have same order as positions
-            self._samples = sorted(self._samples, key=lambda sample: sample_ids.index(sample.id))
+            if self.entities is None:
+                self._samples = []
+            else:
+                sample_ids = [
+                    # pylint: disable=not-an-iterable
+                    entity_obj['entity'] for entity_obj in self.entities
+                ]
+                self._samples = self.resolwe.sample.filter(id__in=','.join(map(str, sample_ids)))
+                # Samples should be sorted, so they have same order as positions
+                # XXX: This may be slow for many samples in single collection
+                self._samples = sorted(
+                    self._samples, key=lambda sample: sample_ids.index(sample.id)
+                )
         return self._samples
 
     @property

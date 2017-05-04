@@ -5,6 +5,16 @@ Change Log
 All notable changes to this project are documented in this file.
 
 
+==========
+Unreleased
+==========
+
+Fixed
+-----
+* Fix ``Relation`` resource to work if ``entities`` attribute is set to
+  ``None``
+
+
 =================
 1.10.0 2017-09-11
 =================
