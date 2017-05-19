@@ -94,7 +94,6 @@ def cuffnorm(resource, annotation, use_ercc=None, threads=None):
 
     cuffquants = [get_data_id(sample.get_cuffquant()) for sample in samples]
 
-    labels = []
     replicates = []
     replicates_ids = {}
     for sample in samples:
@@ -117,14 +116,10 @@ def cuffnorm(resource, annotation, use_ercc=None, threads=None):
             replicates_ids[relation.id] = str(len(replicates_ids))
         replicates.append(replicates_ids[relation.id])
 
-        if str(relation.id) not in labels:
-            labels.append(str(relation.id))
-
     inputs = {
         'cuffquant': cuffquants,
         'replicates': replicates,
         'annotation': get_data_id(annotation),
-        'labels': labels,
     }
 
     if use_ercc is not None:

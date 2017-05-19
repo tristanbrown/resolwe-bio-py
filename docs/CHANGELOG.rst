@@ -4,6 +4,14 @@ Change Log
 
 All notable changes to this project are documented in this file.
 
+==========
+Unreleased
+==========
+
+Changed
+-----
+* Remove labels input from cuffnorm
+
 ==================
 1.8.1 - 2017-04-23
 ==================

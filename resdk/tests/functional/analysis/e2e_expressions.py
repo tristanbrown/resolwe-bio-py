@@ -63,7 +63,6 @@ class TestExpressions(BaseResdkFunctionalTest):
         )
         self.assertEqual(cuffnorm.input['annotation'], gff.id)
         self.assertEqual(cuffnorm.input['replicates'], ['0', '0', '1', '1'])
-        self.assertEqual(cuffnorm.input['labels'], [str(group.id), str(group1.id)])
 
         # Run cuffnorm on a two groups of replicates in collection
         cuffnorm = expressions.cuffnorm([group1, group], annotation=gff)
@@ -73,4 +72,3 @@ class TestExpressions(BaseResdkFunctionalTest):
         )
         self.assertEqual(cuffnorm.input['annotation'], gff.id)
         self.assertEqual(cuffnorm.input['replicates'], ['0', '0', '1', '1'])
-        self.assertEqual(cuffnorm.input['labels'], [str(group1.id), str(group.id)])
