@@ -114,7 +114,7 @@ class BaseResdkFunctionalTest(unittest.TestCase):
                 **collections
             )
             bam.sample.update_descriptor(  # pylint: disable=no-member
-                {'sample': {'organism': 'Homo Sapiens'}}
+                {'sample': {'organism': 'Homo sapiens'}}
             )
             bams.append(bam)
 
