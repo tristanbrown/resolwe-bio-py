@@ -4,13 +4,14 @@ Change Log
 
 All notable changes to this project are documented in this file.
 
-==========
-Unreleased
-==========
+==================
+1.8.2 - 2017-05-22
+==================
 
 Changed
 -----
 * Remove labels input from cuffnorm
+
 
 ==================
 1.8.1 - 2017-04-23
@@ -32,7 +33,7 @@ Changed
   that sample
 * ``create_*_relation`` functions return created relation
 * Add ``RN4`` and ``RN6`` as valid genomes to ``bamplot`` function
-* Add ``MM8``, ``RN4`` and ``RN6`` genomes as valid to ``rose2`` 
+* Add ``MM8``, ``RN4`` and ``RN6`` genomes as valid to ``rose2``
   function
 
 Fixed
