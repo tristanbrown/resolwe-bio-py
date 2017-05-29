@@ -4,6 +4,16 @@ Change Log
 
 All notable changes to this project are documented in this file.
 
+==========
+Unreleased
+==========
+
+Fixed
+-----
+* Fix adding samples to relations with `<collection>.import_relations`
+  function
+
+
 ==================
 1.8.2 - 2017-05-22
 ==================

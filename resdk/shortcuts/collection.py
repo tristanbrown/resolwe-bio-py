@@ -84,7 +84,7 @@ class CollectionRelationsMixin(object):
                 to_add.append(entity_obj)
 
         if to_add:
-            relation.add_samples(*to_add)
+            relation.add_sample(*to_add)
 
         if to_delete:
             relation.remove_samples(*[obj['entity'] for obj in to_delete])
