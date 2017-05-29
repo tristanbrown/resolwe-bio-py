@@ -28,7 +28,7 @@ RELATIONS_HELP = '''\
 #       background:
 #         - background: <sample_2>
 #           sample: <sample_1>
-#	      - background: <sample_4>
+#         - background: <sample_4>
 #           sample: <sample_3>
 #
 # Compare relation is also envisioned for differential expression
@@ -37,13 +37,13 @@ RELATIONS_HELP = '''\
 #      compare:
 #       case-control:
 #         - case:
-#           - <sample_1>
-#	        - <sample_2>
-#	        - <sample 3>
-#         - control:
-#           - <sample_4>
-#		    - <sample_5>
-#		    - <sample_6>
+#             - <sample_1>
+#             - <sample_2>
+#             - <sample 3>
+#           control:
+#             - <sample_4>
+#             - <sample_5>
+#             - <sample_6>
 #
 # If you want to create new relation of type 'group' that contains 2
 # samples, add:
@@ -58,18 +58,18 @@ RELATIONS_HELP = '''\
 # processes as is cuffnorm:
 #
 #     group:
-#	    replicates:
+#       replicates:
 #         - samples:
-#            - <sample_1>
-#            - <sample_2>
-#            - <sample_3>
+#             - <sample_1>
+#             - <sample_2>
+#             - <sample_3>
 #         - samples:
-#            - <sample_4>
-#            - <sample_5>
-#            - <sample_6>
+#             - <sample_4>
+#             - <sample_5>
+#             - <sample_6>
 #         - samples:
-#            - <sample_4>
-#            - <sample_5>
+#             - <sample_4>
+#             - <sample_5>
 #
 # To add relation where position of samples is important (i.e.
 # 'time-series'), the 'series' can be used:
