@@ -7,7 +7,6 @@ from resdk.analysis.expressions import cuffnorm, cuffquant
 from resdk.analysis.plots import bamliquidator, bamplot
 from resdk.resources import Collection, Relation, Sample
 
-
 Collection.run_bamliquidator = bamliquidator
 Collection.run_bamplot = bamplot
 Collection.run_bowtie2 = bowtie2
