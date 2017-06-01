@@ -4,6 +4,7 @@ Change Log
 
 All notable changes to this project are documented in this file.
 
+
 ==========
 Unreleased
 ==========
@@ -12,6 +13,10 @@ Fixed
 -----
 * Fix adding samples to relations with `<collection>.import_relations`
   function
+
+Added
+-----
+* Add cuffdiff helper function
 
 
 ==================
