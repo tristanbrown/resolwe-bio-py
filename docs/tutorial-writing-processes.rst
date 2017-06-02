@@ -1,10 +1,154 @@
-.. _pipelines:
+.. _tutorial-writing:
 
 =================
-Writing pipelines
+Writing processes
 =================
 
-In :doc:`previous chapter<run>` we have shown how to run processes with
+Writing a new process
+---------------------
+
+You can write your own analysis processes that run on the server.
+Let's write a process that takes a BAM object and reports which
+chromosome has the largest number of aligned reads.
+
+.. code-block:: yaml
+
+    - slug: max-reads            # User readable unique identifier
+      name: Max reads            # Process name
+      requirements:
+        expression-engine: jinja
+      data_name: Chromosome      # The name of data objects created by the process
+      version: 1.0.0             # Process version
+      type: data:bam:stats       # The type of the process and data objects created by it
+      input:
+        - name: bam
+          label: BAM file
+          type: data:alignment:bam
+      output:
+        - name: stats
+          label: Stats
+          type: basic:file
+        - name: chr
+          label: Chr (max reads)
+          type: basic:string
+      run:                       # The algorithm in bash using Django template tags
+        runtime: polyglot
+        language: bash
+        program: |
+          # Compute sequence alignment statistics
+          samtools idxstats {{bam.bam.file}} > stats.txt
+
+          # Save the statistics file
+          re-save-file stats stats.txt
+
+          # Find chromosome with the largest number of aligned reads
+          CHR=`<my_script>.py stats.txt`
+
+          # Save the chromosome name
+          re-save chr "${CHR}"
+
+Set the ``TOOLS_REMOTE_HOST`` environment variable in your terminal:
+
+.. code-block:: bash
+
+    export TOOLS_REMOTE_HOST=<username>@torta.bcmt.bcm.edu://genialis/tools
+
+This address will be used to automatically copy your scripts to the
+Resolwe server. Make sure to set the ``TOOLS_REMOTE_HOST`` environment
+variable in all terminal windows where you run Python.
+
+Copy the above code to a file ``<process_name>.yaml``, use a text
+editor. **Make sure to modify the name of the Python script**
+``<my_script>.py`` **that is referenced in the above code**.
+**You will create this Python script in the next step**. Analysis
+steps can call programs installed in our `docker container`_ (`e.g.,`
+``samtools``) and custom scripts (`e.g.,` Python and R) defined by the
+user. We have designed the process ``<process_name>.yaml`` to use
+a custom script ``<my_script>.py`` to parse the ``samtools idxstats``
+results file and report the chromosome name.
+
+.. _docker container: https://github.com/genialis/docker-bio-linux8-resolwe
+
+.. code-block:: python
+
+    #!/usr/bin/env python2
+    import sys
+
+    # Read the statistics file name from the command arguments
+    fname = sys.argv[1]
+
+    max_reads = 0
+    chromosome = ''
+
+    # Open the statistics file
+    with open(fname) as file:
+        # Iterate through lines
+        for line in file:
+            # Find lines with chromosome statistics
+            if line.startswith('chr'):
+                stats = line.split('\t')
+                # Check if a chromosome has the largest number of aligned reads
+                if int(stats[2]) > max_reads:
+                    # Store the number of aligned reads
+                    max_reads = int(stats[2])
+                    # Store chromosome name
+                    chromosome = stats[0]
+
+    print chromosome
+
+Save the above code to ``<my_script>.py`` file and mark it executable.
+
+.. code-block:: bash
+
+    # Make the file executable
+    chmod +x <my_script>.py
+
+We can now use the uploaded BAM object (``bam``) as input to the
+process that we just wrote:
+
+.. code-block:: python
+
+   # Run the custom process on the server
+   chr = res.run('max-reads',
+                 input={'bam': bam.id},
+                 src='/path/to/<process_name>.yaml',
+                 tools=['/path/to/<my_script>.py'])
+
+Again, we can inspect the status of the processing step by:
+
+.. code-block:: python
+
+    # Get the latest meta data from the server
+    chr.update()
+
+    # Print the status
+    chr.status
+
+    # Print the process' standard output
+    print(chr.stdout())
+
+We can see the analysis results by inspecting the ``chr`` object's
+``output`` fields.
+
+.. code-block:: python
+
+    # Inspect the process output
+    chr.output
+
+The name of the chromosome with the most aligned reads is saved in
+the ``chr`` output field. The file in the ``stats`` field with the
+sequence alignment statistics can be downloaded by:
+
+.. code-block:: python
+
+    # Download chromosome statistics file
+    chr.download()
+
+We have covered the basics. Please continue with the
+:ref:`introduction` where we explain how the data is organized on the
+Resolwe server and how to query existing data sets.
+
+We have shown how to run processes with
 the ``run`` command. We define the process to execute on the server
 with the slug parameter (*e.g.,* ``alignment-bowtie2``).
 The process has to be registered (installed) on the server, or the

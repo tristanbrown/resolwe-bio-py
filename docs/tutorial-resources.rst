@@ -1,15 +1,10 @@
-.. _introduction:
+.. _tutorial-resources:
 
-============
-Introduction
-============
+==============================
+Resources and advanced queries
+==============================
 
-We will explain some basic concepts about Resolwe. Remember them well
-as they will be used through documentation.
-
-About Resolwe, Resolwe Bio and SDK for Python
-=============================================
-
+In this tutorial you will learn basic concepts about Resolwe.
 `Resolwe`_ is an open source dataflow package for the
 `Django framework`_. `Resolwe Bioinformatics`_ is an extension of
 Resolwe that provides bioinformatics pipelines. Together, they can
@@ -30,29 +25,18 @@ data, and writing dataflow pipelines.
    :width: 100 %
 
 Resolwe and Resolwe Bio run on servers with strong computational
-capabilities. ``resdk`` is a Python package on a local computer
-that interacts with Resolwe through a RESTful API. The power of
-``resdk`` is its lightweight character. It is installed with one
-simple command, but supports the manipulation of large data sets
-and heavy computation on a remote computer cluster.
-
-Connect to Resolwe
-------------------
-
-We have a test Resolwe server on ``https://torta.bcm.genialis.com``.
-If you do not have access to Torta, contact us at info@genialis.com.
-The user name and password are ``admin/admin``.
+capabilities. We will use a public Resolwe server `Genialis Platform`_
+that is configured for the examples in the tutorial. ``resdk`` is a
+Python package on a local computer that interacts with Resolwe through
+a RESTful API. The power of ``resdk`` is its lightweight character.
+It is installed with one simple command, but supports the manipulation
+of large data sets and heavy computation on a remote computer cluster.
+Let's connect to the Genialis Platform server and access some data.
 
 .. literalinclude:: files/example_index.py
    :lines: 1-7
 
-.. warning::
-
-   If you use macOS, be aware that the version of `Python shipped with the
-   system doesn't support TLSv1.2`_, which is required for connecting to
-   any ``genialis.com`` server (and probably others). To solve the issue,
-   install the latest version of Python 2.7 or Python 3 `via official
-   installer from Python.org`_ or `with Homebrew`_.
+.. TODO: Access reads data object!
 
 If you are working with ``resdk`` in an interactive session, the
 logging feature prints useful messages. They will let you know
@@ -61,15 +45,10 @@ what is happening behind the scenes. Read more about
 or about `Python logging`_ in general.
 
 .. _`Python logging`: https://docs.python.org/2/howto/logging.html
-.. _`Python shipped with the system doesn't support TLSv1.2`:
-    http://pyfound.blogspot.si/2017/01/time-to-upgrade-your-python-tls-v12.html
-.. _`via official installer from Python.org`:
-    https://www.python.org/downloads/mac-osx/
-.. _`with Homebrew`:
-    http://docs.python-guide.org/en/latest/starting/install/osx/
+.. _`Genialis Platform`: https://app.genialis.com
 
-Resolwe basics---resources
-==========================
+Resources
+=========
 
 In Resolwe, meta-data is stored in the PostgreSQL database tables:
 Data, Sample, Collection, Process, DescriptorSchema, Storage,
@@ -89,8 +68,8 @@ are implemented in resdk as subclasses of
 
 .. _REST API: https://torta.bcm.genialis.com/api/
 
-Process and Data
-----------------
+Data and Processes
+------------------
 
 Two most important resources in Resolwe are *process* and *data*.
 Process stores an algorithm that transforms inputs into outputs. It
@@ -150,59 +129,8 @@ expressions). Samples and Data objects may be in multiple collections.
 .. TODO: Image where clear distinction between Resolwe models /
          endpoints and resdk classes is presented.
 
-Annotations
-===========
-
-Annotations are presented as descriptors, where each descriptor is defined in
-descriptor schemas. Annotations for data objects, samples and collections are
-following different descriptor schemas. For example reads data object can be
-annotated with 'reads' descriptor schema, while sample can be annotated by
-'sample' annotation schema. Each data object that is part of sample is
-also connected to sample annotation, so that the annotation for sample (also
-collection) represents all Data objects attached to it. Examples of descriptors
-and descriptor schemas are described in details in `Resolwe Bioinformatics
-documentation`_.
-
-.. _Resolwe Bioinformatics documentation: http://resolwe-bio.readthedocs.io
-
-Here we show how to annotate the reads data object by defining a descriptor
-information (annotation) that follows annotation fields as defined in the
-'reads' descriptor schema:
-
-.. code-block:: python
-
-    annotation_reads = {
-        'experiment_type': 'RNA-seq',
-        'protocols': {
-            'growth_protocol': 'my growth protocol',
-            'treatment_protocol': 'my treatment protocol',
-            'library_prep': 'lybrary construction protocol',
-        },
-        'reads_info': {
-            'seq_date': '2016-10-13',
-            'instrument_type': 'Illumina',
-            'facility': 'my favorite facility',
-        }
-    }
-
-We can now annotate ``reads`` data object by adding descriptor and descriptor schema:
-
-.. code-block:: python
-
-    #define the chosen descriptor schema,
-    reads.descriptor_schema = 'reads'
-
-    #define the reads descriptor, with
-    reads.descriptor = annotation_reads
-
-    #save the annotation
-    reads.save()
-
-We can also define descriptor and descriptor schema directly when calling
-'res.run' function as described in The run method section.
-
-Managing presamples and samples
-===============================
+Samples and presamples
+----------------------
 
 When a new data object that represents a biological sample (i.e. fastq files,
 bam files) is uploaded to the database, the unannotated sample (presample) is
@@ -263,9 +191,8 @@ name or slug:
     reads.sample.slug = 'my-sample-2'
     reads.sample.save()
 
-
-Managing collections
-====================
+Collections
+-----------
 
 To keep a clear structure of data objects and samples we can create collections.
 Here is an example of how to create new collection and add (and remove) data to
@@ -442,6 +369,3 @@ corresponding attributes and methods in the :doc:`Reference<ref>`.
    is the parent of all collection-like classes:
    :obj:`Sample<resdk.resources.Sample>` and
    :obj:`Collection<resdk.resources.Collection>`
-
-You have learned about the resources and how to access data. Continue with the
-:ref:`run`.

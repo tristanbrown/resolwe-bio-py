@@ -20,6 +20,7 @@ Changed
 * Use values instead of abbreviations for genome sizes in chip_seq
 * Utility functions return only one element instead of list when thay
   are run on a ``Data`` object
+* Refactor documentation structure and add a tutorials section
 
 
 ==================

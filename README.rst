@@ -54,6 +54,19 @@ Install from PyPI::
 
   pip install resdk
 
+If you use macOS, be aware that the version of `Python shipped with the
+system doesn't support TLSv1.2`_, which is required for connecting to
+any ``genialis.com`` server (and probably others). To solve the issue,
+install the latest version of Python 2.7 or Python 3 `via official
+installer from Python.org`_ or `with Homebrew`_.
+
+.. _`Python shipped with the system doesn't support TLSv1.2`:
+    http://pyfound.blogspot.si/2017/01/time-to-upgrade-your-python-tls-v12.html
+.. _`via official installer from Python.org`:
+    https://www.python.org/downloads/mac-osx/
+.. _`with Homebrew`:
+    http://docs.python-guide.org/en/latest/starting/install/osx/
+
 If you would like to contribute to the SDK codebase, follow the
 `installation steps for developers`_.
 
@@ -70,13 +83,13 @@ index (BAM and BAI) from the server:
    import resdk
 
    # Create a Resolwe object to interact with the server
-   res = resdk.Resolwe('admin', 'admin', 'https://torta.bcm.genialis.com')
+   res = resdk.Resolwe(url='https://app.genialis.com')
 
-   # Print command details to stdout
+   # Enable verbose logging to standard output
    resdk.start_logging()
 
    # Get sample meta-data from the server
-   sample = res.sample.get('human-example-chr22')
+   sample = res.sample.get('mouse-example-chr19')
 
    # Download files associated with the sample
    sample.download()

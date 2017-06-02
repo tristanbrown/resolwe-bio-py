@@ -1,7 +1,7 @@
 import resdk
 
 # Create a Resolwe object to interact with the server
-res = resdk.Resolwe('<USERNAME>', '<PASSWORD>', 'https://app.genialis.com')
+res = resdk.Resolwe(url='https://app.genialis.com')
 
 # Enable verbose logging to standard output
 resdk.start_logging()

@@ -1,8 +1,158 @@
-.. _run:
+.. _tutorial-running:
 
-=============================
-Upload data and run pipelines
-=============================
+=================
+Running processes
+=================
+
+Quick start
+===========
+
+Often the next step that bioinformatician will do is align raw reads to genome.
+Many aligners are already included into resolwe-bio as described in the
+`Process catalog`_.
+
+For toturial we will use Subread to align our uploaded reads to the genome.
+But first we need to upload  genome.
+
+.. code-block:: python
+
+    genome = res.run('upload-genome', input={'src': 'path/to/genome.fasta.gz'})
+
+Now we can align reads to genome with Subread processor, which input and output fields
+are described in `Subread process catalog`_. We need to define input files, then the process runs its
+algorithm that transforms inputs into outputs.
+
+.. _Subread process catalog: http://resolwe-bio.readthedocs.io/en/latest/catalog-definitions.html#process-alignment-subread
+
+.. code-block:: python
+
+    bam_aligned = res.run('alignment-subread',
+    input={'genome': genome,
+           'reads': reads}
+
+Lets take a closer look to the code above. We defined the alignment process, by its slug ``'alignment-subread'``.
+For inputs we defined data objects ``reads`` and ``genome``. ``Reads`` object was created with 'upload-fastq-single'
+or 'upload-fastq-paired' processor, while ``genome`` data object was created with `upload-genome` process.
+The `alignment-subread` processor will automatically took the right files from data object, specified in inputs and
+create output data objects: ``bam`` alignment file, ``bai`` index, unmapped reads and stats file.
+
+Second option to get the BAM file is to upload a BAM file with the `upload-bam`_ process (for tutorial you can
+`download a test BAM file from here`_):
+
+.. _upload-bam: https://github.com/genialis/resolwe-bio/blob/master/resolwe_bio/processes/import_data/bam.yml
+.. _download a test BAM file from here: https://torta.bcm.genialis.com/data/494/human_example_chr22.bam?force_download=1
+
+.. code-block:: python
+
+    # Upload a BAM file
+    bam = res.run('upload-bam', input={'src': '/path/to/file/test.bam'})
+
+
+In the above case, the BAM file is uploaded, indexed with ``samtools``, and
+saved into output fields ``bam`` and ``bai``.
+
+As reads files also uploading a BAM creates an object that can be referenced by ID or slug.
+
+.. code-block:: python
+
+   bam.id  # unique identifier
+   bam.slug  # a human readable unique identifier
+
+This abstracts the concept of paths. Paths are not needed because
+objects can be retrieved or referenced in inputs by IDs. For instance,
+we can get the same object from the server:
+
+.. code-block:: python
+
+   # Retrieve the object that we have just created
+   bam2 = res.data.get(bam.id)
+
+   # Retrieve the same object by slug
+   bam3 = res.data.get(bam.slug)
+
+All three Python objects point to the same data object on the server:
+
+.. code-block:: python
+
+   # All reference the same data object
+   print(bam.id, bam2.id, bam3.id)
+
+Let's think about what is happening to the data object on the server.
+Did the processing finish? Check the status of the bam object:
+
+.. code-block:: python
+
+   # Get the latest meta data from the server
+   bam.update()
+
+   # Print the status
+   bam.status
+
+Status ``OK`` indicates the processing has finished successfuly.
+The commands that were executed on the server can be inspected by:
+
+.. code-block:: python
+
+   # Print the process' standard output
+   print(bam.stdout())
+
+The output is long but exceedingly useful for debugging. Lines 34
+and 40 are particularly interesting. They tell us that the uploaded
+file has been assigned a temporary name for upload, then moved,
+renamed and indexed.
+
+.. code-block:: console
+   :lineno-start: 34
+   :emphasize-lines: 1,7
+
+   + mv /home/biolinux/upload/e4756869f32d3f5e411a80c7daafcc4bbf336c41 human_example_chr22.bam
+   + testrc
+   + RC=0
+   + '[' ']'
+   + '[' 0 -gt 0 ']'
+   + echo '{"proc.progress":0.3}'
+   + samtools index human_example_chr22.bam
+
+Files that are on the server are referenced in the object output:
+
+.. code-block:: python
+
+   # Files are referenced in object output
+   bam.output
+
+You can download them to your computer simply as:
+
+.. code-block:: python
+
+   # Download all files of the object
+   bam.download()
+
+The BAM object on the server can now be used in further processing
+steps by any other process that use a compatible input type
+(`e.g.,` ``data:alignment:bam:upload``). For instance we can compute
+a BigWig coverage track:
+
+.. code-block:: python
+
+   # Compute a BigWig coverage
+   bigwig = res.run('jbrowse-bam-coverage', input={'bam': bam.id})
+
+You will have to wait about 5 min to compute the coverage.
+Check the output from time to time.
+
+.. code-block:: python
+
+   # Check the status of the BigWig process
+   bigwig.update(); bigwig.status
+
+The ``PR`` status means processing. Wait for the status to turn ``OK``,
+then download the coverage track.
+
+.. code-block:: python
+
+   # Download the coverage track
+   bigwig.download()
+
 
 So far we were been inspecting data: accessing information and
 downloading files. Here we explain how to upload new data and run
@@ -142,11 +292,6 @@ Data name
 If you would like to manually set the name of the created data
 object, provide it with the ``data_name`` parameter.
 
-Src and tools
--------------
-
-These are used only when developing your own processes. More
-about that is in the :ref:`pipelines` chapter.
 
 -----------------------------------------------------------------------
 
@@ -201,9 +346,6 @@ Also, you can inspect the info, warning and error logs.
    :lines: 64-71
 
 -----------------------------------------------------------------------
-
-This should get you started. For more information about Resolwe visit
-`Resolwe documentation.`_ Let's continue with :ref:`pipelines`.
 
 .. _`Resolwe documentation.`: http://resolwe.readthedocs.io/en/latest/
 
