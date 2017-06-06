@@ -155,11 +155,19 @@ def get_samples(resource):
     * call ResolweQuery object named `samples` (if exists) and return
       the result
     """
+    error_msg = ("Resource should be sample, have `samples` query, be list of multiple "
+                 "resources or be data object with not empty `sample` property.")
     if isinstance(resource, list):
         samples = []
         for res in resource:
             samples.extend(get_samples(res))
         return samples
+
+    elif is_data(resource):
+        if not resource.sample:
+            raise TypeError(error_msg)
+
+        return [resource.sample]
 
     elif is_sample(resource):
         return [resource]
@@ -168,8 +176,7 @@ def get_samples(resource):
         return resource.samples
 
     else:
-        raise TypeError(
-            "Resource should be sample, have `samples` query or be list of multiple resources.")
+        raise TypeError(error_msg)
 
 
 def get_resource_collection(resource, fail_silently=True):

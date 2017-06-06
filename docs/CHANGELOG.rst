@@ -17,6 +17,7 @@ Fixed
 Added
 -----
 * Add cuffdiff helper function
+* Support data as a resource for bowtie2 and hisat2 helper functions
 
 
 ==================

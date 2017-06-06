@@ -37,6 +37,12 @@ class TestAligners(BaseResdkFunctionalTest):
         self.assertEqual(bams[0].input['reads'], reads_3.id)
         self.assertEqual(bams[0].input['genome'], genome.id)
 
+        # Run bowtie on a reads data object
+        bams = reads_3.run_bowtie2(genome=genome)
+        self.assertEqual(len(bams), 1)
+        self.assertEqual(bams[0].input['reads'], reads_3.id)
+        self.assertEqual(bams[0].input['genome'], genome.id)
+
     def test_hisat2(self):
         collection = self.res.collection.create(name='Test collection')
 
@@ -48,7 +54,7 @@ class TestAligners(BaseResdkFunctionalTest):
 
         group = collection.create_group_relation(samples=[reads_1.sample])
 
-        # Run bowtie on a collection
+        # Run hisat on a collection
         bams = collection.run_hisat2(genome=genome)
         self.assertEqual(len(bams), 2)
         self.assertEqual(bams[0].input['reads'], reads_1.id)
@@ -56,14 +62,20 @@ class TestAligners(BaseResdkFunctionalTest):
         self.assertEqual(bams[1].input['reads'], reads_2.id)
         self.assertEqual(bams[1].input['genome'], genome.id)
 
-        # Run bowtie on a relation
+        # Run hisat on a relation
         bams = group.run_hisat2(genome=genome)
         self.assertEqual(len(bams), 1)
         self.assertEqual(bams[0].input['reads'], reads_1.id)
         self.assertEqual(bams[0].input['genome'], genome.id)
 
-        # Run bowtie on a sample
+        # Run hisat on a sample
         bams = reads_3.sample.run_hisat2(genome=genome)
+        self.assertEqual(len(bams), 1)
+        self.assertEqual(bams[0].input['reads'], reads_3.id)
+        self.assertEqual(bams[0].input['genome'], genome.id)
+
+        # Run hisat on a reads data object
+        bams = reads_3.run_hisat2(genome=genome)
         self.assertEqual(len(bams), 1)
         self.assertEqual(bams[0].input['reads'], reads_3.id)
         self.assertEqual(bams[0].input['genome'], genome.id)
