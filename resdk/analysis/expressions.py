@@ -20,14 +20,14 @@ def cuffquant(resource, gff, genome=None, mask_file=None, library_type=None,
     .. _Cuffquant:
         http://resolwe-bio.readthedocs.io/en/latest/catalog-definitions.html#process-cuffquant
 
-    :param gff: id of annotation file is given
-    :type gff: int or `~resdk.resources.data.Data`
-    :param genome: id of genome file is given to run bias detection and
+    :param gff: annotation file
+    :type gff: `~resdk.resources.data.Data`
+    :param genome: genome object to use for bias detection and
         correction algorithm
-    :type genome: int or `~resdk.resources.data.Data`
-    :param mask_file: id of mask file is given
-    :type mask_file: int or `~resdk.resources.data.Data`
-    :param str library_type: options are fr-unstranded, fr-firststrand,
+    :type genome: `~resdk.resources.data.Data`
+    :param mask_file: mask file to use in process
+    :type mask_file: `~resdk.resources.data.Data`
+    :param str library_type: options are: fr-unstranded, fr-firststrand,
         fr-secondstrand
     :param bool multi_read_correct: do initial estimation procedure to
         more accurately weight reads with multiple genome mappings
@@ -67,7 +67,7 @@ def cuffnorm(resource, annotation, use_ercc=None, threads=None):
     """Run Cuffnorm_ for selected cuffquats.
 
     This method runs `Cuffnorm`_ process on ``resource`` with
-     ``annotation``, ``useERCC`` and ``threads`` parameters specified
+     ``annotation``, ``use_ercc`` and ``threads`` parameters specified
      in arguments.
 
     .. _Cuffnorm:
@@ -75,8 +75,8 @@ def cuffnorm(resource, annotation, use_ercc=None, threads=None):
 
     :param resource: resource on which cuffnorm will be run
     :param annotation: annotation object used in cuffnorm
-    :type annotation: int or `~resdk.resources.data.Data`
-    :param bool useERCC: use ERRCC spike-in controls for normalization
+    :type annotation: `~resdk.resources.data.Data`
+    :param bool use_ercc: use ERRCC spike-in controls for normalization
     :param int threads: use this many threads to align reads
         (default: ``1``)
 

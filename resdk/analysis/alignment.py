@@ -15,7 +15,7 @@ def bowtie2(resource, genome):
 
     :param resource: resource of which reads will be aligned
     :param genome: data object with genome that will be used
-    :type genome: int or `~resdk.resources.data.Data`
+    :type genome: `~resdk.resources.data.Data`
 
     """
     results = []
@@ -47,7 +47,7 @@ def hisat2(resource, genome):
 
     :param resource: resource of which reads will be aligned
     :param genome: data object with genome that will be used
-    :type genome: int or `~resdk.resources.data.Data`
+    :type genome: `~resdk.resources.data.Data`
 
     """
     results = []
