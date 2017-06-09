@@ -5,19 +5,19 @@ Change Log
 All notable changes to this project are documented in this file.
 
 
-==========
-Unreleased
-==========
-
-Fixed
------
-* Fix adding samples to relations with `<collection>.import_relations`
-  function
+==================
+1.8.3 - 2017-06-09
+==================
 
 Added
 -----
 * Add cuffdiff helper function
 * Support data as a resource for bowtie2 and hisat2 helper functions
+
+Fixed
+-----
+* Fix adding samples to relations with ``<collection>.import_relations``
+  function
 
 
 ==================
