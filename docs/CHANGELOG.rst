@@ -12,6 +12,8 @@ Unreleased
 Added
 -----
 * Add all parameters to bowtie2 helper function
+* Raise more descriptive error if sample is not annotated in macs
+  function
 
 Changed
 -------

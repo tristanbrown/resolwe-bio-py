@@ -9,14 +9,26 @@ class TestChipSeq(BaseResdkFunctionalTest):
     def test_macs(self):
         collection = self.res.collection.create(name='Test collection')
         collection_2 = self.res.collection.create(name='Another collection')
+        collection_3 = self.res.collection.create(name='Yet another collection')
 
         # pylint: disable=unbalanced-tuple-unpacking
         background, bam_1, bam_2 = self.get_bams(3, collection)
+        bam_3, bam_4 = self.get_bams(2, collection_3)
         # pylint: enable=unbalanced-tuple-unpacking
+
+        # No 'organism' key
+        bam_3.sample.update_descriptor({'sample': {}})
+
+        # No 'sample' key
+        bam_4.sample.update_descriptor({})
 
         collection.create_background_relation(bam_1.sample, background.sample)
         collection.create_background_relation(bam_2.sample, background.sample)
         group = collection.create_group_relation(samples=[bam_1.sample, background.sample])
+
+        collection_3.add_samples(background.sample)
+        collection_3.create_background_relation(bam_3.sample, background.sample)
+        collection_3.create_background_relation(bam_4.sample, background.sample)
 
         # Just to create some confusion :)
         collection_2.add_samples(background.sample, bam_2.sample)
@@ -90,6 +102,14 @@ class TestChipSeq(BaseResdkFunctionalTest):
         self.assertEqual(len(macs), 1)
         self.assertEqual(macs[0].input['treatment'], background.id)
         self.assertFalse('control' in macs[0].input)
+
+        # This should fail due to no 'organism' key
+        with self.assertRaises(KeyError):
+            bam_3.sample.run_macs()
+
+        # This should fail due to no 'sample' key
+        with self.assertRaises(KeyError):
+            bam_4.sample.run_macs()
 
     def test_rose(self):
         collection = self.res.collection.create(name='Test collection')

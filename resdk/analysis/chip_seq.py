@@ -48,6 +48,10 @@ def macs(resource, use_background=True, p_value=None):
     :param float p_value: p-value used in the process
 
     """
+    inputs = {}
+    if p_value is not None:
+        inputs['pvalue'] = p_value
+
     results = []
 
     if not isinstance(resource, list):
@@ -62,13 +66,12 @@ def macs(resource, use_background=True, p_value=None):
                 background_filter['collection'] = collection_id
 
         for sample in get_samples(single_resource):
-            inputs = {
-                'treatment': sample.get_bam().id,
-                'gsize': abbreviate_organism(sample.descriptor['sample']['organism']),
-            }
+            inputs['treatment'] = sample.get_bam().id
 
-            if p_value is not None:
-                inputs['pvalue'] = p_value
+            try:
+                inputs['gsize'] = gsize_organism(sample.descriptor['sample']['organism'])
+            except KeyError:
+                raise KeyError('{} is not annotated'. format(sample))
 
             if use_background:
                 if is_background(sample) and not is_sample(single_resource):
