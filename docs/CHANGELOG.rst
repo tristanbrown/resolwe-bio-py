@@ -13,6 +13,10 @@ Added
 -----
 * Add all parameters to bowtie2 helper function
 
+Changed
+-------
+* Use values instead of abbreviations for genome sizes in chip_seq
+
 
 ==================
 1.8.3 - 2017-06-09

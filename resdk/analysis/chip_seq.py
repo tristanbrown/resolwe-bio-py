@@ -17,14 +17,14 @@ def is_background(sample):
     return len(background_relations) > 0
 
 
-def abbreviate_organism(name):
-    """Return abbrevation of organisms used in sample descriptor."""
+def gsize_organism(name):
+    """Return genome size of organisms used in sample descriptor."""
     mapping = {
-        'homo sapiens': 'hs',
-        'mus musculus': 'mm',
-        'dictyostelium discoideum': 'dd',
-        'drosophila melanogaster': 'dm',
-        'caenorhabditis elegans': 'ce',
+        'homo sapiens': '2.7e9',
+        'mus musculus': '1.87e9',
+        'dictyostelium discoideum': '3.4e7',
+        'drosophila melanogaster': '1.2e8',
+        'caenorhabditis elegans': '9e7',
         'rattus norvegicus': '2e9',
     }
     return mapping[name.lower()]
