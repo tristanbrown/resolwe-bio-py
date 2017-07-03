@@ -104,9 +104,12 @@ def bowtie2(resource, genome, mode=None, speed=None, use_se=None, discordantly=N
 def hisat2(resource, genome):
     """Run hisat2 aligner on given resource.
 
-    Aligne reads files of given resource to the given genome using the
-    ``hisat2`` aligner. If reads were already aligned, existing objects
+    Align reads files of given resource to the given genome using the
+    `Hisat2`_ aligner. If reads were already aligned, existing objects
     will be returned.
+
+    .. _Hisat2:
+        http://resolwe-bio.readthedocs.io/en/latest/catalog-definitions.html#process-alignment-hisat2
 
     :param resource: resource of which reads will be aligned
     :param genome: data object with genome that will be used
