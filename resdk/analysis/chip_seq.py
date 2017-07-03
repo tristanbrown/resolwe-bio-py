@@ -109,7 +109,7 @@ def rose2(resource, use_background=True, genome='HG19', tss=None, stitch=None, b
     :param bool use_background: if set to ``True``, background sample
         will be used in the process
     :param str genome: Genome used in the process (options are HG18,
-        HG19, MM9 and MM10), default is ``HG19``
+        HG19, MM8, MM9, MM10, RN4 and RN6), default is ``HG19``
     :param int tss: TSS exclusion used in process
     :param int stitch: Stitch used in process
     :param list beds: subset of bed files to run process on, if empty
