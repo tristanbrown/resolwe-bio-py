@@ -5,6 +5,15 @@ Change Log
 All notable changes to this project are documented in this file.
 
 
+==========
+Unreleased
+==========
+
+Added
+-----
+* Add all parameters to bowtie2 helper function
+
+
 ==================
 1.8.3 - 2017-06-09
 ==================
