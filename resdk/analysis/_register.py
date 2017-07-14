@@ -7,6 +7,7 @@ from resdk.analysis.differential_expressions import cuffdiff
 from resdk.analysis.expressions import cuffnorm, cuffquant
 from resdk.analysis.plots import bamliquidator, bamplot
 from resdk.resources import Collection, Data, Relation, Sample
+from resdk.utils.decorators import return_first_element
 
 Collection.run_bamliquidator = bamliquidator
 Collection.run_bamplot = bamplot
@@ -18,8 +19,10 @@ Collection.run_hisat2 = hisat2
 Collection.run_macs = macs
 Collection.run_rose2 = rose2
 
-Data.run_bowtie2 = bowtie2
-Data.run_hisat2 = hisat2
+# pylint: disable=no-value-for-parameter
+Data.run_bowtie2 = return_first_element(bowtie2)
+Data.run_hisat2 = return_first_element(hisat2)
+# pylint: enable=no-value-for-parameter
 
 Relation.run_bamliquidator = bamliquidator
 Relation.run_bamplot = bamplot

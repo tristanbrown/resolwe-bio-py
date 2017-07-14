@@ -46,6 +46,7 @@ setup(
         'appdirs>=1.4.0',
         'six>=1.10.0',
         'pyyaml>=3.11',
+        'wrapt>=1.10.8',
     ),
     extras_require={
         'docs': [
