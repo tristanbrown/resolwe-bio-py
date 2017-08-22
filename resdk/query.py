@@ -329,7 +329,7 @@ class ResolweQuery(object):
 
     def delete(self, force=False):
         """Delete objects in current query."""
-        if not force:
+        if force is not True:
             user_input = six.moves.input(
                 'Do you really want to delete {} object(s)?[yN] '.format(self.count()))
             if user_input.strip().lower() != 'y':

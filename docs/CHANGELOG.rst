@@ -5,6 +5,15 @@ Change Log
 All notable changes to this project are documented in this file.
 
 
+==========
+Unreleased
+==========
+
+Fixed
+-----
+* Fix delete functionality for non-boolean ``force`` parameter types
+
+
 ==================
 1.9.0 - 2017-08-07
 ==================

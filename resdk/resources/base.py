@@ -165,7 +165,7 @@ class BaseResource(object):
 
     def delete(self, force=False):
         """Delete the resource object from the server."""
-        if not force:
+        if force is not True:
             user_input = six.moves.input('Do you really want to delete {}?[yN] '.format(self))
 
             if user_input.strip().lower() != 'y':
