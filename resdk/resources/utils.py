@@ -97,27 +97,37 @@ def endswith_colon(schema, field):
 
 
 def get_collection_id(collection):
-    """Return id attribute of the object if it is collection, othervise return given value."""
+    """Return id attribute of the object if it is collection, otherwise return given value."""
     return collection.id if type(collection).__name__ == 'Collection' else collection
 
 
 def get_data_id(data):
-    """Return id attribute of the object if it is data, othervise return given value."""
+    """Return id attribute of the object if it is data, otherwise return given value."""
     return data.id if type(data).__name__ == 'Data' else data
 
 
+def get_descriptor_schema_id(dschema):
+    """Get descriptor schema id.
+
+    Return id attribute of the object if it is descriptor schema,
+    otherwise return given value.
+
+    """
+    return dschema.id if type(dschema).__name__ == 'DescriptorSchema' else dschema
+
+
 def get_process_id(process):
-    """Return id attribute of the object if it is process, othervise return given value."""
+    """Return id attribute of the object if it is process, otherwise return given value."""
     return process.id if type(process).__name__ == 'Process' else process
 
 
 def get_sample_id(sample):
-    """Return id attribute of the object if it is sample, othervise return given value."""
+    """Return id attribute of the object if it is sample, otherwise return given value."""
     return sample.id if type(sample).__name__ == 'Sample' else sample
 
 
 def get_relation_id(relation):
-    """Return id attribute of the object if it is relation, othervise return given value."""
+    """Return id attribute of the object if it is relation, otherwise return given value."""
     return relation.id if type(relation).__name__ == 'Relation' else relation
 
 
@@ -129,6 +139,11 @@ def is_collection(collection):
 def is_data(data):
     """Return ``True`` if passed object is Data and ``False`` otherwise."""
     return type(data).__name__ == 'Data'
+
+
+def is_descriptor_schema(data):
+    """Return ``True`` if passed object is DescriptorSchema and ``False`` otherwise."""
+    return type(data).__name__ == 'DescriptorSchema'
 
 
 def is_process(process):

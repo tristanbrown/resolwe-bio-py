@@ -8,7 +8,8 @@ import requests
 from six.moves.urllib.parse import urljoin  # pylint: disable=import-error
 
 from .base import BaseResolweResource
-from .utils import iterate_schema
+from .descriptor import DescriptorSchema
+from .utils import get_descriptor_schema_id, is_descriptor_schema, iterate_schema
 
 
 class Data(BaseResolweResource):
@@ -45,6 +46,11 @@ class Data(BaseResolweResource):
 
     def __init__(self, resolwe, **model_data):
         """Initialize attributes."""
+        #: descriptor schema id in which data object is
+        self._descriptor_schema = None
+        #: (lazy loaded) descriptor schema object in which data object is
+        self._hydrated_descriptor_schema = None
+
         #: specification of inputs
         self.process_input_schema = None
         #: actual input values
@@ -53,8 +59,6 @@ class Data(BaseResolweResource):
         self.process_output_schema = None
         #: actual output values
         self.output = None
-        #: the id of used descriptor schema
-        self.descriptor_schema = None
         #: annotation data, with the form defined in descriptor_schema
         self.descriptor = None
         #: The ID of the process used in this data object
@@ -93,6 +97,7 @@ class Data(BaseResolweResource):
         """Clear cache and update resource fields from the server."""
         self._sample = None
         self._collections = None
+        self._hydrated_descriptor_schema = None
 
         super(Data, self).update()
 
@@ -159,6 +164,36 @@ class Data(BaseResolweResource):
             self._sample = self.resolwe.sample.filter(data=self.id)
             self._sample = self._sample[0] if self._sample else None
         return self._sample
+
+    @property
+    def descriptor_schema(self):
+        """Return descriptor schema assigned to the data object."""
+        if self._descriptor_schema is None:
+            return None
+
+        if self._hydrated_descriptor_schema is None:
+            if isinstance(self._descriptor_schema, int):
+                query_filters = {'id': self._descriptor_schema}
+            else:
+                query_filters = {'slug': self._descriptor_schema}
+
+            self._hydrated_descriptor_schema = self.resolwe.descriptor_schema.get(
+                ordering='-version', limit=1, **query_filters
+            )
+
+        return self._hydrated_descriptor_schema
+
+    @descriptor_schema.setter
+    def descriptor_schema(self, dschema):
+        """Set collection to which relation belongs."""
+        # On single data object endpoint descriptor schema is already
+        # hidrated, so it should be transformed into resource.
+        if isinstance(dschema, dict):
+            dschema = DescriptorSchema(resolwe=self.resolwe, **dschema)
+
+        self._descriptor_schema = get_descriptor_schema_id(dschema)
+        # Save descriptor schema if already hydrated, otherwise it will be rerived in getter
+        self._hydrated_descriptor_schema = dschema if is_descriptor_schema(dschema) else None
 
     def _files_dirs(self, field_type, file_name=None, field_name=None):
         """Get list of downloadable fields."""

@@ -9,6 +9,7 @@ import six
 from mock import MagicMock, patch
 
 from resdk.resources.collection import BaseCollection, Collection
+from resdk.resources.descriptor import DescriptorSchema
 from resdk.resources.sample import Sample
 from resdk.tests.mocks.data import DATA_SAMPLE
 
@@ -73,6 +74,57 @@ class TestCollection(unittest.TestCase):
         with self.assertRaises(NotImplementedError):
             Collection.print_annotation(collection_mock)
 
+    def test_descriptor_schema(self):
+        collection = Collection(id=1, resolwe=MagicMock())
+        collection._descriptor_schema = 1
+
+        # test getting descriptor schema attribute
+        collection.resolwe.descriptor_schema.get = MagicMock(return_value='descriptor_schema')
+        self.assertEqual(collection.descriptor_schema, 'descriptor_schema')
+        _, get_kwargs = collection.resolwe.descriptor_schema.get.call_args
+        self.assertEqual(get_kwargs['id'], 1)
+
+        # descriptor schema is not set
+        collection._descriptor_schema = None
+        self.assertEqual(collection.descriptor_schema, None)
+
+        # cache is cleared at update
+        collection._hydrated_descriptor_schema = 'descriptor_schema'
+        collection.update()
+        self.assertEqual(collection._hydrated_descriptor_schema, None)
+
+        # new collection
+        collection = Collection(resolwe=MagicMock())
+
+        collection.descriptor_schema = 'my-schema'
+        self.assertEqual(collection._descriptor_schema, 'my-schema')
+
+        collection.resolwe.descriptor_schema.get = MagicMock(return_value='descriptor_schema')
+        self.assertEqual(collection.descriptor_schema, 'descriptor_schema')
+        _, get_kwargs = collection.resolwe.descriptor_schema.get.call_args
+        self.assertEqual(get_kwargs['slug'], 'my-schema')
+
+        # hidrated descriptor schema
+        descriptor_schema = {
+            "slug": "test-schema",
+            "name": "Test schema",
+            "version": "1.0.0",
+            "schema": [
+                {
+                    "default": "56G",
+                    "type": "basic:string:",
+                    "name": "description",
+                    "label": "Object description"
+                }
+            ],
+            "id": 1,
+        }
+        collection = Collection(id=1, descriptor_schema=descriptor_schema, resolwe=MagicMock())
+        self.assertTrue(isinstance(collection.descriptor_schema, DescriptorSchema))
+        # pylint: disable=no-member
+        self.assertEqual(collection.descriptor_schema.slug, 'test-schema')
+        # pylint: enable=no-member
+
     def test_data(self):
         collection = Collection(id=1, resolwe=MagicMock())
 
@@ -130,6 +182,57 @@ class TestCollection(unittest.TestCase):
 
 
 class TestSample(unittest.TestCase):
+
+    def test_descriptor_schema(self):
+        sample = Sample(id=1, resolwe=MagicMock())
+        sample._descriptor_schema = 1
+
+        # test getting descriptor schema attribute
+        sample.resolwe.descriptor_schema.get = MagicMock(return_value='descriptor_schema')
+        self.assertEqual(sample.descriptor_schema, 'descriptor_schema')
+        _, get_kwargs = sample.resolwe.descriptor_schema.get.call_args
+        self.assertEqual(get_kwargs['id'], 1)
+
+        # descriptor schema is not set
+        sample._descriptor_schema = None
+        self.assertEqual(sample.descriptor_schema, None)
+
+        # cache is cleared at update
+        sample._hydrated_descriptor_schema = 'descriptor_schema'
+        sample.update()
+        self.assertEqual(sample._hydrated_descriptor_schema, None)
+
+        # new collection
+        sample = Sample(resolwe=MagicMock())
+
+        sample.descriptor_schema = 'my-schema'
+        self.assertEqual(sample._descriptor_schema, 'my-schema')
+
+        sample.resolwe.descriptor_schema.get = MagicMock(return_value='descriptor_schema')
+        self.assertEqual(sample.descriptor_schema, 'descriptor_schema')
+        _, get_kwargs = sample.resolwe.descriptor_schema.get.call_args
+        self.assertEqual(get_kwargs['slug'], 'my-schema')
+
+        # hidrated descriptor schema
+        descriptor_schema = {
+            "slug": "test-schema",
+            "name": "Test schema",
+            "version": "1.0.0",
+            "schema": [
+                {
+                    "default": "56G",
+                    "type": "basic:string:",
+                    "name": "description",
+                    "label": "Object description"
+                }
+            ],
+            "id": 1,
+        }
+        sample = Sample(id=1, descriptor_schema=descriptor_schema, resolwe=MagicMock())
+        self.assertTrue(isinstance(sample.descriptor_schema, DescriptorSchema))
+        # pylint: disable=no-member
+        self.assertEqual(sample.descriptor_schema.slug, 'test-schema')
+        # pylint: enable=no-member
 
     def test_data(self):
         sample = Sample(id=1, resolwe=MagicMock())

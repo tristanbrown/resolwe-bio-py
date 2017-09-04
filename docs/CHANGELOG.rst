@@ -12,6 +12,7 @@ Unreleased
 Added
 -----
 * ``User`` and ``Group`` resources
+* ``DescriptorSchema`` resource
 * Support for permissions management on resolwe resources
 
 Changed

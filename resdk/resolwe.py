@@ -27,7 +27,7 @@ from six.moves.urllib.parse import urljoin  # pylint: disable=import-error
 
 from .exceptions import ValidationError, handle_http_exception
 from .query import ResolweQuery
-from .resources import Collection, Data, Group, Process, Relation, Sample, User
+from .resources import Collection, Data, DescriptorSchema, Group, Process, Relation, Sample, User
 from .resources.kb import Feature, Mapping
 from .resources.utils import (
     endswith_colon, get_collection_id, get_data_id, iterate_fields, iterate_schema,
@@ -103,6 +103,7 @@ class Resolwe(object):
         self.sample = ResolweQuery(self, Sample)
         self.relation = ResolweQuery(self, Relation)
         self.process = ResolweQuery(self, Process)
+        self.descriptor_schema = ResolweQuery(self, DescriptorSchema)
         self.user = ResolweQuery(self, User, slug_field='username')
         self.group = ResolweQuery(self, Group, slug_field='name')
         self.feature = ResolweQuery(self, Feature)

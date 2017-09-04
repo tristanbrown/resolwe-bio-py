@@ -6,7 +6,8 @@ import six
 from resdk.shortcuts.collection import CollectionRelationsMixin
 
 from .base import BaseResolweResource
-from .utils import get_data_id, get_sample_id
+from .descriptor import DescriptorSchema
+from .utils import get_data_id, get_descriptor_schema_id, get_sample_id, is_descriptor_schema
 
 
 class BaseCollection(BaseResolweResource):
@@ -31,14 +32,17 @@ class BaseCollection(BaseResolweResource):
 
     def __init__(self, resolwe, **model_data):
         """Initialize attributes."""
+        #: descriptor schema id in which data object is
+        self._descriptor_schema = None
+        #: (lazy loaded) descriptor schema object in which data object is
+        self._hydrated_descriptor_schema = None
+
         #: a description
         self.description = None
         #: settings
         self.settings = None
         #: descriptor
         self.descriptor = None
-        #: descriptor schema
-        self.descriptor_schema = None
 
         super(BaseCollection, self).__init__(resolwe, **model_data)
 
@@ -46,6 +50,42 @@ class BaseCollection(BaseResolweResource):
     def data(self):
         """Return list of attached Data objects."""
         raise NotImplementedError('This should be implemented in subclass')
+
+    @property
+    def descriptor_schema(self):
+        """Return descriptor schema assigned to the data object."""
+        if self._descriptor_schema is None:
+            return None
+
+        if self._hydrated_descriptor_schema is None:
+            if isinstance(self._descriptor_schema, int):
+                query_filters = {'id': self._descriptor_schema}
+            else:
+                query_filters = {'slug': self._descriptor_schema}
+
+            self._hydrated_descriptor_schema = self.resolwe.descriptor_schema.get(
+                ordering='-version', limit=1, **query_filters
+            )
+
+        return self._hydrated_descriptor_schema
+
+    @descriptor_schema.setter
+    def descriptor_schema(self, dschema):
+        """Set collection to which relation belongs."""
+        # On single data object endpoint descriptor schema is already
+        # hidrated, so it should be transformed into resource.
+        if isinstance(dschema, dict):
+            dschema = DescriptorSchema(resolwe=self.resolwe, **dschema)
+
+        self._descriptor_schema = get_descriptor_schema_id(dschema)
+        # Save descriptor schema if already hydrated, otherwise it will be rerived in getter
+        self._hydrated_descriptor_schema = dschema if is_descriptor_schema(dschema) else None
+
+    def update(self):
+        """Clear cache and update resource fields from the server."""
+        self._hydrated_descriptor_schema = None
+
+        super(BaseCollection, self).update()
 
     def _clear_data_cache(self):
         """Clear data cache."""
