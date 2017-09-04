@@ -19,7 +19,7 @@ class Process(BaseResolweResource):
 
     endpoint = "process"
 
-    WRITABLE_FIELDS = ('data_name', 'version', 'type', 'flow_collection', 'category',
+    WRITABLE_FIELDS = ('data_name', 'type', 'flow_collection', 'category',
                        'persistence', 'priority', 'description', 'input_schema',
                        'output_schema', 'run') + BaseResolweResource.WRITABLE_FIELDS
 
@@ -34,8 +34,6 @@ class Process(BaseResolweResource):
         data object is determined from this field. The field is a expression
         which can take values of other fields.
         """
-        #: the process version
-        self.version = None
         #: the type of process ``"type:sub_type:sub_sub_type:..."``
         self.type = None
         #: Current options: "sample"/None. If sample, new "sample" will be created

@@ -163,12 +163,14 @@ class BaseResolweResource(BaseResource):
 
     WRITABLE_FIELDS = ('slug', 'name')
     UPDATE_PROTECTED_FIELDS = ('contributor', )
-    READ_ONLY_FIELDS = ('id', 'created', 'modified', 'current_user_permissions')
+    READ_ONLY_FIELDS = ('id', 'version', 'created', 'modified', 'current_user_permissions')
 
     def __init__(self, resolwe, **model_data):
         """Initialize attributes."""
         #: a descriptive name of the resource
         self.name = None
+        #: the resource version
+        self.version = None
         #: human-readable unique identifier
         self.slug = None
         #: user id of the contributor
