@@ -9,13 +9,12 @@ __all__ = ('cuffquant', 'cuffnorm')
 
 
 def cuffquant(resource, gff, genome=None, mask_file=None, library_type=None,
-              multi_read_correct=None, threads=None):
+              multi_read_correct=None):
     """Run Cuffquant_ for selected cuffquats.
 
     This method runs `Cuffquant`_ process with ``annotation`` specified
     in arguments. Library type is by defalt fr-unsstranded. Other
-    parameters: genome, mask_file, multi_reads_correct and threads are
-    optional.
+    parameters: genome, mask_file and multi_reads_correct are optional.
 
     .. _Cuffquant:
         http://resolwe-bio.readthedocs.io/en/latest/catalog-definitions.html#process-cuffquant
@@ -31,7 +30,6 @@ def cuffquant(resource, gff, genome=None, mask_file=None, library_type=None,
         fr-secondstrand
     :param bool multi_read_correct: do initial estimation procedure to
         more accurately weight reads with multiple genome mappings
-    :param int threads: use this many processor threads
 
     """
     results = []
@@ -53,9 +51,6 @@ def cuffquant(resource, gff, genome=None, mask_file=None, library_type=None,
         if multi_read_correct is not None:
             inputs['multi_read_correct'] = multi_read_correct
 
-        if threads is not None:
-            inputs['threads'] = threads
-
         cuffquant_obj = sample.resolwe.get_or_run(slug='cuffquant', input=inputs)
         sample.add_data(cuffquant_obj)
         results.append(cuffquant_obj)
@@ -63,12 +58,11 @@ def cuffquant(resource, gff, genome=None, mask_file=None, library_type=None,
     return results
 
 
-def cuffnorm(resource, annotation, use_ercc=None, threads=None):
+def cuffnorm(resource, annotation, use_ercc=None):
     """Run Cuffnorm_ for selected cuffquats.
 
     This method runs `Cuffnorm`_ process on ``resource`` with
-     ``annotation``, ``use_ercc`` and ``threads`` parameters specified
-     in arguments.
+    ``annotation`` and ``use_ercc`` parameters specified in arguments.
 
     .. _Cuffnorm:
         http://resolwe-bio.readthedocs.io/en/latest/catalog-definitions.html#process-upload-expression-cuffnorm
@@ -77,8 +71,6 @@ def cuffnorm(resource, annotation, use_ercc=None, threads=None):
     :param annotation: annotation object used in cuffnorm
     :type annotation: `~resdk.resources.data.Data`
     :param bool use_ercc: use ERRCC spike-in controls for normalization
-    :param int threads: use this many threads to align reads
-        (default: ``1``)
 
     """
     relation_filter = {}
@@ -124,9 +116,6 @@ def cuffnorm(resource, annotation, use_ercc=None, threads=None):
 
     if use_ercc is not None:
         inputs['useERCC'] = use_ercc
-
-    if threads is not None:
-        inputs['threads'] = threads
 
     cuffnorm_obj = resolwe.get_or_run(slug='cuffnorm', input=inputs)
 

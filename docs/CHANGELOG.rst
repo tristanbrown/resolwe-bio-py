@@ -9,6 +9,11 @@ All notable changes to this project are documented in this file.
 Unreleased
 ==========
 
+Changed
+-----
+* Remove ``threads`` parameter from ``cuffquant`` and ``cufnorm``
+  helper functions
+
 Fixed
 -----
 * Fix delete functionality for non-boolean ``force`` parameter types
