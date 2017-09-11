@@ -5,9 +5,9 @@ Change Log
 All notable changes to this project are documented in this file.
 
 
-==========
-Unreleased
-==========
+==================
+2.0.0 - 2017-09-11
+==================
 
 Added
 -----
@@ -17,8 +17,8 @@ Added
 
 Changed
 -------
-* Remove ``id`` and ``slug`` parameters from init functions of
-  resources. Query object should be used instead, i.e.
+* **BACKWARD INCOMPATIBLE:** Remove ``id`` and ``slug`` parameters from
+  init functions of resources. Query object should be used instead, i.e.
   ``<resolwe>.<resource>.get(...)``
 
 Fixed
@@ -29,9 +29,9 @@ Fixed
   in Python 2
 
 
-=================
-1.10.0 2017-09-11
-=================
+===================
+1.10.0 - 2017-09-11
+===================
 
 Changed
 -----
