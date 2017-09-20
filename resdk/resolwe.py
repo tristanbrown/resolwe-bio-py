@@ -154,7 +154,7 @@ class Resolwe(object):
                 for schema, _, _ in iterate_schema({}, process[field], field):
                     endswith_colon(schema, 'type')
 
-            process['{}_schema'.format(field)] = process.pop(field)
+            process['{}_schema'.format(field)] = process.pop(field, [])
 
         if 'persistence' in process:
             persistence_map = {'RAW': 'RAW', 'CACHED': 'CAC',
