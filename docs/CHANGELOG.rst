@@ -9,6 +9,11 @@ All notable changes to this project are documented in this file.
 Unreleased
 ==========
 
+Fixed
+-----
+* Fix register in ``<resolwe>.run`` function to work with processes
+  (referended in ``src`` attribute) with no output field
+
 
 ==================
 2.0.0 - 2017-09-11
