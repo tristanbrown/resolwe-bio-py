@@ -16,7 +16,7 @@ from resdk.tests.mocks.data import DATA_SAMPLE
 
 class TestData(unittest.TestCase):
 
-    @patch('resdk.resources.data.Data', spec=True)
+    @patch('resdk.resources.data.Data', spec=True, annotation={})
     def test_update_fields(self, data_mock):
         Data._update_fields(data_mock, DATA_SAMPLE[0])
         self.assertEqual(data_mock._flatten_field.call_count, 2)
