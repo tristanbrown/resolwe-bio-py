@@ -26,9 +26,6 @@ class Data(BaseResolweResource):
 
     endpoint = 'data'
 
-    #: Flattened dict of inputs and outputs, where keys are dit separated paths to values
-    annotation = {}
-
     #: (lazy loaded) annotated ``Sample`` to which ``Data`` object belongs
     _sample = None
     #: (lazy loaded) list of collections to which data object belongs
@@ -50,6 +47,8 @@ class Data(BaseResolweResource):
         self._descriptor_schema = None
         #: (lazy loaded) descriptor schema object in which data object is
         self._hydrated_descriptor_schema = None
+        #: Flattened dict of inputs and outputs, where keys are dit separated paths to values
+        self.annotation = {}
 
         #: specification of inputs
         self.process_input_schema = None

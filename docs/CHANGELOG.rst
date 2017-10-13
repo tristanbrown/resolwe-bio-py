@@ -13,6 +13,8 @@ Fixed
 -----
 * Fix register in ``<resolwe>.run`` function to work with processes
   (referended in ``src`` attribute) with no output field
+* Make ``Data.annotation`` an instance attribute instead of class
+  attribute
 
 
 ==================
