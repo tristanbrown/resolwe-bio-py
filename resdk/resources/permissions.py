@@ -57,14 +57,15 @@ class PermissionsManager(object):
 
         self._validate_perms(perms)
 
-        for single in who:
-
-            if who_type in ['users', 'groups']:
+        if who_type in ['users', 'groups']:
+            for single in who:
                 payload[who_type][action][single.id] = copy.copy(perms)
-            elif who_type == 'public':
-                payload[who_type][action] = copy.copy(perms)
-            else:
-                raise KeyError("`who_type` must be 'users', 'groups' or 'public'.")
+
+        elif who_type == 'public':
+            payload[who_type][action] = copy.copy(perms)
+
+        else:
+            raise KeyError("`who_type` must be 'users', 'groups' or 'public'.")
 
         self._permissions = self.permissions_api.post(payload)
 
