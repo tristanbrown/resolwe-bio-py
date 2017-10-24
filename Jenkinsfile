@@ -98,6 +98,9 @@ node {
                          // is run. Additionally, 'resolwe.elastic' app's logic also automatically
                          // appends a random ID to test index prefixes to avoid index name clashes.
                          "GENESIS_REDIS_PORT=56390",
+                         // Processes need to be registered for e2e tests, but don't need to be
+                         // run, so there is no need to pull Docker images.
+                         "GENESIS_DOCKER_DONT_PULL=1",
                          "GENESIS_RESDK_PATH=${workspace_dir}"]) {
                     lock (resource: "resolwe-bio-py-e2e-lock-redis10-liveserver8090") {
                         withEnv(["GENESIS_REDIS_DATABASE=10",
