@@ -5,9 +5,9 @@ Change Log
 All notable changes to this project are documented in this file.
 
 
-==========
-Unreleased
-==========
+==================
+2.0.1 - 2017-10-27
+==================
 
 Fixed
 -----
@@ -15,6 +15,7 @@ Fixed
   (referended in ``src`` attribute) with no output field
 * Make ``Data.annotation`` an instance attribute instead of class
   attribute
+* Fix setting permissions for public user
 
 
 ==================
