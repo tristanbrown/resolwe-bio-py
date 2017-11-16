@@ -1,6 +1,21 @@
 node {
     def workspace_dir = pwd()
+    // Genialis Base branch with which to run the End-to-End tests
+    def genialis_base_e2e_tests_branch = "master"
+    // directory where to check out the given branch of Genialis Base
     def genialis_base_dir = "genialis-base"
+    // NOTE: To avoid exceeding the maximum allowed shebang lenght when calling pip due very
+    // long paths of Jenkins' workspaces, we need to set a shorter Tox's working directory path
+    // More info: http://tox.readthedocs.io/en/latest/example/jenkins.html#avoiding-the-path-too-long-error-with-long-shebang-lines
+    def tox_workdir = "${env.HOME}/.tox-${env.BUILD_TAG}"
+    // extra arguments passed to Tox
+    def tox_extra_args = ""
+    if (genialis_base_e2e_tests_branch == "master") {
+        // NOTE: If we are running End-to-End tests with Genialis Base's "master" branch, we
+        // need to allow installing pre-releases with the pip command.
+        tox_extra_args += "--pre"
+    }
+    // path of the JUnit report
     def junit_report_file = "${genialis_base_dir}/.reports/resdk_e2e_report.xml"
 
     try {
@@ -47,7 +62,7 @@ node {
             dir(genialis_base_dir) {
                 git (
                     [url: "https://github.com/genialis/genialis-base.git",
-                     branch:"master",
+                     branch: "${genialis_base_e2e_tests_branch}",
                      credentialsId: "c89baeb1-9818-4627-95fd-50eeb3677a39",
                      changelog: false,
                      poll: false]
@@ -60,35 +75,12 @@ node {
                 sh "mkdir -p frontend/genjs/schema && \
                     echo '{}' > frontend/genjs/schema/configuration.json"
             }
-
-            // prepare a clean Python virtual environment
-            sh "rm -rf venv"
-            sh "virtualenv venv"
-            withEnv(["PATH+VIRUALENV=${workspace_dir}/venv/bin"]) {
-                // NOTE: The pip command is never called directly since it could fail due to
-                // exceeding the maximum shabang lenght which can occur due to very long paths
-                // of Jenkins builds.
-                // The issue is tracked at: https://github.com/pypa/pip/issues/1773
-                sh "echo 'Environment:' && python --version && python -m pip --version"
-            }
-
-            // install Genialis Base into Python virtual environment
-            withEnv(["PATH+VIRUALENV=${workspace_dir}/venv/bin"]) {
-                sh "python -m pip install --process-dependency-links -r \
-                    ${genialis_base_dir}/requirements.txt"
-            }
-
-            // install ReSDK and its testing requirements into Python virtual environment
-            withEnv(["PATH+VIRUALENV=${workspace_dir}/venv/bin"]) {
-                sh "python -m pip install .[test]"
-            }
         }
 
         stage("Test (E2E)") {
             // run End-to-End tests
             dir(genialis_base_dir) {
-                withEnv(["PATH+VIRUALENV=${workspace_dir}/venv/bin",
-                         "GENESIS_POSTGRESQL_USER=postgres",
+                withEnv(["GENESIS_POSTGRESQL_USER=postgres",
                          "GENESIS_POSTGRESQL_PORT=55440",
                          // set database name to a unique value
                          "GENESIS_POSTGRESQL_NAME=${env.BUILD_TAG}",
@@ -101,7 +93,8 @@ node {
                          // Processes need to be registered for e2e tests, but don't need to be
                          // run, so there is no need to pull Docker images.
                          "GENESIS_DOCKER_DONT_PULL=1",
-                         "GENESIS_RESDK_PATH=${workspace_dir}"]) {
+                         "GENESIS_RESDK_PATH=${workspace_dir}",
+                         "TOX_WORKDIR=${tox_workdir}"]) {
                     lock (resource: "resolwe-bio-py-e2e-lock-redis10-liveserver8090") {
                         withEnv(["GENESIS_REDIS_DATABASE=10",
                                  "GENESIS_TEST_LIVESERVER_PORT=8090"]) {
@@ -109,7 +102,7 @@ node {
                             // "resolwe-bio-py-e2e-lock" indefinitely thus we have to set a timeout
                             // on their execution time.
                             timeout(time: 15, unit: "MINUTES") {
-                                sh "./manage.py test --no-input --pattern e2e_test_resdk.py"
+                                sh "tox -e py34-e2e-resdk ${tox_extra_args}"
                             }
                         }
                     }
@@ -132,6 +125,9 @@ node {
         if (fileExists(junit_report_file)) {
             junit junit_report_file
         }
+        // manually remove Tox's working directory since it is created outside Jenkins's
+        // workspace
+        sh "rm -rf ${tox_workdir}"
     }
 }
 
