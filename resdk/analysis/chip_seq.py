@@ -1,20 +1,11 @@
 """Chip Seq analysis."""
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from resdk.resources.utils import get_data_id, get_resource_collection, get_samples, is_sample
+from resdk.resources.utils import (
+    get_data_id, get_resource_collection, get_samples, is_background, is_sample,
+)
 
 __all__ = ('macs', 'rose2')
-
-
-def is_background(sample):
-    """Return ``True`` if given sample is background and ``False`` otherwise."""
-    background_relations = sample.resolwe.relation.filter(
-        type='compare',
-        label='background',
-        entity=sample.id,
-        position='background'
-    )
-    return len(background_relations) > 0
 
 
 def macs(resource, use_background=True, p_value=None):
