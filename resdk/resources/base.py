@@ -146,6 +146,13 @@ class BaseResource(object):
 
         super(BaseResource, self).__setattr__(name, value)
 
+    def __eq__(self, obj):
+        """Evaluate if objects are the same."""
+        if self.__class__ == obj.__class__ and self.id == obj.id:
+            return True
+        else:
+            return False
+
 
 class BaseResolweResource(BaseResource):
     """Base class for Resolwe resources.

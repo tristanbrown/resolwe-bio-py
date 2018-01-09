@@ -32,6 +32,7 @@ Changed
 Added
 -----
 * Add ``get_primary_bam`` utility function
+* Enable direct comparison of two objects
 
 Changed
 -------

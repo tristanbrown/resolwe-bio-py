@@ -66,6 +66,16 @@ class TestBaseResolweResource(unittest.TestCase):
 
         self.assertEqual(resource.first_field, 42)
 
+    def test_eq(self):
+        obj_1 = BaseResource(resolwe=self.resolwe_mock, id=1)
+        obj_2 = BaseResource(resolwe=self.resolwe_mock, id=1)
+        obj_3 = BaseResource(resolwe=self.resolwe_mock, id=2)
+        obj_4 = BaseResolweResource(resolwe=self.resolwe_mock, id=1)
+
+        self.assertEqual(obj_1 == obj_2, True)
+        self.assertEqual(obj_1 == obj_3, False)
+        self.assertEqual(obj_1 == obj_4, False)
+
 
 class TestBaseMethods(unittest.TestCase):
 
