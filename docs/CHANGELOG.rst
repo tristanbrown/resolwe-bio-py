@@ -33,6 +33,8 @@ Added
 -----
 * Add ``get_primary_bam`` utility function
 * Enable direct comparison of two objects
+* Add ``prepare_geo_chipseq``, ``prepare_geo_rnaseq`` and
+  ``prepare_geo`` helper functions
 
 Changed
 -------

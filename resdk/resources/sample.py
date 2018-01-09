@@ -45,6 +45,10 @@ class SampleUtilsMixin(object):
         """Return ``cuffquant`` object on the sample."""
         return self.data.get(type='data:cufflinks:cuffquant')
 
+    def get_expression(self):
+        """Return ``expression`` object on the sample."""
+        return self.data.get(type='data:expression:')
+
 
 class Sample(SampleUtilsMixin, BaseCollection):
     """Resolwe Sample resource.

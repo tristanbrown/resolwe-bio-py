@@ -184,3 +184,33 @@ class BaseResdkFunctionalTest(unittest.TestCase):
                 collection.add_samples(cuffquant.sample)
 
         return cuffquants
+
+    def get_expression(self, count=1, collection=None, species='Homo sapiens',
+                       build='hg38'):
+        """Return expression data objects.
+
+        :param int count: number of objects to return
+        :param colection: If defined, data object will be add to given
+            collections.
+        :type collection: None, int or `~resdk.resources.Collection`
+        """
+        expression_path = os.path.join(FILES_PATH, 'dummy_expression.tab')
+        collections = {'collections': [collection]} if collection else {}
+
+        expressions = []
+        for _ in range(count):
+            expression = self.res.run(
+                'upload-expression',
+                input={
+                    'exp': expression_path,
+                    'exp_name': 'test_expression',
+                    'source': 'NCBI',
+                    'species': species,
+                    'build': build,
+                },
+                **collections
+            )
+
+            expressions.append(expression)
+
+        return expressions

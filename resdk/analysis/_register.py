@@ -6,6 +6,7 @@ from resdk.analysis.chip_seq import macs, rose2
 from resdk.analysis.differential_expressions import cuffdiff
 from resdk.analysis.expressions import cuffnorm, cuffquant
 from resdk.analysis.plots import bamliquidator, bamplot
+from resdk.analysis.prepare_geo import prepare_geo, prepare_geo_chipseq, prepare_geo_rnaseq
 from resdk.resources import Collection, Data, Relation, Sample
 from resdk.utils.decorators import return_first_element
 
@@ -17,6 +18,9 @@ Collection.run_cuffnorm = cuffnorm
 Collection.run_cuffquant = cuffquant
 Collection.run_hisat2 = hisat2
 Collection.run_macs = macs
+Collection.run_prepare_geo = prepare_geo
+Collection.run_prepare_geo_chipseq = prepare_geo_chipseq
+Collection.run_prepare_geo_rnaseq = prepare_geo_rnaseq
 Collection.run_rose2 = rose2
 
 # pylint: disable=no-value-for-parameter
