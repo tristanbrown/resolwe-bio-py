@@ -63,7 +63,7 @@ setup(
             'mock==1.3.0',
             'pycodestyle>=2.1.0',
             'pydocstyle>=1.0.0',
-            'pylint~=1.7.0',
+            'pylint~=1.8.0',
             'pytest-cov',
             'readme_renderer',
         ],
