@@ -13,8 +13,9 @@ import zipfile
 import appdirs
 import slumber
 
+from . import Resolwe
 from . import __about__ as about
-from . import Resolwe, resdk_logger
+from . import resdk_logger
 
 ORGANISMS = {
     'HUMAN': 'Homo sapiens',
