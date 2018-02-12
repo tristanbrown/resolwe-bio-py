@@ -8,8 +8,8 @@ from resdk.resources.utils import (
 __all__ = ('cuffquant', 'cuffnorm')
 
 
-def cuffquant(resource, gff, genome=None, mask_file=None, library_type=None,
-              multi_read_correct=None):
+def cuffquant(resource, annotation, genome=None, mask_file=None,
+              library_type=None, multi_read_correct=None):
     """Run Cuffquant_ for selected cuffquats.
 
     This method runs `Cuffquant`_ process with ``annotation`` specified
@@ -19,8 +19,8 @@ def cuffquant(resource, gff, genome=None, mask_file=None, library_type=None,
     .. _Cuffquant:
         http://resolwe-bio.readthedocs.io/en/latest/catalog-definitions.html#process-cuffquant
 
-    :param gff: annotation file
-    :type gff: `~resdk.resources.data.Data`
+    :param annotation: annotation file
+    :type annotation: `~resdk.resources.data.Data`
     :param genome: genome object to use for bias detection and
         correction algorithm
     :type genome: `~resdk.resources.data.Data`
@@ -36,7 +36,7 @@ def cuffquant(resource, gff, genome=None, mask_file=None, library_type=None,
     for sample in get_samples(resource):
         inputs = {
             'alignment': sample.get_bam().id,
-            'gff': get_data_id(gff),
+            'annotation': get_data_id(annotation),
         }
 
         if genome is not None:
