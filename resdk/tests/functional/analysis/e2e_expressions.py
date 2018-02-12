@@ -14,7 +14,7 @@ class TestExpressions(BaseResdkFunctionalTest):
         bam_1, bam_2 = self.get_bams(2, collection)
         # pylint: enable=unbalanced-tuple-unpacking
         bam_3 = self.get_bams(1)[0]
-        annotation = self.get_gtf(1)
+        annotation = self.get_gtf()
 
         group = collection.create_group_relation(samples=[bam_1.sample])
 
@@ -44,7 +44,7 @@ class TestExpressions(BaseResdkFunctionalTest):
         # pylint: disable=unbalanced-tuple-unpacking
         cuffquant_1, cuffquant_2, cuffquant_3, cuffquant_4 = self.get_cuffquants(4, collection)
         # pylint: enable=unbalanced-tuple-unpacking
-        annotation = self.get_gtf(1)
+        annotation = self.get_gtf()
 
         group = collection.create_group_relation(
             samples=[cuffquant_1.sample, cuffquant_2.sample],

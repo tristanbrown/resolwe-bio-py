@@ -13,7 +13,7 @@ class TestAligners(BaseResdkFunctionalTest):
         reads_1, reads_2 = self.get_reads(2, collection)
         # pylint: enable=unbalanced-tuple-unpacking
         reads_3 = self.get_reads(1)[0]
-        genome = self.get_genome(1)
+        genome = self.get_genome()
 
         group = collection.create_group_relation(samples=[reads_1.sample])
 
@@ -49,7 +49,7 @@ class TestAligners(BaseResdkFunctionalTest):
         reads_1, reads_2 = self.get_reads(2, collection)
         # pylint: enable=unbalanced-tuple-unpacking
         reads_3 = self.get_reads(1)[0]
-        genome = self.get_genome(1)
+        genome = self.get_genome()
 
         group = collection.create_group_relation(samples=[reads_1.sample])
 

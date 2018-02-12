@@ -21,6 +21,9 @@ Fixed
   (referended in ``src`` attribute) with no output field
 * Make ``Data.annotation`` an instance attribute instead of class
   attribute
+* Remove annotation tests from ``test_macs``
+* Fix ``get_*`` calls in tests by including species and build inputs
+* Remove invalid collection assignments in ``get_*`` calls
 
 
 ==================

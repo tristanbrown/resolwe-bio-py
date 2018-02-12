@@ -36,10 +36,11 @@ class BaseResdkFunctionalTest(unittest.TestCase):
         self.res = Resolwe(ADMIN_USERNAME, ADMIN_PASSWORD, URL)
         self.user_res = Resolwe(USER_USERNAME, USER_PASSWORD, URL)
 
-    def get_genome(self, collection=None):
+    def get_genome(self, collection=None, species='Homo sapiens',
+                   build='hg38'):
         """Return genome data object.
 
-        :param colection: If defined, data object will be add to given
+        :param collection: If defined, data object will be add to given
             collections.
         :type collection: None, int or `~resdk.resources.Collection`
         """
@@ -48,14 +49,19 @@ class BaseResdkFunctionalTest(unittest.TestCase):
 
         return self.res.run(
             'upload-genome',
-            input={'src': genome_path},
+            input={
+                'src': genome_path,
+                'species': species,
+                'build': build,
+            },
             **collections
         )
 
-    def get_gtf(self, collection=None):
+    def get_gtf(self, collection=None, species='Homo sapiens',
+                build='hg38'):
         """Return gff3 data object.
 
-        :param colection: If defined, data object will be add to given
+        :param collection: If defined, data object will be add to given
             collections.
         :type collection: None, int or `~resdk.resources.Collection`
         """
@@ -64,7 +70,12 @@ class BaseResdkFunctionalTest(unittest.TestCase):
 
         return self.res.run(
             'upload-gtf',
-            input={'src': gtf_path, 'source': 'NCBI'},
+            input={
+                'src': gtf_path,
+                'source': 'NCBI',
+                'species': species,
+                'build': build,
+            },
             **collections
         )
 
@@ -72,7 +83,7 @@ class BaseResdkFunctionalTest(unittest.TestCase):
         """Return reads data objects.
 
         :param int count: number of objects to return
-        :param colection: If defined, data object will be add to given
+        :param collection: If defined, data object will be add to given
             collections.
         :type collection: None, int or `~resdk.resources.Collection`
         """
@@ -95,11 +106,12 @@ class BaseResdkFunctionalTest(unittest.TestCase):
 
         return reads
 
-    def get_bams(self, count=1, collection=None):
+    def get_bams(self, count=1, collection=None, species='Homo sapiens',
+                 build='hg38'):
         """Return bam data objects.
 
         :param int count: number of objects to return
-        :param colection: If defined, data object will be add to given
+        :param collection: If defined, data object will be add to given
             collections.
         :type collection: None, int or `~resdk.resources.Collection`
         """
@@ -110,12 +122,14 @@ class BaseResdkFunctionalTest(unittest.TestCase):
         for _ in range(count):
             bam = self.res.run(
                 'upload-bam',
-                input={'src': bam_path},
+                input={
+                    'src': bam_path,
+                    'species': species,
+                    'build': build,
+                },
                 **collections
             )
-            bam.sample.update_descriptor(  # pylint: disable=no-member
-                {'sample': {'organism': 'Homo sapiens'}}
-            )
+
             bams.append(bam)
 
             # TODO: Remove this when samples are automatically added to
@@ -129,7 +143,7 @@ class BaseResdkFunctionalTest(unittest.TestCase):
         """Return macs data objects.
 
         :param int count: number of objects to return
-        :param colection: If defined, data object will be add to given
+        :param collection: If defined, data object will be add to given
             collections.
         :type collection: None, int or `~resdk.resources.Collection`
         """
@@ -137,11 +151,12 @@ class BaseResdkFunctionalTest(unittest.TestCase):
 
         return macs([bam.sample for bam in bams], use_background=False)
 
-    def get_cuffquants(self, count=1, collection=None):
+    def get_cuffquants(self, count=1, collection=None, species='Homo sapiens',
+                       build='hg38'):
         """Return cuffquant data objects.
 
         :param int count: number of objects to return
-        :param colection: If defined, data object will be add to given
+        :param collection: If defined, data object will be add to given
             collections.
         :type collection: None, int or `~resdk.resources.Collection`
         """
@@ -152,7 +167,12 @@ class BaseResdkFunctionalTest(unittest.TestCase):
         for _ in range(count):
             cuffquant = self.res.run(
                 'upload-cxb',
-                input={'src': cuffquant_path, 'source': 'NCBI'},
+                input={
+                    'src': cuffquant_path,
+                    'source': 'NCBI',
+                    'species': species,
+                    'build': build,
+                },
                 **collections
             )
 
