@@ -14,6 +14,7 @@ Changed
 * Change ``macs14`` helper function to work on unannotated samples
 * **BACKWARD INCOMPATIBLE:** Update cuffquant ``gff`` input to ``annotation`` in
   helper and test functions
+* Update resources and advanced queries tutorial doc
 
 Fixed
 -----
