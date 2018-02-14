@@ -45,7 +45,7 @@ process, or fastq paired ends reads with the `upload-fastq-paired`_ process.
     reads = res.run(
         'upload-fastq-single',
         input={'src': '/path/to/reads.fastq'}
-        )
+    )
 
     # Upload a fastq paired reads
     reads = res.run(
@@ -53,8 +53,8 @@ process, or fastq paired ends reads with the `upload-fastq-paired`_ process.
         input={
             'src1': '/path/to/reads-1.fastq.gz',
             'src2': '/path/to/reads-2.fastq.gz'
-            }
-        )
+        }
+    )
 
 What just happened? First, we chose a process to run, using
 its slug ``upload-fastq-single`` or ``upload-fastq-paired``. Second, we have
@@ -63,7 +63,7 @@ a defined set of input and output fields. Inputs should be given at execution.
 
 Uploading a fastq file creates a data object that can be referenced by ID or
 slug. You can immediately see these identifiers for your newly uploaded data
-object by entering ``reads``. If you exit your python 
+object by entering ``reads``. If you exit your python
 interpreter session, the ``reads`` variable will no longer be saved, but the
 data is still on the server, allowing you to query it again:
 
@@ -95,7 +95,7 @@ now, it's sufficient to understand how to query the one you've created:
 
 Every time you upload a data object to the Resolwe servers, you are marked
 as the contributor of both the data and the sample objects that have been
-created. If you know your user ``id``, you can search for all of the objects 
+created. If you know your user ``id``, you can search for all of the objects
 that you've created on the server:
 
 .. code-block:: python
@@ -188,7 +188,7 @@ descriptor schema:
             'cell_type': 'glioblastoma',
             'optional_char': ['my_characteristic:{}'.format('value')],
             'description': 'any additional description',
-            },
+        },
         'other': {'notes': 'any other information'},
     }
 
@@ -197,7 +197,7 @@ descriptor schema:
     Many descriptor schema have required fields with a limited set of choices
     that may be applied as annotations. For example, the 'organism' annotation
     in a sample descriptor must be selected from the list of options in the
-    `sample descriptor schema`_, represented by its Latin name. 
+    `sample descriptor schema`_, represented by its Latin name.
 
 .. _sample descriptor schema: https://github.com/genialis/resolwe-bio/blob/master/resolwe_bio/descriptors/sample_geo.yml
 
@@ -221,4 +221,4 @@ We can also define descriptors and descriptor schema directly when calling
 
 In this tutorial, you have learned how to upload and annotate objects on the
 Resolwe servers using ReSDK. Next, we will learn some powerful tools for
-organizing and analyzing these objects. 
+organizing and analyzing these objects.

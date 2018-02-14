@@ -22,6 +22,7 @@ Changed
 * Update contributing, start, and diffexp tutorial docs
 * Support primary bam files in ``macs`` helper function
 * Update and reorganize uploads and annotations tutorial doc
+* Update resources and advanced queries tutorial doc
 
 Fixed
 -----
