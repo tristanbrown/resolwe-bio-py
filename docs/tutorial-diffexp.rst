@@ -344,7 +344,7 @@ objects from our sample:
 	sample.data
 
 We have come to the end of Differential expressions tutorial. You are now
-acquainted with some powerful concepts (sample, collection, and relation) and
+acquainted with some powerful concepts (sample, collection, and relation), and
 know how to run differential expressions (and other processes) on samples that
-are already on the server. In the next tutorial we will learn how to work with
-your own data.
+are already on the server. In the next tutorial, we will learn some details on
+querying information about the server's resources. 

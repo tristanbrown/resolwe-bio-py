@@ -21,6 +21,7 @@ Changed
 * **BACKWARD INCOMPATIBLE:** Remove ``update_knowledge_base`` script
 * Update contributing, start, and diffexp tutorial docs
 * Support primary bam files in ``macs`` helper function
+* Update and reorganize uploads and annotations tutorial doc
 
 Fixed
 -----
