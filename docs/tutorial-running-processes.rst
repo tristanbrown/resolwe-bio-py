@@ -11,7 +11,7 @@ Often the next step that bioinformatician will do is align raw reads to genome.
 Many aligners are already included into resolwe-bio as described in the
 `Process catalog`_.
 
-For toturial we will use Subread to align our uploaded reads to the genome.
+For this tutorial we will use Subread to align our uploaded reads to the genome.
 But first we need to upload  genome.
 
 .. code-block:: python
@@ -170,6 +170,8 @@ output (a reference to the file that was just uploaded).
 There are many upload processes, since there are many different types
 of files we can upload. Where to get information about existing
 processes? You can browse the `Process catalog`_ or use the SDK:
+
+.. TODO: List available categories (not all of the categories in the catalog work)
 
 .. _`Process catalog`: http://resolwe-bio.readthedocs.io/en/latest/catalog.html
 

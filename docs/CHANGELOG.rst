@@ -15,6 +15,7 @@ Changed
 * **BACKWARD INCOMPATIBLE:** Update cuffquant ``gff`` input to ``annotation`` in
   helper and test functions
 * Update contributing, start, and diffexp tutorial docs
+* Update 'running processes' tutorial doc
 
 Fixed
 -----
