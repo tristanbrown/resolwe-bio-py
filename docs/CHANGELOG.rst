@@ -63,7 +63,7 @@ Fixed
 
 Changed
 -----
-* Remove ``threads`` parameter from ``cuffquant`` and ``cufnorm``
+* Remove ``threads`` parameter from ``cuffquant`` and ``cuffnorm``
   helper functions
 
 Fixed
