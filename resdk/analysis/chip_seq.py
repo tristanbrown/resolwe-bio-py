@@ -52,7 +52,7 @@ def macs(resource, use_background=True, p_value=None):
                 background_filter['collection'] = collection_id
 
         for sample in get_samples(single_resource):
-            inputs['treatment'] = sample.get_bam().id
+            inputs['treatment'] = sample.get_primary_bam(fallback_to_bam=True).id
 
             if use_background:
                 if is_background(sample) and not is_sample(single_resource):
@@ -61,7 +61,7 @@ def macs(resource, use_background=True, p_value=None):
                     continue
 
                 background = sample.get_background(**background_filter)
-                inputs['control'] = background.get_bam().id
+                inputs['control'] = background.get_primary_bam(fallback_to_bam=True).id
 
             macs_obj = sample.resolwe.get_or_run(slug='macs14', input=inputs)
             sample.add_data(macs_obj)

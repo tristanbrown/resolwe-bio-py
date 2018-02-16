@@ -9,6 +9,10 @@ All notable changes to this project are documented in this file.
 Unreleased
 ==========
 
+Added
+-----
+* Add ``get_primary_bam`` utility function
+
 Changed
 -------
 * Change ``macs14`` helper function to work on unannotated samples
@@ -16,6 +20,7 @@ Changed
   helper and test functions
 * **BACKWARD INCOMPATIBLE:** Remove ``update_knowledge_base`` script
 * Update contributing, start, and diffexp tutorial docs
+* Support primary bam files in ``macs`` helper function
 
 Fixed
 -----
