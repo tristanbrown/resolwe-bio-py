@@ -14,6 +14,7 @@ Changed
 * Change ``macs14`` helper function to work on unannotated samples
 * **BACKWARD INCOMPATIBLE:** Update cuffquant ``gff`` input to ``annotation`` in
   helper and test functions
+* **BACKWARD INCOMPATIBLE:** Remove ``update_knowledge_base`` script
 * Update contributing, start, and diffexp tutorial docs
 
 Fixed
