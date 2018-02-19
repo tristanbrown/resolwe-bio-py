@@ -8,14 +8,12 @@ import fnmatch
 import logging
 import os
 import time
-import zipfile
 
 import appdirs
-import slumber
 
-from . import Resolwe
-from . import __about__ as about
-from . import resdk_logger
+from resdk import Resolwe
+from resdk import __about__ as about
+from resdk import resdk_logger
 
 ORGANISMS = {
     'HUMAN': 'Homo sapiens',
@@ -46,58 +44,6 @@ EXPERIMENT_TYPE = {
     'RIP-SEQ': 'RIP-Seq',
     'CHIA-PET': 'ChIA-PET',
     'OTHER': 'OTHER',
-}
-
-SUBTYPE_MAP = {
-    'processed_pseudogene': 'pseudo',
-    'unprocessed_pseudogene': 'pseudo',
-    'polymorphic_pseudogene': 'pseudo',
-    'transcribed_unprocessed_pseudogene': 'pseudo',
-    'unitary_pseudogene': 'pseudo',
-    'transcribed_processed_pseudogene': 'pseudo',
-    'transcribed_unitary_pseudogene': 'pseudo',
-    'TR_J_pseudogene': 'pseudo',
-    'IG_pseudogene': 'pseudo',
-    'IG_D_pseudogene': 'pseudo',
-    'IG_C_pseudogene': 'pseudo',
-    'TR_V_pseudogene': 'pseudo',
-    'IG_V_pseudogene': 'pseudo',
-    'pseudogene': 'pseudo',
-    'pseudo': 'pseudo',
-    'asRNA': 'asRNA',
-    'antisense': 'asRNA',
-    'protein_coding': 'protein-coding',
-    'protein-coding': 'protein-coding',
-    'IG_V_gene': 'protein-coding',
-    'IG_LV_gene': 'protein-coding',
-    'TR_C_gene': 'protein-coding',
-    'TR_V_gene': 'protein-coding',
-    'TR_J_gene': 'protein-coding',
-    'IG_J_gene': 'protein-coding',
-    'TR_D_gene': 'protein-coding',
-    'IG_C_gene': 'protein-coding',
-    'IG_D_gene': 'protein-coding',
-    'miRNA': 'ncRNA',
-    'lincRNA': 'ncRNA',
-    'processed_transcript': 'ncRNA',
-    'sense_intronic': 'ncRNA',
-    'sense_overlapping': 'ncRNA',
-    'bidirectional_promoter_lncRNA': 'ncRNA',
-    'ribozyme': 'ncRNA',
-    'Mt_tRNA': 'ncRNA',
-    'Mt_rRNA': 'ncRNA',
-    'misc_RNA': 'ncRNA',
-    'macro_lncRNA': 'ncRNA',
-    '3prime_overlapping_ncRNA': 'ncRNA',
-    'sRNA': 'ncRNA',
-    'snRNA': 'snRNA',
-    'scaRNA': 'snoRNA',
-    'snoRNA': 'snoRNA',
-    'rRNA': 'rRNA',
-    'ncRNA': 'ncRNA',
-    'tRNA': 'tRNA',
-    'other': 'other',
-    'unknown': 'unknown'
 }
 
 # Scripts logger.
@@ -339,71 +285,3 @@ def sequp():
     modif_times = [os.path.getmtime(f) for f in uploaded_files]
     if modif_times:
         set_timestamp(sorted(modif_times)[-1])
-
-
-def upload_reads():
-    """Upload NGS reads to the Resolwe server."""
-    description = """Upload single-end or paired-end NGS reads to the Resolwe server.
-
-UPLOAD A SINGLE-END FASTQ FILE:
-resolwe-upload-reads -r sample1.fastq.gz
-
-UPLOAD A SET OF MULTI-LANE FASTQ FILES:
-resolwe-upload-reads -r sample1_lane1.fastq.gz sample1_lane2.fastq.gz
-
-UPLOAD A PAIR OF PAIRED-END READS FILES:
-resolwe-upload-reads -r1 sample1_mate1.fastq.gz -r2 sample1_mate2.fastq.gz
-
-UPLOAD ALL SINGLE-END READS IN A WORKING DIRECTORY:
-for reads_file in *.fastq.gz
-do
-   resolwe-upload-reads -r ${reads_file}
-done
-"""
-    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
-                                     description=description)
-
-    parser.add_argument('-a', '--address', default='https://torta.bcm.genialis.com',
-                        help='Resolwe server address')
-    parser.add_argument('-e', '--email', default='admin', help='User name')
-    parser.add_argument('-p', '--password', default='admin', help='User password')
-    parser.add_argument('-c', '--collection', nargs='*', type=int, help='Collection ID(s)')
-    parser.add_argument('-v', '--verbose', action='store_true', help='Enable verbose reporting')
-    parser.add_argument('-r', metavar='READS-LANE-X', nargs='*',
-                        help='Single-end reads (<read1_lane1 read1_lane2, ..>)')
-    parser.add_argument('-r1', metavar='MATE-1-LANE-X', nargs='*',
-                        help='Paired-end reads mate1 (<mate1_lane1 mate1_lane2, ..>)')
-    parser.add_argument('-r2', metavar='MATE-2-LANE-X', nargs='*',
-                        help='Paired-end reads mate2 (<mate1_lane1 mate1_lane2, ..>)')
-
-    args = parser.parse_args()
-
-    if args.verbose:
-        resdk_logger.start_logging()
-
-    if not (args.r or (args.r1 and args.r2)) or (args.r and (args.r1 or args.r2)):
-        parser.print_help()
-        print("\nERROR: define either -r or -r1 and -r2.\n")
-        exit(1)
-
-    if not args.r and len(args.r1) != len(args.r2):
-        parser.print_help()
-        print("\nERROR: -r1 and -r2 file list length must match\n")
-        exit(1)
-
-    resolwe = Resolwe(args.email, args.password, args.address)
-
-    if args.r:
-        if all(os.path.isfile(file) for file in args.r):
-            resolwe.run('upload-fastq-single', {'src': args.r}, collections=args.collection)
-        else:
-            print("\nERROR: Incorrect file path(s).\n")
-            exit(1)
-    else:
-        if (all(os.path.isfile(file) for file in args.r1) and
-                all(os.path.isfile(file) for file in args.r2)):
-            resolwe.run('upload-fastq-paired', {'src1': args.r1, 'src2': args.r2},
-                        collections=args.collection)
-        else:
-            print("\nERROR: Incorrect file path(s).\n")
-            exit(1)
