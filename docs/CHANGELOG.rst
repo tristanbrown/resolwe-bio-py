@@ -5,9 +5,9 @@ Change Log
 All notable changes to this project are documented in this file.
 
 
-==========
-Unreleased
-==========
+==================
+3.0.0 - 2018-02-21
+==================
 
 Added
 -----
@@ -15,11 +15,11 @@ Added
 
 Changed
 -------
-* Change ``macs14`` helper function to work on unannotated samples
-* **BACKWARD INCOMPATIBLE:** Update cuffquant ``gff`` input to ``annotation`` in
-  helper and test functions
+* **BACKWARD INCOMPATIBLE:** Update cuffquant ``gff`` input to
+  ``annotation`` in helper and test functions
 * **BACKWARD INCOMPATIBLE:** Remove ``update_knowledge_base`` script
-* Update contributing, start, and diffexp tutorial docs
+* Change ``macs14`` helper function to work on unannotated samples
+* Update contributing, start, and differential expression tutorial docs
 * Support primary bam files in ``macs`` helper function
 * Update and reorganize uploads and annotations tutorial doc
 * Update resources and advanced queries tutorial doc
@@ -30,7 +30,6 @@ Fixed
   (referended in ``src`` attribute) with no output field
 * Make ``Data.annotation`` an instance attribute instead of class
   attribute
-* Remove annotation tests from ``test_macs``
 * Fix ``get_*`` calls in tests by including species and build inputs
 * Remove invalid collection assignments in ``get_*`` calls
 
