@@ -15,6 +15,7 @@ Added
 * Add ``prepare_geo_chipseq``, ``prepare_geo_rnaseq`` and
   ``prepare_geo`` helper functions
 * Add ``bamsplit`` helper function
+* Add ``annotate`` and ``export_annotation`` functions for collections
 
 Changed
 -------
