@@ -15,29 +15,24 @@ logger = logging.getLogger(__name__)
 def annotate_samples(collection, samplesheet_source, schema='sample'):
     """Batch-annotate the samples in a collection.
 
-    This method applies annotations to the samples in a collection based on a
-    sample annotation spreadsheet. The entries in the spreadsheet and the
-    samples in the collection are matched by sample name, and validated for
-    upload.
+    Apply annotations to the samples in a collection based on a
+    sample annotation spreadsheet. Match the entries in the spreadsheet and the
+    samples in the collection by sample name, and validate for upload.
 
     :param str samplesheet_source: path to a local sample annotation
-        spreadsheet, or name of one in the collection, or an existing
-        FileImporter object created from an upload
+        spreadsheet, or an existing FileImporter object created from an upload
     :param str schema: slug of the descriptor schema to use
     """
     # Extract the information from a sample annotation spreadsheet
-    samplesheet = FileImporter(samplesheet_source)
-    valid_entries = samplesheet.sample_list
-    err_names = samplesheet.invalid_samples
+    if isinstance(samplesheet_source, FileImporter):
+        samplesheet = samplesheet_source
+    else:
+        samplesheet = FileImporter(samplesheet_source)
+    valid_entries = samplesheet.valid_samples
+    err_names = samplesheet.invalid_names
 
     # TODO: Try to pull the samplesheet as a data object from the collection
     #       once it is possible to upload samplesheets
-    # else:
-    #     sheet = collection.data.get(name=samplesheet_source,
-    #                                 type='data:annotation')
-    #     sheet.download()
-    #     samplesheet = FileImporter(sheet.files()[0])
-    #     err_names = set()
 
     # Match annotation entries to collection samples
     coll_samples = OrderedDict(
@@ -72,19 +67,20 @@ def annotate_samples(collection, samplesheet_source, schema='sample'):
         )
 
     # Apply each annotation to a sample in the collection
-    logger.info("\nAnnotating Samples...\n")
+    logger.debug("\nAnnotating Samples...\n")
     for name, samples in ready_samples.items():
         _apply_annotation(valid_entries[name], samples[0], schema)
 
     # Report annotation successes.
     sample_count = len(ready_samples)
-    logger.info("\nAnnotated %s samples.\n", sample_count)
+    logger.debug("\nAnnotated %s samples.\n", sample_count)
 
 
 def export_annotation(collection=None, path=None):
     """Download a sample annotation spreadsheet based on the collection.
 
-    Populate this template with sample annotation data, and re-import it using
+    The spreadsheet will be prepopulated with existing annotation data.
+    Fill out remaining sample annotation data, and then re-import using
     ``Collection.annotate``.
 
     :param str path: path to save the annotation spreadsheet template
@@ -95,15 +91,17 @@ def export_annotation(collection=None, path=None):
             filepath = path
         else:
             filepath = "{}.xlsm".format(collection.slug)
-        logger.info(
+        logger.debug(
             "\nExporting sample annotation template for collection '%s'...\n",
             collection.name)
     else:
         samples = []
-        filepath = 'template.xlsm'
-        logger.info("Exporting empty sample annotation template.")
-    samplesheet = FileExporter(samples, filepath)
-    samplesheet.export_template()
+        if path:
+            filepath = path
+        else:
+            filepath = 'template.xlsm'
+        logger.debug("Exporting empty sample annotation template.")
+    FileExporter(samples, filepath)
     logger.info("\nSample annotation template exported to %s.\n", filepath)
 
 

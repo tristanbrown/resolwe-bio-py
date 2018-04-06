@@ -16,6 +16,7 @@ Added
   ``prepare_geo`` helper functions
 * Add ``bamsplit`` helper function
 * Add ``annotate`` and ``export_annotation`` functions for collections
+* Add ``upload_reads`` and ``upload_demulti`` functions for collections
 
 Changed
 -------
