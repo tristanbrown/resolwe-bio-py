@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from resdk.analysis.alignment import bowtie2, hisat2
-from resdk.analysis.chip_seq import macs, rose2
+from resdk.analysis.chip_seq import bamsplit, macs, rose2
 from resdk.analysis.differential_expressions import cuffdiff
 from resdk.analysis.expressions import cuffnorm, cuffquant
 from resdk.analysis.plots import bamliquidator, bamplot
@@ -12,6 +12,7 @@ from resdk.utils.decorators import return_first_element
 
 Collection.run_bamliquidator = bamliquidator
 Collection.run_bamplot = bamplot
+Collection.run_bamsplit = bamsplit
 Collection.run_bowtie2 = bowtie2
 Collection.run_cuffdiff = cuffdiff
 Collection.run_cuffnorm = cuffnorm
@@ -30,6 +31,7 @@ Data.run_hisat2 = return_first_element(hisat2)
 
 Relation.run_bamliquidator = bamliquidator
 Relation.run_bamplot = bamplot
+Relation.run_bamsplit = bamsplit
 Relation.run_bowtie2 = bowtie2
 Relation.run_cuffdiff = cuffdiff
 Relation.run_cuffnorm = cuffnorm
@@ -38,6 +40,7 @@ Relation.run_hisat2 = hisat2
 Relation.run_macs = macs
 Relation.run_rose2 = rose2
 
+Sample.run_bamsplit = bamsplit
 Sample.run_bowtie2 = bowtie2
 Sample.run_cuffquant = cuffquant
 Sample.run_hisat2 = hisat2

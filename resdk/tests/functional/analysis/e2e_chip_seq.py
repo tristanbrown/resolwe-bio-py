@@ -6,6 +6,42 @@ from resdk.tests.functional.base import BaseResdkFunctionalTest
 
 class TestChipSeq(BaseResdkFunctionalTest):
 
+    def test_bamsplit(self):
+        collection = self.res.collection.create(name='Test collection')
+
+        # pylint: disable=unbalanced-tuple-unpacking
+        bam_1, bam_2 = self.get_bams(2, collection, build='hg19_dm6')
+        bam_3, bam_4, bam_5 = self.get_bams(3, build='hg19_dm6')
+        reads = self.get_reads()[0]
+        # pylint: enable=unbalanced-tuple-unpacking
+
+        relation = collection.create_background_relation(bam_3.sample, bam_4.sample)
+
+        # Run on a collection
+        bamsplit = collection.run_bamsplit()
+        self.assertEqual(len(bamsplit), 2)
+        self.assertEqual(bamsplit[0].input['bam'], bam_1.id)
+        self.assertEqual(bamsplit[1].input['bam'], bam_2.id)
+
+        # Second run with same parameters should fail as sample now has multiple bams
+        with self.assertRaises(LookupError):
+            collection.run_bamsplit()
+
+        # Run on a background relation
+        bamsplit = relation.run_bamsplit()
+        self.assertEqual(len(bamsplit), 2)
+        self.assertEqual(bamsplit[0].input['bam'], bam_3.id)
+        self.assertEqual(bamsplit[1].input['bam'], bam_4.id)
+
+        # Run on a single sample
+        bamsplit = bam_5.sample.run_bamsplit()
+        self.assertEqual(len(bamsplit), 1)
+        self.assertEqual(bamsplit[0].input['bam'], bam_5.id)
+
+        # Run on a sample without a bam
+        with self.assertRaises(LookupError):
+            reads.sample.run_bamsplit()
+
     def test_macs(self):
         collection = self.res.collection.create(name='Test collection')
         collection_2 = self.res.collection.create(name='Another collection')
