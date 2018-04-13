@@ -45,7 +45,7 @@ If you are working with ``resdk`` in an interactive session, the
 logging feature prints useful messages. It will let you know
 what is happening behind the scenes. Read more about
 :ref:`how the logging is configured in resdk<resdk_resdk_logger>`
-or about `Python logging`_ in general. 
+or about `Python logging`_ in general.
 
 .. _`Python logging`: https://docs.python.org/2/howto/logging.html
 .. _`Genialis Platform`: https://app.genialis.com
@@ -57,7 +57,7 @@ In Resolwe, meta-data is stored in the PostgreSQL database tables:
 Data, Sample, Collection, Process, DescriptorSchema, Storage,
 User, and Group. We support data management through the `REST API`_.
 Each table is represented as a REST resource with a corresponding
-endpoint. The Sample table is a special case, represented by the ``sample`` 
+endpoint. The Sample table is a special case, represented by the ``sample``
 resource. More details on samples will be given later.
 
 In ``resdk`` each REST API endpoint has a corresponding class, with
@@ -76,7 +76,7 @@ Data and Processes
 The two most important resources in Resolwe are *process* and *data*.
 A Process stores an algorithm that transforms inputs into outputs. It
 is a blueprint for one step in the analysis. A Data object is an
-instance of a Process. It is a complete record of the process step. 
+instance of a Process. It is a complete record of the process step.
 It remembers the inputs (files, arguments, parameters...), the process
 (the algorithm) and the outputs (files, images, numbers...). In
 addition, Data objects store some useful meta data, making it
@@ -87,10 +87,10 @@ easy to reproduce the dataflow and access information.
 (``mm10_chr19.fasta``) with the *Bowtie* aligner. All you have to do is
 create a Data object, setting the process and inputs. When the Data object
 is created, the platform automatically runs the given process with
-provided inputs, storing all inputs, outputs, and meta data. 
+provided inputs, storing all inputs, outputs, and meta data.
 
-You have already seen how to create and query data objects in the 
-`Download, upload, and annotations tutorial`_. 
+You have already seen how to create and query data objects in the
+`Download, upload, and annotations tutorial`_.
 You will learn the details of running processes to generate new data objects in
 the `Running processes tutorial`_. For now,
 let's just inspect the Bowtie process to learn a little more about it:
@@ -273,7 +273,7 @@ parameter is given, it will be interpreted as a unique identifier ``id`` or
 ``slug``, depending on if it is a number or string.
 
 .. code-block:: python
-   
+
     # Get a Collection object by id
     res.collection.get(128)
 
@@ -304,7 +304,7 @@ dataset using the ``process_type`` attribute:
     data.process_type
 
     # Filter data objects by type
-    res.data.filter(type='data:genome:fasta:')
+    res.data.filter(type='data:genome:fasta')
 
 The following are some examples of filtering of collections, samples and data
 objects:
@@ -336,7 +336,7 @@ objects:
     case_1 = sample_list.get(name='case_1')
 
     # select 'case_1' bam file
-    bam = case_1.data.get(type='data:alignment:bam:')
+    bam = case_1.data.get(type='data:alignment:bam')
 
     # in which collections is sample 'case_1'
     list_collections = case_1.collections
@@ -365,7 +365,7 @@ Python class attributes.
 
     # Access a resource attribute
     res.<resource>.<attribute>
-    
+
     # See a list of a resource's available attributes
     res.<resource>.__dict__.keys()
 
