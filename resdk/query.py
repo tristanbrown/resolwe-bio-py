@@ -204,6 +204,9 @@ class ResolweQuery(object):
     def _add_filter(self, filter_):
         """Add filter parameter."""
         for key, value in filter_.items():
+            # 'sample' is called 'entity' in the backend.
+            key = key.replace('sample', 'entity')
+
             if self.resource.query_method == 'GET':
                 self._filters[key].append(value)
             elif self.resource.query_method == 'POST':

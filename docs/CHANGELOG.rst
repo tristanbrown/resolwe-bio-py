@@ -13,6 +13,7 @@ Changed
 -------
 * **BACKWARD INCOMPATIBLE:** Change parameter ``email`` to ``username``
   in Resolwe constructor
+* Enable filtering by sample (instead of entity)
 
 
 ==================
