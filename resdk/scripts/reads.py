@@ -38,7 +38,7 @@ done
 
     parser.add_argument('-a', '--address', default='https://torta.bcm.genialis.com',
                         help='Resolwe server address')
-    parser.add_argument('-e', '--email', default='admin', help='User name')
+    parser.add_argument('-u', '--username', default='admin', help='Username')
     parser.add_argument('-p', '--password', default='admin', help='User password')
     parser.add_argument('-c', '--collection', nargs='*', type=int, help='Collection ID(s)')
     parser.add_argument('-v', '--verbose', action='store_true', help='Enable verbose reporting')
@@ -64,7 +64,7 @@ done
         print("\nERROR: -r1 and -r2 file list length must match\n")
         exit(1)
 
-    resolwe = Resolwe(args.email, args.password, args.address)
+    resolwe = Resolwe(args.username, args.password, args.address)
 
     if args.r:
         if all(os.path.isfile(file) for file in args.r):

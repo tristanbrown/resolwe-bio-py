@@ -70,8 +70,8 @@ class ResolweAPI(slumber.API):
 class Resolwe(object):
     """Connect to a Resolwe server.
 
-    :param email: user's email
-    :type email: str
+    :param username: user's username
+    :type username: str
     :param password: user's password
     :type password: str
     :param url: Resolwe server instance

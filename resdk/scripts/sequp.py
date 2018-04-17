@@ -78,7 +78,7 @@ def sequp():
                                      'directory to the Resolwe server.')
 
     parser.add_argument('-a', '--address', help='Resolwe server address')
-    parser.add_argument('-e', '--email', help='User e-mail')
+    parser.add_argument('-u', '--username', help='Username')
     parser.add_argument('-p', '--password', help='User password')
     parser.add_argument('-d', '--directory', help='Observed directory with reads')
     parser.add_argument('-f', '--force', action='store_true', help='Force upload of all files')
@@ -90,13 +90,13 @@ def sequp():
         resdk_logger.start_logging()
 
     genialis_url = args.address or os.getenv('GENIALIS_URL') or 'http://localhost:8000'
-    genialis_email = args.email or os.getenv('GENIALIS_EMAIL') or 'admin'
+    genialis_username = args.username or os.getenv('GENIALIS_USERNAME') or 'admin'
     genialis_pass = args.password or os.getenv('GENIALIS_PASS') or 'admin'
     genialis_seq_dir = args.directory or os.getenv('GENIALIS_SEQ_DIR') or os.path.expanduser('~')
     genialis_seq_dir = os.path.normpath(genialis_seq_dir)
 
     logger.info('Address: {}'.format(genialis_url))
-    logger.info('User: {}'.format(genialis_email))
+    logger.info('User: {}'.format(genialis_username))
     logger.info('Pass: ******')
     logger.info('Directory: {}'.format(genialis_seq_dir))
 
@@ -213,7 +213,7 @@ def sequp():
         annotations.update(parse_annotation_file(ann_file))
 
     # Connect to Resolwe server
-    resolwe = Resolwe(genialis_email, genialis_pass, genialis_url)
+    resolwe = Resolwe(genialis_username, genialis_pass, genialis_url)
 
     read_schemas = resolwe.api.descriptorschema.get(slug='reads')
     read_schema = read_schemas[0] if read_schemas else None
