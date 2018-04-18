@@ -5,15 +5,19 @@ Change Log
 All notable changes to this project are documented in this file.
 
 
-==========
-Unreleased
-==========
+==================
+4.0.0 - 2018-04-18
+==================
 
 Changed
 -------
-* **BACKWARD INCOMPATIBLE:** Change parameter ``email`` to ``username``
-  in Resolwe constructor
-* Enable filtering by sample (instead of entity)
+* **BACKWARD INCOMPATIBLE:** Make ReSDK compatible with Resolwe 8.x:
+
+  - remove trailing colons in Data filters by types
+  - change filters by ``sample`` to ``entity`` before making the request to
+    the backend
+* **BACKWARD INCOMPATIBLE:** Change parameter ``email`` to ``username`` in
+  Resolwe constructor
 
 
 ==================
