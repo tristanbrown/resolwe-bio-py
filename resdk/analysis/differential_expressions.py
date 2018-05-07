@@ -9,7 +9,7 @@ __all__ = ('cuffdiff', )
 
 
 def cuffdiff(resource, annotation, genome=None, multi_read_correct=None, fdr=None,
-             library_type=None, library_normalization=None, dispersion_method=None, threads=None):
+             library_type=None, library_normalization=None, dispersion_method=None):
     """Run Cuffdiff_ for selected cuffquants.
 
     This method runs `Cuffdiff`_ process with ``annotation`` specified
@@ -42,7 +42,6 @@ def cuffdiff(resource, annotation, genome=None, multi_read_correct=None, fdr=Non
         quartile
     :param str dispersion_method: options are: pooled, per-condition,
         blind, poisson
-    :param int threads: use this many processor threads
 
     """
     inputs = {'annotation': get_data_id(annotation)}
@@ -50,7 +49,7 @@ def cuffdiff(resource, annotation, genome=None, multi_read_correct=None, fdr=Non
     input_objects = [annotation]
 
     if genome is not None:
-        inputs['genome'] = genome
+        inputs['genome'] = genome.id
         input_objects.append(genome)
 
     if multi_read_correct is not None:
@@ -67,9 +66,6 @@ def cuffdiff(resource, annotation, genome=None, multi_read_correct=None, fdr=Non
 
     if dispersion_method is not None:
         inputs['dispersion_method'] = dispersion_method
-
-    if threads is not None:
-        inputs['threads'] = threads
 
     samples = get_samples(resource)
     sample_ids = [sample.id for sample in samples]

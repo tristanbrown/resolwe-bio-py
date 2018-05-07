@@ -13,6 +13,14 @@ Added
 -----
 * Add ``bamsplit`` helper function
 
+Changed
+-------
+* **BACKWARD INCOMPATIBLE:** Remove ``threads`` parameter from ``cuffdiff`` helper function
+
+Fixed
+-----
+* Make ``genome`` input work in ``cuffdiff`` helper function
+
 
 ==================
 4.0.0 - 2018-04-18
