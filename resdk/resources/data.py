@@ -7,6 +7,8 @@ import logging
 import requests
 from six.moves.urllib.parse import urljoin  # pylint: disable=wrong-import-order
 
+from resdk.constants import CHUNK_SIZE
+
 from .base import BaseResolweResource
 from .descriptor import DescriptorSchema
 from .utils import get_descriptor_schema_id, is_descriptor_schema, iterate_schema
@@ -313,7 +315,7 @@ class Data(BaseResolweResource):
         if not response.ok:
             response.raise_for_status()
         else:
-            for chunk in response.iter_content():
+            for chunk in response.iter_content(chunk_size=CHUNK_SIZE):
                 output += chunk
 
         return output.decode("utf-8")

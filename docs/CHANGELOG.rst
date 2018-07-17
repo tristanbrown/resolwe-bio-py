@@ -23,6 +23,8 @@ Changed
 Fixed
 -----
 * Make ``genome`` input work in ``cuffdiff`` helper function
+* Increase chunk size in ``Data.stdout`` method. This significantly increases
+  the speed in case of a large stdout file.
 
 
 ==================
