@@ -31,6 +31,18 @@ Resource classes
 .. autoclass:: resdk.resources.User
    :members:
 
+Permissions
+===========
+
+Resources like :class:`resdk.resources.Data`,
+:class:`resdk.resources.Collection`, :class:`resdk.resources.Sample`, and
+:class:`resdk.resources.Process` include a `permissions` attribute to manage
+permissions. The `permissions` attribute is an instance of
+`resdk.resources.permissions.PermissionsManager`.
+
+.. autoclass:: resdk.resources.permissions.PermissionsManager
+   :members:
+
 Utility functions
 =================
 
