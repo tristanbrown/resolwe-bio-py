@@ -5,7 +5,9 @@ import json
 import logging
 
 import requests
-from six.moves.urllib.parse import urljoin  # pylint: disable=import-error
+from six.moves.urllib.parse import urljoin  # pylint: disable=wrong-import-order
+
+from resdk.constants import CHUNK_SIZE
 
 from .base import BaseResolweResource
 from .descriptor import DescriptorSchema
@@ -210,9 +212,9 @@ class Data(BaseResolweResource):
             field_name = 'output.{}'.format(field_name)
 
         for ann_field_name, ann in self.annotation.items():
-            if (ann_field_name.startswith('output') and
-                    (field_name is None or field_name == ann_field_name) and
-                    ann['value'] is not None):
+            if (ann_field_name.startswith('output')
+                    and (field_name is None or field_name == ann_field_name)
+                    and ann['value'] is not None):
                 if ann['type'].startswith('basic:{}:'.format(field_type)):
                     put_in_download_list(ann['value'], ann_field_name)
                 elif ann['type'].startswith('list:basic:{}:'.format(field_type)):
@@ -313,7 +315,7 @@ class Data(BaseResolweResource):
         if not response.ok:
             response.raise_for_status()
         else:
-            for chunk in response.iter_content():
+            for chunk in response.iter_content(chunk_size=CHUNK_SIZE):
                 output += chunk
 
         return output.decode("utf-8")

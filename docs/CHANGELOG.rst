@@ -9,11 +9,59 @@ All notable changes to this project are documented in this file.
 Unreleased
 ==========
 
+Added
+-----
+* Enable direct comparison of two objects
+* Add ``prepare_geo_chipseq``, ``prepare_geo_rnaseq`` and
+  ``prepare_geo`` helper functions
+* Add ``bamsplit`` helper function
+* Add ``annotate`` and ``export_annotation`` functions for collections
+* Add ``upload_reads`` and ``upload_demulti`` functions for collections
+
 Changed
 -------
+* **BACKWARD INCOMPATIBLE:** Remove ``threads`` parameter from ``cuffdiff`` helper function
+
+Fixed
+-----
+* Make ``genome`` input work in ``cuffdiff`` helper function
+* Increase chunk size in ``Data.stdout`` method. This significantly increases
+  the speed in case of a large stdout file.
+
+
+==================
+4.0.0 - 2018-04-18
+==================
+
+Changed
+-------
+* **BACKWARD INCOMPATIBLE:** Make ReSDK compatible with Resolwe 8.x:
+
+  - remove trailing colons in Data filters by types
+  - change filters by ``sample`` to ``entity`` before making the request to
+    the backend
+* **BACKWARD INCOMPATIBLE:** Change parameter ``email`` to ``username`` in
+  Resolwe constructor
+
+
+==================
+3.0.0 - 2018-02-21
+==================
+
+Added
+-----
+* Add ``get_primary_bam`` utility function
+
+Changed
+-------
+* **BACKWARD INCOMPATIBLE:** Update cuffquant ``gff`` input to
+  ``annotation`` in helper and test functions
+* **BACKWARD INCOMPATIBLE:** Remove ``update_knowledge_base`` script
 * Change ``macs14`` helper function to work on unannotated samples
-* **BACKWARD INCOMPATIBLE:** Update cuffquant ``gff`` input to ``annotation`` in
-  helper and test functions
+* Update contributing, start, and differential expression tutorial docs
+* Support primary bam files in ``macs`` helper function
+* Update and reorganize uploads and annotations tutorial doc
+* Update resources and advanced queries tutorial doc
 
 Fixed
 -----
@@ -21,7 +69,6 @@ Fixed
   (referended in ``src`` attribute) with no output field
 * Make ``Data.annotation`` an instance attribute instead of class
   attribute
-* Remove annotation tests from ``test_macs``
 * Fix ``get_*`` calls in tests by including species and build inputs
 * Remove invalid collection assignments in ``get_*`` calls
 
@@ -56,7 +103,7 @@ Fixed
 
 Changed
 -----
-* Remove ``threads`` parameter from ``cuffquant`` and ``cufnorm``
+* Remove ``threads`` parameter from ``cuffquant`` and ``cuffnorm``
   helper functions
 
 Fixed

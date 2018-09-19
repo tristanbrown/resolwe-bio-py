@@ -145,9 +145,9 @@ class ResolweQuery(object):
         # pylint: disable=protected-access
         if not isinstance(index, (slice,) + six.integer_types):
             raise TypeError
-        if ((not isinstance(index, slice) and index < 0) or
-                (isinstance(index, slice) and index.start is not None and index.start < 0) or
-                (isinstance(index, slice) and index.stop is not None and index.stop < 0)):
+        if ((not isinstance(index, slice) and index < 0)
+                or (isinstance(index, slice) and index.start is not None and index.start < 0)
+                or (isinstance(index, slice) and index.stop is not None and index.stop < 0)):
             raise ValueError("Negative indexing is not supported.")
         if isinstance(index, slice) and index.step is not None:
             raise ValueError("`step` parameter in slice is not supported")
@@ -204,6 +204,9 @@ class ResolweQuery(object):
     def _add_filter(self, filter_):
         """Add filter parameter."""
         for key, value in filter_.items():
+            # 'sample' is called 'entity' in the backend.
+            key = key.replace('sample', 'entity')
+
             if self.resource.query_method == 'GET':
                 self._filters[key].append(value)
             elif self.resource.query_method == 'POST':

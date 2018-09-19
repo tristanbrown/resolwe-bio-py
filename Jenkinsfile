@@ -142,7 +142,7 @@ throttle(["resolwe_bio_py"]) {
                                     // resource indefinitely thus we have to set a timeout on their
                                     // execution time.
                                     timeout(time: 10, unit: "MINUTES") {
-                                        sh "tox -e py34-e2e-resdk ${tox_extra_args}"
+                                        sh "tox -e py36-e2e-resdk ${tox_extra_args}"
                                     }
                                 }
                             }

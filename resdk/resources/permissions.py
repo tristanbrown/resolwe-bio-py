@@ -84,8 +84,7 @@ class PermissionsManager(object):
         ``user`` can be single ``User`` object, username, user id, or
         list of previous items.
 
-        Example
-        =======
+        Example:
 
         If you want to add ``view`` permission on a ``My Collection``
         to the user ``john``, run following code:
@@ -114,8 +113,7 @@ class PermissionsManager(object):
         ``user`` can be single ``User`` object, username user id, or
         list of of previous items.
 
-        Example
-        =======
+        Example:
 
         If you want to remove ``view`` permission on a
         ``My Collection`` from the user ``john``, run following code:
@@ -144,8 +142,7 @@ class PermissionsManager(object):
         ``group`` can be single ``Group`` object, group name, group id,
         or a list of previous items.
 
-        Example
-        =======
+        Example:
 
         If you want to add ``view`` permission on a ``My Collection``
         to the group ``my_lab``, run following code:
@@ -160,8 +157,8 @@ class PermissionsManager(object):
 
         .. code-block:: python
 
-            my_lab = res.user.get('my_lab')
-            your_lab = res.user.get('your_lab')
+            my_lab = res.group.get('my_lab')
+            your_lab = res.group.get('your_lab')
             collection = res.collection.get(name='My Collection')
             collection.permissions.add_group([my_lab, your_lab], ['view', 'edit'])
 
@@ -174,8 +171,7 @@ class PermissionsManager(object):
         ``group`` can be single ``Group`` object, group name, group id,
         or list of of previous items.
 
-        Example
-        =======
+        Example:
 
         If you want to remove ``view`` permission on a
         ``My Collection`` from the group ``my_lab``, run following
@@ -191,8 +187,8 @@ class PermissionsManager(object):
 
         .. code-block:: python
 
-            my_lab = res.user.get('my_lab')
-            your_lab = res.user.get('your_lab')
+            my_lab = res.group.get('my_lab')
+            your_lab = res.group.get('your_lab')
             collection = res.collection.get(name='My Collection')
             collection.permissions.remove_group([my_lab, your_lab], ['view', 'edit'])
 
@@ -202,8 +198,7 @@ class PermissionsManager(object):
     def add_public(self, perms):
         """Add ``perms`` permissions to public user.
 
-        Example
-        =======
+        Example:
 
         If you want to make ``My Collection`` public, run following
         code:
@@ -219,8 +214,7 @@ class PermissionsManager(object):
     def remove_public(self, perms):
         """Remove ``perms`` permissions from public user.
 
-        Example
-        =======
+        Example:
 
         If you want to remove public permission form ``My Collection``,
         run following code:

@@ -1,20 +1,54 @@
 """Chip Seq analysis."""
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from resdk.resources.utils import get_data_id, get_resource_collection, get_samples, is_sample
+from resdk.resources.utils import (
+    get_data_id, get_resource_collection, get_samples, is_background, is_sample,
+)
 
-__all__ = ('macs', 'rose2')
+__all__ = ('bamsplit', 'macs', 'rose2')
 
 
-def is_background(sample):
-    """Return ``True`` if given sample is background and ``False`` otherwise."""
-    background_relations = sample.resolwe.relation.filter(
-        type='compare',
-        label='background',
-        entity=sample.id,
-        position='background'
-    )
-    return len(background_relations) > 0
+def bamsplit(resource, header=None, header2=None):
+    """Run ``Bam split`` process on the resource.
+
+    This method runs `Bam split`_ process on the resource. The process
+    will be run on all samples in the resource. Samples' alignment data
+    object must be valid. Valid alignment data objects are those that
+    were aligned to a hybrid genome with a valid build. Valid builds
+    are: 'hg19_dm6' and 'mm10_dm6'.
+
+    .. _Bam split:
+        http://resolwe-bio.readthedocs.io/en/latest/catalog-definitions.html#process-bam-split
+
+    :param resource: resource on which bam-split will be run
+    :param header: SAM header data object for the primary BAM
+    :type header: `~resdk.resources.data.Data`
+    :param header2: SAM header data object for the secodary BAM
+    :type header: `~resdk.resources.data.Data`
+
+    """
+    inputs = {}
+
+    if header:
+        inputs['header'] = header
+
+    if header2:
+        inputs['header2'] = header2
+
+    results = []
+
+    if not isinstance(resource, list):
+        resource = [resource]
+
+    for single_resource in resource:
+        for sample in get_samples(single_resource):
+            inputs['bam'] = sample.get_bam().id
+            primary_bam = sample.resolwe.run(
+                slug='bam-split', input=inputs, collections=sample.collections
+            )
+            results.append(primary_bam)
+
+    return results
 
 
 def macs(resource, use_background=True, p_value=None):
@@ -52,7 +86,7 @@ def macs(resource, use_background=True, p_value=None):
                 background_filter['collection'] = collection_id
 
         for sample in get_samples(single_resource):
-            inputs['treatment'] = sample.get_bam().id
+            inputs['treatment'] = sample.get_primary_bam(fallback_to_bam=True).id
 
             if use_background:
                 if is_background(sample) and not is_sample(single_resource):
@@ -61,7 +95,7 @@ def macs(resource, use_background=True, p_value=None):
                     continue
 
                 background = sample.get_background(**background_filter)
-                inputs['control'] = background.get_bam().id
+                inputs['control'] = background.get_primary_bam(fallback_to_bam=True).id
 
             macs_obj = sample.resolwe.get_or_run(slug='macs14', input=inputs)
             sample.add_data(macs_obj)

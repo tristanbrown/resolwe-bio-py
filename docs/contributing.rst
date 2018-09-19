@@ -26,7 +26,7 @@ Clone your fork (replace ``<username>`` with your GitHub account name) and
 change directory::
 
     git clone https://github.com/<username>/resolwe-bio-py.git
-    cd resolwe-bio
+    cd resolwe-bio-py
 
 Prepare Resolwe SDK for Python for development::
 
@@ -35,7 +35,7 @@ Prepare Resolwe SDK for Python for development::
 .. note::
 
     We recommend using `virtualenv <https://virtualenv.pypa.io/>`_ (on
-    Python 2.7) or `pyvenv <http://docs.python.org/3/library/venv.html>`_ (on
+    Python 2.7) or `venv <http://docs.python.org/3/library/venv.html>`_ (on
     Python 3.4+) to create an isolated Python environment.
 
 .. _Resolwe SDK for Python git repository: https://github.com/genialis/resolwe-bio-py
@@ -54,7 +54,7 @@ To see the tests' code coverage, use::
 
     py.test --cov=resdk
 
-To generate a HTML with tests' code coverage, use::
+To generate an HTML file showing the tests' code coverage, use::
 
     py.test --cov=resdk --cov-report=html
 

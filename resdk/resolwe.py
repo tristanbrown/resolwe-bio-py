@@ -23,8 +23,9 @@ import slumber
 import yaml
 # Needed because we mock requests in test_resolwe.py
 from requests.exceptions import ConnectionError  # pylint: disable=redefined-builtin
-from six.moves.urllib.parse import urljoin  # pylint: disable=import-error
+from six.moves.urllib.parse import urljoin  # pylint: disable=wrong-import-order
 
+from .constants import CHUNK_SIZE
 from .exceptions import ValidationError, handle_http_exception
 from .query import ResolweQuery
 from .resources import Collection, Data, DescriptorSchema, Group, Process, Relation, Sample, User
@@ -33,7 +34,6 @@ from .resources.utils import (
     endswith_colon, get_collection_id, get_data_id, iterate_fields, iterate_schema,
 )
 
-CHUNK_SIZE = 8000000  # 8MB
 DEFAULT_URL = 'http://localhost:8000'
 # Tools directory on the Resolwe server, for example:
 # username@torta.bcmt.bcm.edu://genialis/tools
@@ -70,8 +70,8 @@ class ResolweAPI(slumber.API):
 class Resolwe(object):
     """Connect to a Resolwe server.
 
-    :param email: user's email
-    :type email: str
+    :param username: user's username
+    :type username: str
     :param password: user's password
     :type password: str
     :param url: Resolwe server instance
@@ -344,8 +344,7 @@ class Resolwe(object):
         :return: data object that was just created
         :rtype: Data object
         """
-        if ((descriptor and not descriptor_schema) or
-                (not descriptor and descriptor_schema)):
+        if ((descriptor and not descriptor_schema) or (not descriptor and descriptor_schema)):
             raise ValueError("Set both or neither descriptor and descriptor_schema.")
 
         if src is not None:

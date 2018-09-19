@@ -6,7 +6,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import unittest
 
-from mock import MagicMock
+from mock import MagicMock, patch
 
 from resdk.resources.collection import Collection
 from resdk.resources.relation import Relation
@@ -37,7 +37,10 @@ class TestRelation(unittest.TestCase):
         relation.update()
         self.assertEqual(relation._samples, None)
 
-    def test_collection(self):
+    # I appears it is not possible to deepcopy MagicMocks so we just patch
+    # the deepcopy functionality:
+    @patch('resdk.resources.base.copy')
+    def test_collection(self, copy_mock):
         relation = Relation(id=1, resolwe=MagicMock())
         collection = Collection(id=3, resolwe=MagicMock())
         collection.id = 3  # this is overriden when initialized
